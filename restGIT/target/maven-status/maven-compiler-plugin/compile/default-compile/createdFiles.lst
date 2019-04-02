@@ -1,0 +1,14 @@
+rest/OnosGuiService.class
+architecture/Host.class
+architecture/FlowInstruction.class
+architecture/Cluster.class
+architecture/Flow.class
+architecture/FlowCriteria.class
+architecture/Entorno.class
+tools/JsonManager.class
+architecture/FlowSelector.class
+tools/EntornoTools.class
+architecture/FlowTreatment.class
+architecture/Link.class
+architecture/Port.class
+architecture/Switch.class
