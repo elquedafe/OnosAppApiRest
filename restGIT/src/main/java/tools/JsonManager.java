@@ -23,7 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 
 import architecture.Cluster;
-import architecture.Entorno;
+import architecture.Environment;
 import architecture.Flow;
 import architecture.FlowCriteria;
 import architecture.FlowInstruction;
@@ -35,10 +35,10 @@ import architecture.Port;
 import architecture.Switch;
 
 public class JsonManager {
-    private Entorno entorno;
+    private Environment entorno;
     
 
-    public JsonManager(Entorno entorno) {
+    public JsonManager(Environment entorno) {
             this.entorno = entorno;
     }
 

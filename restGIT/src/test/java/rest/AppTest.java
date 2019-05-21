@@ -8,7 +8,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
-import architecture.Entorno;
+import architecture.Environment;
 import architecture.Flow;
 import architecture.Switch;
 import junit.framework.Test;
@@ -24,7 +24,7 @@ public class AppTest
     extends TestCase
 {
 	Gson gson = new Gson();
-    Entorno entorno = new Entorno();
+    Environment entorno = new Environment();
     /**
      * Create the test case
      *

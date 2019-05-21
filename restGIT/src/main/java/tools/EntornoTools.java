@@ -7,9 +7,13 @@ package tools;
 import java.awt.Container;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +29,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-import architecture.Entorno;
+import architecture.Environment;
 import architecture.Flow;
 import architecture.Link;
 import architecture.Switch;
@@ -40,10 +44,10 @@ public class EntornoTools {
     public static String password;
     public static String controlador;
     //private static ProxyPipe pipe;
-    public static Entorno entorno;
+    public static Environment entorno;
     public static JsonManager parser;
     
-    public static void descubrirEntorno(Entorno entorno, String usuario, String passwd, String controller, JsonManager parser) throws IOException{
+    public static void descubrirEntorno(Environment entorno, String usuario, String passwd, String controller, JsonManager parser) throws IOException{
         entorno = entorno;
         parser = parser;
         String json = "";
@@ -107,7 +111,7 @@ public class EntornoTools {
         
     }
     
-    public static void actualizarGUILinks(Entorno entorno, DefaultListModel<Link> modeloListaLinks, Map<String, Switch> sws) {
+    public static void actualizarGUILinks(Environment entorno, DefaultListModel<Link> modeloListaLinks, Map<String, Switch> sws) {
         List<Link> l = null;
         modeloListaLinks.clear();
         cargarAllLinks(entorno, modeloListaLinks);
@@ -162,7 +166,7 @@ public class EntornoTools {
         }
     }
     
-    public static void actualizarBoxSwitches(Entorno entorno, JComboBox box){        
+    public static void actualizarBoxSwitches(Environment entorno, JComboBox box){        
         for(Switch s : entorno.getMapSwitches().values()){
             if(s.getAvailable()){
                 box.removeItem(s.getId());
@@ -181,7 +185,7 @@ public class EntornoTools {
     
     
     
-    private static void cargarAllLinks(Entorno entorno, DefaultListModel<Link> modelo){
+    private static void cargarAllLinks(Environment entorno, DefaultListModel<Link> modelo){
         for(Switch s : entorno.getMapSwitches().values()){
             for(Link l : s.getListLinks()){
                 modelo.addElement(l);
@@ -203,6 +207,38 @@ public class EntornoTools {
         }
         return b;
             
+    }
+    
+    public static void doJSONPost(URL url, String usuario, String password, String cuerpo) throws IOException{
+        String encoding;
+        String line;
+        String json="";
+        HttpURLConnection connection = null;
+        OutputStreamWriter osw = null;
+        System.out.println("**URL***"+url.getFile());
+        try {
+            encoding = Base64.getEncoder().encodeToString((usuario + ":"+ password).getBytes("UTF-8"));
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Authorization", "Basic " + encoding);
+            OutputStream os = connection.getOutputStream();
+            osw = new OutputStreamWriter(os, "UTF-8");    
+            osw.write(cuerpo);
+            osw.flush();
+            connection.getInputStream();
+        } catch (IOException e) {
+                throw new IOException(e);
+        }
+        finally{
+            if(osw != null)
+                osw.close();
+            if(connection != null)
+                connection.disconnect();
+        }
+
     }
     
 }

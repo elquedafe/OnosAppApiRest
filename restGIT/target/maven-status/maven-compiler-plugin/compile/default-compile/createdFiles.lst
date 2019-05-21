@@ -3,10 +3,12 @@ architecture/Host.class
 architecture/FlowInstruction.class
 architecture/Cluster.class
 architecture/Flow.class
+rest/FlowOnosRequest.class
 architecture/FlowCriteria.class
-architecture/Entorno.class
+rest/FlowClientRequest.class
 tools/JsonManager.class
 architecture/FlowSelector.class
+architecture/Environment.class
 tools/EntornoTools.class
 architecture/FlowTreatment.class
 architecture/Link.class
