@@ -6,10 +6,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -29,6 +32,8 @@ import architecture.Environment;
 import architecture.Switch;
 
 import architecture.Flow;
+import architecture.Host;
+import architecture.Link;
 import tools.EntornoTools;
 import tools.JsonManager;
 
@@ -40,32 +45,64 @@ import tools.JsonManager;
  */
 @Path("/rest")
 public class OnosGuiService {
-	private Environment entorno;
 	private Gson gson;
-	private JsonManager parser;
 	
 	public OnosGuiService() {
 		System.out.println("Instanciado el servicio REST OnosGUI");
-		entorno = new Environment();
 		gson = new Gson();
-		parser = new JsonManager(entorno);
+	}
+	
+	/**
+	 * Create a meter for the given switch
+	 * @param switchId Switch ID where meter is installed
+	 * @param jsonIn JSON retrieved from client
+	 * @return
+	 */
+	@Path("authorization")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response setAuth(String jsonIn) {
+		Response resRest;
+		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
+		
+		EntornoTools.onosHost = authReq.getOnosHost();
+		EntornoTools.user = authReq.getUser();
+		EntornoTools.password = authReq.getPassword();
+		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
+		
+		/*try {
+			EntornoTools.doJSONPost(new URL(url), "onos", "rocks", jsonOut);
+		} catch (MalformedURLException e) {
+			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			return resRest;
+		} catch (IOException e) {
+			//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+			resRest = Response.serverError().build();
+			return resRest;
+		}*/
+		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		return resRest;
 	}
 	
 	/**
 	 * Get the environment state from the controller
 	 * @return Environment
 	 */
-	@Path("/getEntorno")
+	@Path("getEntorno")
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
 		public Response getEntorno() {
 		Response resRest;
+		System.out.println("Credenciales: "+EntornoTools.onosHost+":"+EntornoTools.password);
 		try {
-			EntornoTools.descubrirEntorno(entorno, "onos", "rocks", "192.168.56.102", parser);
+			EntornoTools.descubrirEntorno();
+			//this.entorno = EntornoTools.entorno;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		String json = gson.toJson(entorno);
+		String json = gson.toJson(EntornoTools.entorno);
 		
 		resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
 		return resRest;
@@ -75,18 +112,17 @@ public class OnosGuiService {
 	 * Get switches in the SDN network
 	 * @return Switches placed in SDN network
 	 */
-	@Path("/getSwitches")
+	@Path("getSwitches")
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
 		public Response getSwitches() {
 		Response resRest;
 		try {
-			EntornoTools.descubrirEntorno(entorno, "onos", "rocks", "192.168.56.102", parser);
+			EntornoTools.descubrirEntorno();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String json = gson.toJson(entorno.getMapSwitches().values());
+		String json = gson.toJson(EntornoTools.entorno.getMapSwitches().values());
 		
 		resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
 		return resRest;
@@ -96,18 +132,18 @@ public class OnosGuiService {
 	 * Get all flows from all the switches of the network
 	 * @return All flows in the network
 	 */
-	@Path("/getFlows")
+	@Path("getFlows")
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
 		public Response getFlows() {
 		Response resRest;
 		try {
-			EntornoTools.descubrirEntorno(entorno, "onos", "rocks", "192.168.56.102", parser);
+			EntornoTools.descubrirEntorno();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		Map<String,List<Flow>> map = new HashMap<String,List<Flow>>();
-		for(Switch s : entorno.getMapSwitches().values()) {
+		for(Switch s : EntornoTools.entorno.getMapSwitches().values()) {
 			List<Flow> listFlows = new ArrayList<Flow>();
 			for(Flow flow : s.getMapFlows().values()) {
 				listFlows.add(flow);
@@ -204,9 +240,9 @@ public class OnosGuiService {
 		        "]" +
 		        "}" +
 		        "}";*/
-		String url = "http://192.168.56.102:8181/onos/v1/flows/"+flowReq.getSwitchId();
+		String url = "http://"+EntornoTools.onosHost+":8181/onos/v1/flows/"+flowReq.getSwitchId();
 		try {
-			EntornoTools.doJSONPost(new URL(url), "onos", "rocks", jsonOut);
+			EntornoTools.doJSONPost(new URL(url), jsonOut);
 		} catch (MalformedURLException e) {
 			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 			return resRest;
@@ -217,6 +253,153 @@ public class OnosGuiService {
 			return resRest;
 		}
 		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		return resRest;
+	}
+	
+	/**
+	 * Create a meter for the given switch
+	 * @param switchId Switch ID where meter is installed
+	 * @param jsonIn JSON retrieved from client
+	 * @return
+	 */
+	@Path("vpls")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response setVpls(String jsonIn) {
+		Response resRest;
+		String jsonOut = "";
+		String url = "";
+
+		VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+		
+		try {
+			//GET CURRENT TOPOLOGY STATE
+			EntornoTools.descubrirEntorno();
+			
+			//GET JSON FOR ONOS
+			jsonOut = jsonVplsGeneration(vplsReq);
+
+			url = "http://"+EntornoTools.onosHost+":8181/onos/v1/network/configuration/";
+			EntornoTools.doJSONPost(new URL(url), jsonOut);
+		} catch (MalformedURLException e) {
+			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			return resRest;
+		} catch (IOException e) {
+			//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+			resRest = Response.serverError().build();
+			return resRest;
+		}
+		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		return resRest;
+	}
+	
+	/**
+	 * Generate Json document for ONOS to include VPLS
+	 * @param vplsReq vpls client object
+	 * @return
+	 */
+	private String jsonVplsGeneration(VplsClientRequest vplsReq) {
+		String jsonOut = "";
+		//FOR EACH HOST REQUESTED IN VPLS GENERATE JSON STRING SEGMENTS
+		jsonOut = "{\r\n\"" +
+				"ports\": {\r\n";
+		for(int i = 0; i < vplsReq.getListHosts().size(); i++) {
+			String hostVplsId = vplsReq.getListHosts().get(i);
+			Host h = EntornoTools.entorno.getMapHosts().get(hostVplsId);
+			vplsReq.getListHosts().set(i, "\""+hostVplsId+"\"");
+			
+			//GENERATE JSON FOR SWITCH CONNECTED TO HOST
+			for(Map.Entry<String, String> entry: h.getMapLocations().entrySet()) {
+				jsonOut += "\""+entry.getKey()+"/"+entry.getValue()+"\": {\r\n" + 
+						"      \"interfaces\": [\r\n" + 
+						"        {\r\n" + 
+						"          \"name\": \""+hostVplsId+"\"\r\n" + 
+						"        }\r\n" + 
+						"      ]\r\n" + 
+						"    },";
+			}
+		}
+		
+		//DELETE LAST COMMA
+		if(jsonOut.endsWith(",")) {
+			jsonOut = jsonOut.substring(0, jsonOut.length()-1);
+		}
+		
+		
+		jsonOut += "    }," +
+				"  \"apps\" : {\r\n" + 
+				"    \"org.onosproject.vpls\" : {\r\n" + 
+				"      \"vpls\" : {\r\n" + 
+				"        \"vplsList\" : [\r\n" + 
+				"          {\r\n" + 
+				"            \"name\" : \""+vplsReq.getVplsName()+"\",\r\n" + 
+				"            \"interfaces\" : "+vplsReq.getListHosts().toString()+"\r\n" + 
+				"        ]\r\n" + 
+				"      }\r\n" + 
+				"    }\r\n" + 
+				"  }\r\n" + 
+				"}";
+		return jsonOut;
+	}
+	
+	/**
+	 * Create a meter for the given switch
+	 * @param switchId Switch ID where meter is installed
+	 * @param jsonIn JSON retrieved from client
+	 * @return
+	 */
+	@Path("meter")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response setMeter(String jsonIn) {
+		Response resRest;
+		String onosResponse = "";
+		MeterClientRequest meterReq = gson.fromJson(jsonIn, MeterClientRequest.class);
+		System.out.println("HOST: "+meterReq.getHost());
+		//GETSWITCH
+		Host h = null;
+		for(Host host : EntornoTools.entorno.getMapHosts().values()) {
+			if(host.getIpList().contains(meterReq.getHost()))
+				h = host;
+		}
+		//INSTALL REQUESTED METER FOR EACH SWITCH CONNECTED TO HOST AND ITS FLOWS
+		if (h != null) {
+			for(Map.Entry<String, String> entry : h.getMapLocations().entrySet()) {
+				String url = "http://"+EntornoTools.onosHost+":8181/onos/v1/meters/"+entry.getKey();
+				String jsonOut = "{\r\n" + 
+						"  \"cellId\":8,\r\n" + 
+						"  \"deviceId\": \""+entry.getKey()+"\",\r\n" + 
+						"  \"unit\": \"KB_PER_SEC\",\r\n" + 
+						"  \"burst\": true,\r\n" + 
+						"  \"bands\": [\r\n" + 
+						"    {\r\n" + 
+						"      \"type\": \"DROP\",\r\n" + 
+						"      \"rate\": "+meterReq.getRate()+",\r\n" + 
+						"      \"burstSize\": "+meterReq.getBurst()+"\r\n" + 
+						"    }\r\n" + 
+						"  ]\r\n" + 
+						"}";
+				try {
+					onosResponse = EntornoTools.doJSONPost(new URL(url), jsonOut);
+				} catch (MalformedURLException e) {
+					resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+					return resRest;
+				} catch (IOException e) {
+					//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+					resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n"+"\nHOST:"+h.getId(), MediaType.TEXT_PLAIN).build();
+					//resRest = Response.serverError().build();
+					return resRest;
+				}
+			}
+			
+			resRest = Response.ok("{\"response\":\"succesful"+ onosResponse +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		}
+		else {
+			resRest = Response.ok("{\"response\":\"host not found"+ onosResponse +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		}
 		return resRest;
 	}
 	

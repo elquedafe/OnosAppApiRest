@@ -1,10 +1,13 @@
 rest/OnosGuiService.class
 architecture/Host.class
+rest/VplsClientRequest.class
 architecture/FlowInstruction.class
 architecture/Cluster.class
 architecture/Flow.class
 rest/FlowOnosRequest.class
 architecture/FlowCriteria.class
+rest/MeterClientRequest.class
+rest/AuthorizationClientRequest.class
 rest/FlowClientRequest.class
 tools/JsonManager.class
 architecture/FlowSelector.class

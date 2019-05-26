@@ -35,14 +35,8 @@ import architecture.Port;
 import architecture.Switch;
 
 public class JsonManager {
-    private Environment entorno;
-    
 
-    public JsonManager(Environment entorno) {
-            this.entorno = entorno;
-    }
-
-    public String getJSONGet(URL url, String usuario, String password) throws IOException{
+    public static String getJSONGet(URL url, String usuario, String password) throws IOException{
         String encoding;
         String line;
         String json="";
@@ -70,12 +64,14 @@ public class JsonManager {
 
         return json;
     }
-    public void doJSONPost(URL url, String usuario, String password, String cuerpo) throws IOException{
+    public static String doJSONPost(URL url, String usuario, String password, String cuerpo) throws IOException{
         String encoding;
         String line;
-        String json="";
+        String response="";
         HttpURLConnection connection = null;
         OutputStreamWriter osw = null;
+        BufferedReader in = null;
+        BufferedReader inError = null;
         System.out.println("**URL***"+url.getFile());
         try {
             encoding = Base64.getEncoder().encodeToString((usuario + ":"+ password).getBytes("UTF-8"));
@@ -89,7 +85,18 @@ public class JsonManager {
             osw = new OutputStreamWriter(os, "UTF-8");    
             osw.write(cuerpo);
             osw.flush();
-            connection.getInputStream();
+            
+            InputStream content = (InputStream)connection.getInputStream();
+            in = new BufferedReader (new InputStreamReader (content));
+            while ((line = in.readLine()) != null) {
+                response += line+"\n";
+            }
+            
+            InputStream contentError = (InputStream)connection.getErrorStream();
+            inError = new BufferedReader (new InputStreamReader (content));
+            while ((line = inError.readLine()) != null) {
+                response += line+"\n";
+            }
         } catch (IOException e) {
                 throw new IOException(e);
         }
@@ -98,11 +105,15 @@ public class JsonManager {
                 osw.close();
             if(connection != null)
                 connection.disconnect();
+            if(in != null)
+            	in.close();
+            if(inError != null)
+            	inError.close();
         }
-
+        return response;
     }
         
-    public String doJSONDelete(URL url, String usuario, String password) throws IOException{
+    public static String doJSONDelete(URL url, String usuario, String password) throws IOException{
         String encoding;
         String line;
         String json="";
@@ -114,8 +125,7 @@ public class JsonManager {
             connection.setDoOutput(true);
             connection.setRequestProperty("Authorization", "Basic " + encoding);
             InputStream content = (InputStream)connection.getInputStream();
-            BufferedReader in   = 
-            new BufferedReader (new InputStreamReader (content));
+            BufferedReader in = new BufferedReader (new InputStreamReader (content));
             while ((line = in.readLine()) != null) {
                System.out.println(line);
                 json += line+"\n";
@@ -131,7 +141,7 @@ public class JsonManager {
         return json;
     }
 
-    public void parseoJsonDevicesGson(String json) {
+    public static void parseoJsonDevicesGson(String json) {
         Gson gson = new Gson();
         
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -153,11 +163,11 @@ public class JsonManager {
             LinkedTreeMap annotations = (LinkedTreeMap)map.get("annotations");
             
             Switch s = new Switch(id, type, available, role, mfr, hw, sw, serial, driver, chassisId, lastUpdate, humanReadableLastUpdate, annotations);
-            entorno.getMapSwitches().put(id, s);
+            EntornoTools.entorno.getMapSwitches().put(id, s);
         }
     }
 
-    void parseoJsonPuertosGson(String json) {
+    public static void parseoJsonPuertosGson(String json) {
         String id = "";
         Gson gson = new Gson();
         
@@ -176,11 +186,11 @@ public class JsonManager {
             String portName = (String)annotations.get("portName");
             
             Port p = new Port(ovs, port, isEnabled, type, portSpeed, portMac, portName, annotations);
-            entorno.getMapSwitches().get(id).addPort(p);
+            EntornoTools.entorno.getMapSwitches().get(id).addPort(p);
         }
     }
 
-    public void parseoJsonClustersGson(String json) {
+    public static void parseoJsonClustersGson(String json) {
         Gson gson = new Gson();
         
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -194,11 +204,11 @@ public class JsonManager {
             String lastUpdate = (String)mapClusters.get("lastUpdate");
             String humanReadableLastUpdate = (String)mapClusters.get("humanReadableLastUpdate");
             Cluster c = new Cluster(id, ip, tcpPort, status, lastUpdate, humanReadableLastUpdate);
-            entorno.addCluster(c);
+            EntornoTools.entorno.addCluster(c);
         }
     }
 
-    public void parseoJsonLinksGson(String json) {
+    public static void parseoJsonLinksGson(String json) {
         Gson gson = new Gson();
         
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -229,11 +239,11 @@ public class JsonManager {
             }
             
             Link l = new Link(srcDevice, srcPort, dstDevice, dstPort, type, state, cost);
-            entorno.getMapSwitches().get(srcDevice).getListLinks().add(l);
+            EntornoTools.entorno.getMapSwitches().get(srcDevice).getListLinks().add(l);
         }
     }
     
-    private double parseoJsonPathGson(Gson gson, String jsonPath) {
+    private static double parseoJsonPathGson(Gson gson, String jsonPath) {
         double cost = 0;
         LinkedTreeMap jsonPathsObject = gson.fromJson(jsonPath, LinkedTreeMap.class);
                 ArrayList paths = (ArrayList)jsonPathsObject.get("paths");
@@ -244,7 +254,7 @@ public class JsonManager {
         return cost;
     }
 
-    public void parseoJsonFlowGson(String json) {
+    public static void parseoJsonFlowGson(String json) {
         Gson gson = new Gson();
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
         ArrayList flows = (ArrayList)jsonObject.get("flows");
@@ -307,13 +317,13 @@ public class JsonManager {
             }
             
             Flow flow = new Flow(id, tableId, appId, groupId, priority, timeout, isPermanent, deviceId, state, life, packets, bytes, liveType, lastSeen, flowTreatment, flowSelector);
-            entorno.getMapSwitches().get(deviceId).addFlow(flow);
+            EntornoTools.entorno.getMapSwitches().get(deviceId).addFlow(flow);
             
         }
         
     }
 
-    void parseoJsonHostsGson(String json) {
+    public static void parseoJsonHostsGson(String json) {
         Gson gson = new Gson();
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
         ArrayList hosts = (ArrayList)jsonObject.get("hosts");
@@ -338,7 +348,7 @@ public class JsonManager {
             }
             
             Host h = new Host(id, mac, vlan, innerVlan, outerTpid, configured, ipAddresses, locations);
-            entorno.addHost(h);
+            EntornoTools.entorno.addHost(h);
         }
     }
 

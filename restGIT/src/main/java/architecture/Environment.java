@@ -83,5 +83,23 @@ public class Environment {
         this.hosts.put(host.getId(), host);
     }
 	
-	
+    public List<Link> getAllLinks(){
+    	List<Link> links = new ArrayList<Link>();
+    	//ADD LINKS
+    	for(Switch sw : switches.values()) {
+    		for(Link linkTopo : sw.getListLinks()) {
+    			links.add(linkTopo);
+    		}
+    	}
+    	
+    	//REMOVE DUPLICATE
+    	for(Link link : links) {
+    		for(Link link2 : links) {
+    			if(link.equals(link2))
+    				links.remove(link);
+    		}
+    	}
+    	
+    	return links;
+    }
 }

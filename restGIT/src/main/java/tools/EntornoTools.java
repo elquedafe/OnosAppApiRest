@@ -5,8 +5,11 @@
  */
 package tools;
 import java.awt.Container;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
@@ -29,6 +32,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import com.google.gson.JsonParser;
+
 import architecture.Environment;
 import architecture.Flow;
 import architecture.Link;
@@ -42,19 +47,12 @@ public class EntornoTools {
     public static String endpoint;
     public static String user;
     public static String password;
-    public static String controlador;
+    public static String onosHost;
     //private static ProxyPipe pipe;
-    public static Environment entorno;
-    public static JsonManager parser;
+    public static Environment entorno = new Environment();
     
-    public static void descubrirEntorno(Environment entorno, String usuario, String passwd, String controller, JsonManager parser) throws IOException{
-        entorno = entorno;
-        parser = parser;
+    public static void descubrirEntorno() throws IOException{
         String json = "";
-        user = usuario;
-        password = passwd;
-        controlador = controller;
-        endpoint = "http://" + controlador + ":8181/onos/v1";
         URL urlClusters = new URL(endpoint + "/cluster");
         URL urlDevices = new URL(endpoint + "/devices");
         URL urlLinks = new URL(endpoint + "/links");
@@ -62,47 +60,47 @@ public class EntornoTools {
         URL urlHosts = new URL(endpoint + "/hosts");
 
         // CLUSTERS
-        json = parser.getJSONGet(urlClusters, usuario, passwd);
+        json = JsonManager.getJSONGet(urlClusters, user, password);
 //        parser.parseoJsonClusters(json);
-        parser.parseoJsonClustersGson(json);
+        JsonManager.parseoJsonClustersGson(json);
 //        System.out.println(json);
 //        System.out.println("***CLUSTERS CARGADOS***");
 
         // SWITCHES
-        json = parser.getJSONGet(urlDevices, usuario, passwd);
+        json = JsonManager.getJSONGet(urlDevices, user, password);
         //
         //parser.parseoJsonDevices(json);
-        parser.parseoJsonDevicesGson(json);
+        JsonManager.parseoJsonDevicesGson(json);
 //        System.out.println(json);
 //        System.out.println("\n***SWITCHES CARGADOS***");
         
         //PORTS
         for(Switch s : entorno.getMapSwitches().values()){
-            json = parser.getJSONGet(new URL(endpoint+"/devices/"+s.getId()+"/ports"), usuario, passwd);
+            json = JsonManager.getJSONGet(new URL(endpoint+"/devices/"+s.getId()+"/ports"), user, password);
             //parser.parseoJsonPuertos(json);
-            parser.parseoJsonPuertosGson(json);
+            JsonManager.parseoJsonPuertosGson(json);
             //System.out.println(json);
         }
         //System.out.println("\n***PUERTOS CARGADOS***");
         
         //LINKS
-        json = parser.getJSONGet(urlLinks, usuario, passwd);
+        json = JsonManager.getJSONGet(urlLinks, user, password);
 //        parser.parseoJsonLinks(json);
-        parser.parseoJsonLinksGson(json);
+        JsonManager.parseoJsonLinksGson(json);
 //        System.out.println(json);
 //        System.out.println("\n***ENLACES CARGADOS***");
         
         //FLOWS
-        json = parser.getJSONGet(urlFlows, usuario, passwd);
+        json = JsonManager.getJSONGet(urlFlows, user, password);
 //        parser.parseoJsonFlow(json);
-        parser.parseoJsonFlowGson(json);
+        JsonManager.parseoJsonFlowGson(json);
 //        System.out.println(json);
 //        System.out.println("\n***FLUJOS CARGADOS***");
 //        
         //HOSTS
-        json = parser.getJSONGet(urlHosts, usuario, passwd);
+        json = JsonManager.getJSONGet(urlHosts, user, password);
 //        parser.parseoJsonHosts(json);
-        parser.parseoJsonHostsGson(json);
+        JsonManager.parseoJsonHostsGson(json);
         System.out.println(json);
 //        System.out.println("\n***HOSTS CARGADOS***");
     
@@ -111,7 +109,7 @@ public class EntornoTools {
         
     }
     
-    public static void actualizarGUILinks(Environment entorno, DefaultListModel<Link> modeloListaLinks, Map<String, Switch> sws) {
+    public static void actualizarGUILinks(DefaultListModel<Link> modeloListaLinks, Map<String, Switch> sws) {
         List<Link> l = null;
         modeloListaLinks.clear();
         cargarAllLinks(entorno, modeloListaLinks);
@@ -209,15 +207,17 @@ public class EntornoTools {
             
     }
     
-    public static void doJSONPost(URL url, String usuario, String password, String cuerpo) throws IOException{
+    public static String doJSONPost(URL url, String body) throws IOException{
         String encoding;
         String line;
-        String json="";
+        String response="";
         HttpURLConnection connection = null;
         OutputStreamWriter osw = null;
         System.out.println("**URL***"+url.getFile());
+        BufferedReader in = null;
+        BufferedReader inError = null;
         try {
-            encoding = Base64.getEncoder().encodeToString((usuario + ":"+ password).getBytes("UTF-8"));
+            encoding = Base64.getEncoder().encodeToString((user + ":"+ password).getBytes("UTF-8"));
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -226,9 +226,19 @@ public class EntornoTools {
             connection.setRequestProperty("Authorization", "Basic " + encoding);
             OutputStream os = connection.getOutputStream();
             osw = new OutputStreamWriter(os, "UTF-8");    
-            osw.write(cuerpo);
+            osw.write(body);
             osw.flush();
-            connection.getInputStream();
+            InputStream content = (InputStream)connection.getInputStream();
+            in = new BufferedReader (new InputStreamReader (content));
+            while ((line = in.readLine()) != null) {
+                response += line+"\n";
+            }
+            
+            InputStream contentError = (InputStream)connection.getErrorStream();
+            inError = new BufferedReader (new InputStreamReader (content));
+            while ((line = inError.readLine()) != null) {
+                response += line+"\n";
+            }
         } catch (IOException e) {
                 throw new IOException(e);
         }
@@ -237,8 +247,12 @@ public class EntornoTools {
                 osw.close();
             if(connection != null)
                 connection.disconnect();
+            if(in != null)
+            	in.close();
+            if(inError != null)
+            	inError.close();
         }
-
+        return response;
     }
     
 }

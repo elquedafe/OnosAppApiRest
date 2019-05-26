@@ -35,7 +35,12 @@ public class AppTest
         super( testName );
         
         try {
-			EntornoTools.descubrirEntorno(entorno, "onos", "rocks", "192.168.56.102", new JsonManager(entorno));
+        	EntornoTools.onosHost = "localhost";
+        	EntornoTools.user = "onos";
+        	EntornoTools.password = "rocks";
+        	EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
+			EntornoTools.descubrirEntorno();
+			entorno = EntornoTools.entorno;
 			String json = gson.toJson(entorno);
 			//System.out.println(json);
 			pruebaFlows();
