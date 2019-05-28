@@ -320,21 +320,17 @@ public class OnosGuiService {
 		Response resRest;
 		String jsonOut = "";
 		String url = "";
-
-		VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-
-		//1. copy all ports from GET network/conf and vpls
-		
-		//2.  add new vpls to json
-		
+		url = EntornoTools.endpointNetConf;
 		try {
-			//GET CURRENT TOPOLOGY STATE
+			
 			EntornoTools.descubrirEntorno();
+			
+			
+			VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
 
-			//GET JSON FOR ONOS
-			jsonOut = jsonVplsGeneration(vplsReq);
+			jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
 
-			url = EntornoTools.endpointNetConf;
+			HttpTools.doDelete(new URL(url));
 			HttpTools.doJSONPost(new URL(url), jsonOut);
 		} catch (MalformedURLException e) {
 			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
@@ -348,6 +344,8 @@ public class OnosGuiService {
 		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
 		return resRest;
 	}
+
+	
 
 	/**
 	 * Generate Json document for ONOS to include VPLS

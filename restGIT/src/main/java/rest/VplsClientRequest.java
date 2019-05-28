@@ -10,7 +10,7 @@ public class VplsClientRequest {
 	 * @param vplsName
 	 * @param hosts
 	 */
-	public VplsClientRequest(String vplsName, List<String> listHosts) {
+	public VplsClientRequest(String vplsName, List<String> hosts) {
 		super();
 		this.vplsName = vplsName;
 		this.hosts = hosts;

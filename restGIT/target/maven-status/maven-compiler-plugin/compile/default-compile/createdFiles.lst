@@ -8,6 +8,7 @@ rest/AuthorizationClientRequest.class
 rest/FlowClientRequest.class
 architecture/Band.class
 tools/JsonManager.class
+rest/VplsOnosRequestAux.class
 architecture/Environment.class
 tools/EntornoTools.class
 architecture/FlowTreatment.class

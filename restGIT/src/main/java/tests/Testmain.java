@@ -3,16 +3,21 @@ package tests;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+
 import architecture.Host;
 import architecture.Meter;
 import architecture.Switch;
 import rest.MeterClientRequest;
+import rest.VplsClientRequest;
 import tools.EntornoTools;
 import tools.HttpTools;
 
@@ -33,8 +38,39 @@ public class Testmain {
 		}
 		
 		
+		/******ADD 1 VPLS*******/
+		List<String> interfaces = new ArrayList<String>();
+		interfaces.add("10.0.0.1");
+		interfaces.add("10.0.0.2");
+		VplsClientRequest vplsReq = new VplsClientRequest("VPLS1", interfaces);
+		
+		EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+		
+		
+		/****ACTUAL VPLS STATE IN JSON POST FORMAT****/
+		/*String json = "{\"ports\":{";
+		//PORTS def
+		json += EntornoTools.getNetConfPorts();
+		
+		json += "},";
+		
+		//VPLS def
+		json += "\"apps\" : {\n" + 
+				"    \"org.onosproject.vpls\" : {\n" + 
+				"      \"vpls\" : {\n" + 
+				"        \"vplsList\" : [\n"; 
+		//VPLS LIST
+		json += EntornoTools.getVplsInstalled();
+		json += "        ]\n" + 
+				"      }\n" + 
+				"    }\n" + 
+				"  }\n" +
+				"}";
+				
+		
+		System.out.println("\n\nJSON VPLS DEFINITIVO:"+json);*/
 		/*********** DELETE VPLS **********/
-		try {
+		/*try {
 			String resp = HttpTools.doDelete(new URL(EntornoTools.endpointNetConf));
 			System.out.println("CODIGO RESPUESTA: "+resp);
 		} catch (MalformedURLException e) {
@@ -43,12 +79,7 @@ public class Testmain {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
-		
-		
-		
+		}*/
 		
 		/***** QOS*******/
 		/*String url ="http://localhost:8181/onos/v1/links?device=of:0000000000000002&direction=EGRESS";
