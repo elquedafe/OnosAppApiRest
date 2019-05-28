@@ -54,7 +54,16 @@ public class MeterClientRequest {
 		this.burst = burst;
 	}
 	
-	
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof MeterClientRequest) {
+			
+			return (this.host.equals(((MeterClientRequest)o).host) && 
+					(this.rate == ((MeterClientRequest)o).rate) && 
+					(this.burst == ((MeterClientRequest)o).burst) );
+		}
+		else return false;
+	}
 	
 
 }

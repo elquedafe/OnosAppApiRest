@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -32,11 +33,16 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonParser;
+import com.google.gson.internal.LinkedTreeMap;
 
+import architecture.Band;
 import architecture.Environment;
 import architecture.Flow;
+import architecture.Host;
 import architecture.Link;
+import architecture.Meter;
 import architecture.Switch;
 
 /**
@@ -48,6 +54,7 @@ public class EntornoTools {
     public static String user;
     public static String password;
     public static String onosHost;
+    public static String endpointNetConf;
     //private static ProxyPipe pipe;
     public static Environment entorno = new Environment();
     
@@ -60,14 +67,14 @@ public class EntornoTools {
         URL urlHosts = new URL(endpoint + "/hosts");
 
         // CLUSTERS
-        json = JsonManager.getJSONGet(urlClusters, user, password);
+        json = HttpTools.doJSONGet(urlClusters);
 //        parser.parseoJsonClusters(json);
         JsonManager.parseoJsonClustersGson(json);
 //        System.out.println(json);
 //        System.out.println("***CLUSTERS CARGADOS***");
 
         // SWITCHES
-        json = JsonManager.getJSONGet(urlDevices, user, password);
+        json = HttpTools.doJSONGet(urlDevices);
         //
         //parser.parseoJsonDevices(json);
         JsonManager.parseoJsonDevicesGson(json);
@@ -76,7 +83,7 @@ public class EntornoTools {
         
         //PORTS
         for(Switch s : entorno.getMapSwitches().values()){
-            json = JsonManager.getJSONGet(new URL(endpoint+"/devices/"+s.getId()+"/ports"), user, password);
+            json = HttpTools.doJSONGet(new URL(endpoint+"/devices/"+s.getId()+"/ports"));
             //parser.parseoJsonPuertos(json);
             JsonManager.parseoJsonPuertosGson(json);
             //System.out.println(json);
@@ -84,21 +91,21 @@ public class EntornoTools {
         //System.out.println("\n***PUERTOS CARGADOS***");
         
         //LINKS
-        json = JsonManager.getJSONGet(urlLinks, user, password);
+        json = HttpTools.doJSONGet(urlLinks);
 //        parser.parseoJsonLinks(json);
         JsonManager.parseoJsonLinksGson(json);
 //        System.out.println(json);
 //        System.out.println("\n***ENLACES CARGADOS***");
         
         //FLOWS
-        json = JsonManager.getJSONGet(urlFlows, user, password);
+        json = HttpTools.doJSONGet(urlFlows);
 //        parser.parseoJsonFlow(json);
         JsonManager.parseoJsonFlowGson(json);
 //        System.out.println(json);
 //        System.out.println("\n***FLUJOS CARGADOS***");
 //        
         //HOSTS
-        json = JsonManager.getJSONGet(urlHosts, user, password);
+        json = HttpTools.doJSONGet(urlHosts);
 //        parser.parseoJsonHosts(json);
         JsonManager.parseoJsonHostsGson(json);
         System.out.println(json);
@@ -207,52 +214,247 @@ public class EntornoTools {
             
     }
     
-    public static String doJSONPost(URL url, String body) throws IOException{
-        String encoding;
-        String line;
-        String response="";
-        HttpURLConnection connection = null;
-        OutputStreamWriter osw = null;
-        System.out.println("**URL***"+url.getFile());
-        BufferedReader in = null;
-        BufferedReader inError = null;
-        try {
-            encoding = Base64.getEncoder().encodeToString((user + ":"+ password).getBytes("UTF-8"));
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Authorization", "Basic " + encoding);
-            OutputStream os = connection.getOutputStream();
-            osw = new OutputStreamWriter(os, "UTF-8");    
-            osw.write(body);
-            osw.flush();
-            InputStream content = (InputStream)connection.getInputStream();
-            in = new BufferedReader (new InputStreamReader (content));
-            while ((line = in.readLine()) != null) {
-                response += line+"\n";
-            }
-            
-            InputStream contentError = (InputStream)connection.getErrorStream();
-            inError = new BufferedReader (new InputStreamReader (content));
-            while ((line = inError.readLine()) != null) {
-                response += line+"\n";
-            }
-        } catch (IOException e) {
-                throw new IOException(e);
-        }
-        finally{
-            if(osw != null)
-                osw.close();
-            if(connection != null)
-                connection.disconnect();
-            if(in != null)
-            	in.close();
-            if(inError != null)
-            	inError.close();
-        }
-        return response;
+    /**
+     * Get Switches connected to host given its Ip
+     * @param hostIp
+     * @return
+     */
+    public static List<Switch> getIngressSwitchesByHost(String hostIp) {
+		Host host = null;
+		Switch s = null;
+		List<Switch> listSwitches = new ArrayList<Switch>();
+		try {
+			EntornoTools.descubrirEntorno();
+			for(Host h : EntornoTools.entorno.getMapHosts().values()) {
+				if(h.getIpList().contains(hostIp)) {
+					host = h;
+					break;
+				}
+			}
+			for(Map.Entry<String, String> location : host.getMapLocations().entrySet()) {
+				s = EntornoTools.entorno.getMapSwitches().get(location.getKey());
+				listSwitches.add(s);
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		
+		return listSwitches;
+		
+	}
+    
+    public static List<Meter> getAllMeters() {
+    	List<Meter> listMeters = new ArrayList<Meter>();
+    	List<Band> listBands = new ArrayList<Band>();
+    	String url = EntornoTools.endpoint+"/meters/";
+    	try {
+			String json = HttpTools.doJSONGet(new URL(url));
+			Gson gson = new Gson();
+			LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
+			ArrayList meters = (ArrayList)jsonObject.get("meters");
+			for(Object o : meters) {
+				LinkedTreeMap mapMeter = (LinkedTreeMap)o;
+				
+				String id = (String)mapMeter.get("id");
+				int life = (int)(double)mapMeter.get("life");
+				int packets = (int)(double)mapMeter.get("packets");
+				int bytes = (int)(double)mapMeter.get("bytes");
+				int referenceCount = (int)(double)mapMeter.get("referenceCount");
+				String unit = (String)mapMeter.get("unit");
+				boolean burst = (boolean)mapMeter.get("burst");
+				String deviceId = (String)mapMeter.get("deviceId");
+				String appId = (String)mapMeter.get("appId");
+				String state = (String)mapMeter.get("state");
+				
+				ArrayList bands = (ArrayList)mapMeter.get("bands");
+				Band band = null;
+				for(Object b : bands) {
+					LinkedTreeMap mapBand = (LinkedTreeMap)b;
+					
+					String type = (String)mapBand.get("type");
+					int rate = (int)(double)mapMeter.get("packets");
+					int packetsBand = (int)(double)mapMeter.get("packets");
+					int bytesBand = (int)(double)mapMeter.get("packets");
+					int burstSize = (int)(double)mapMeter.get("packets");
+					
+					band = new Band(type, rate, packetsBand, bytesBand, burstSize);
+					listBands.add(band);
+				}
+				
+				Meter m = new Meter(id, life, packets, bytes, referenceCount, unit, burst, deviceId, appId, state, listBands);
+				listMeters.add(m);
+				
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	
+		return listMeters;
+    	
     }
     
+    public static List<Meter> getMeters(String switchId){
+    	List<Meter> listMeters = new ArrayList<Meter>();
+    	List<Band> listBands = new ArrayList<Band>();
+    	String url = EntornoTools.endpoint+"/meters/"+switchId;
+    	try {
+			String json = HttpTools.doJSONGet(new URL(url));
+			Gson gson = new Gson();
+			LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
+			ArrayList meters = (ArrayList)jsonObject.get("meters");
+			for(Object o : meters) {
+				LinkedTreeMap mapMeter = (LinkedTreeMap)o;
+				
+				String id = (String)mapMeter.get("id");
+				int life = (int)(double)mapMeter.get("life");
+				int packets = (int)(double)mapMeter.get("packets");
+				int bytes = (int)(double)mapMeter.get("bytes");
+				int referenceCount = (int)(double)mapMeter.get("referenceCount");
+				String unit = (String)mapMeter.get("unit");
+				boolean burst = (boolean)mapMeter.get("burst");
+				String deviceId = (String)mapMeter.get("deviceId");
+				String appId = (String)mapMeter.get("appId");
+				String state = (String)mapMeter.get("state");
+				
+				ArrayList bands = (ArrayList)mapMeter.get("bands");
+				Band band = null;
+				for(Object b : bands) {
+					LinkedTreeMap mapBand = (LinkedTreeMap)b;
+					
+					String type = (String)mapBand.get("type");
+					int rate = (int)(double)mapMeter.get("packets");
+					int packetsBand = (int)(double)mapMeter.get("packets");
+					int bytesBand = (int)(double)mapMeter.get("packets");
+					int burstSize = (int)(double)mapMeter.get("packets");
+					
+					band = new Band(type, rate, packetsBand, bytesBand, burstSize);
+					listBands.add(band);
+				}
+				
+				Meter m = new Meter(id, life, packets, bytes, referenceCount, unit, burst, deviceId, appId, state, listBands);
+				listMeters.add(m);
+				
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return listMeters;
+    }
+    
+    public static String addMeter(String switchId, int rate, int burst) throws IOException{
+    	String url = EntornoTools.endpoint + "/meters/"+switchId;
+    	String onosResponse = "";
+		String jsonOut = "{\r\n" + 
+				"  \"cellId\":1,\r\n" + 
+				"  \"deviceId\": \""+switchId+"\",\r\n" + 
+				"  \"unit\": \"KB_PER_SEC\",\r\n" + 
+				"  \"burst\": true,\r\n" + 
+				"  \"bands\": [\r\n" + 
+				"    {\r\n" + 
+				"      \"type\": \"DROP\",\r\n" + 
+				"      \"rate\": "+rate+",\r\n" + 
+				"      \"burstSize\": "+burst+"\r\n" + 
+				"    }\r\n" + 
+				"  ]\r\n" + 
+				"}";
+		
+		try {
+			onosResponse = HttpTools.doJSONPost(new URL(url), jsonOut);
+		} catch (MalformedURLException e) {
+			onosResponse = "URL Error";
+		}
+		
+		return onosResponse;
+    }
+    
+    public static List<String> getOutputPorts(String switchId) {
+    	Gson gson;
+    	List<String> listPorts = new ArrayList<String>();
+		String url = EntornoTools.endpoint + "/links?device="+switchId+"&direction=EGRESS";
+		try {
+			String json = HttpTools.doJSONGet(new URL(url));
+			gson = new Gson();
+			
+			LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
+	        ArrayList links = (ArrayList)jsonObject.get("links");
+	        for(Object l : links) {
+	        	LinkedTreeMap mapLink = (LinkedTreeMap)l;
+	        	LinkedTreeMap src = (LinkedTreeMap)mapLink.get("src");
+	        	String port = (String)src.get("port");
+	        	System.out.println("Puerto de salida de "+switchId+" encontrado: "+ port);
+	        	listPorts.add(port);
+	        }
+	        
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return listPorts;
+    }
+    
+    public static Host getHostByIp(String ip) {
+    	Host host = null;
+    	for(Host h : entorno.getMapHosts().values()) {
+			if(h.getIpList().contains(ip))
+				host = h;
+		}
+    	return host;
+    	
+    }
+    
+    public static String addQosFlow(String switchId, String outPort, int meterId, String ip) throws IOException {
+    	String respuestaOnos = "";
+    	String url = EntornoTools.endpoint+"/flows/"+switchId;
+    	String body = "{\"priority\": 1500,\r\n" + 
+				"\"timeout\": 10,\r\n" + 
+				"\"isPermanent\": false,\r\n" + 
+				"\"deviceId\": \""+switchId+"\",\r\n" + 
+				"\"tableId\": 0,\"groupId\": 0,\"appId\": \"org.onosproject.fwd\",\r\n" + 
+				"\"treatment\": \r\n" + 
+				"	{	\r\n" + 
+				"		\"instructions\": [\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"OUTPUT\",\r\n" + 
+				"				\"port\": \""+outPort+"\"\r\n" + 
+				"			},\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"METER\",\r\n" + 
+				"				\"meterId\":"+meterId+"\r\n" + 
+				"			}\r\n" + 
+				"		]\r\n" + 
+				"	},\r\n" + 
+				"\"selector\": \r\n" + 
+				"	{\r\n" + 
+				"		\"criteria\": [\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"ETH_TYPE\",\r\n" + 
+				"				\"ethType\": \"0x800\"\r\n" + 
+				"			},\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"IPV4_SRC\",\r\n" + 
+				"				\"ip\": \""+ip+"/32\"\r\n" + 
+				"			}\r\n" + 
+				"		]\r\n" + 
+				"	}\r\n" + 
+				"}";
+    	try {
+    		System.out.println("JSON FLUJO QOS: \n"+body+"\n"+switchId+"\n"+outPort+"\n"+meterId+"\n"+ip);
+			String out = HttpTools.doJSONPost(new URL(url), body);
+		} catch (MalformedURLException e) {
+			respuestaOnos = "IO error";
+		}
+    	return "success";
+    }
 }

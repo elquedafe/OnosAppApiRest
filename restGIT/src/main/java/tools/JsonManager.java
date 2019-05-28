@@ -36,110 +36,7 @@ import architecture.Switch;
 
 public class JsonManager {
 
-    public static String getJSONGet(URL url, String usuario, String password) throws IOException{
-        String encoding;
-        String line;
-        String json="";
-        HttpURLConnection connection = null;
-        try {
-            encoding = Base64.getEncoder().encodeToString((usuario + ":"+ password).getBytes("UTF-8"));
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Authorization", "Basic " + encoding);
-            InputStream content = (InputStream)connection.getInputStream();
-            BufferedReader in   = 
-            new BufferedReader (new InputStreamReader (content));
-            while ((line = in.readLine()) != null) {
-            //System.out.println(line);
-                json += line+"\n";
-            }
-        } catch (IOException e) {
-                throw new IOException(e);
-        }
-        finally{
-                if(connection != null)
-                        connection.disconnect();
-        }
-
-        return json;
-    }
-    public static String doJSONPost(URL url, String usuario, String password, String cuerpo) throws IOException{
-        String encoding;
-        String line;
-        String response="";
-        HttpURLConnection connection = null;
-        OutputStreamWriter osw = null;
-        BufferedReader in = null;
-        BufferedReader inError = null;
-        System.out.println("**URL***"+url.getFile());
-        try {
-            encoding = Base64.getEncoder().encodeToString((usuario + ":"+ password).getBytes("UTF-8"));
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Authorization", "Basic " + encoding);
-            OutputStream os = connection.getOutputStream();
-            osw = new OutputStreamWriter(os, "UTF-8");    
-            osw.write(cuerpo);
-            osw.flush();
-            
-            InputStream content = (InputStream)connection.getInputStream();
-            in = new BufferedReader (new InputStreamReader (content));
-            while ((line = in.readLine()) != null) {
-                response += line+"\n";
-            }
-            
-            InputStream contentError = (InputStream)connection.getErrorStream();
-            inError = new BufferedReader (new InputStreamReader (content));
-            while ((line = inError.readLine()) != null) {
-                response += line+"\n";
-            }
-        } catch (IOException e) {
-                throw new IOException(e);
-        }
-        finally{
-            if(osw != null)
-                osw.close();
-            if(connection != null)
-                connection.disconnect();
-            if(in != null)
-            	in.close();
-            if(inError != null)
-            	inError.close();
-        }
-        return response;
-    }
-        
-    public static String doJSONDelete(URL url, String usuario, String password) throws IOException{
-        String encoding;
-        String line;
-        String json="";
-        HttpURLConnection connection = null;
-        try {
-            encoding = Base64.getEncoder().encodeToString((usuario + ":"+ password).getBytes("UTF-8"));
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("DELETE");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Authorization", "Basic " + encoding);
-            InputStream content = (InputStream)connection.getInputStream();
-            BufferedReader in = new BufferedReader (new InputStreamReader (content));
-            while ((line = in.readLine()) != null) {
-               System.out.println(line);
-                json += line+"\n";
-            }
-        } catch (IOException e) {
-                throw new IOException(e);
-        }
-        finally{
-                if(connection != null)
-                        connection.disconnect();
-        }
-
-        return json;
-    }
+    
 
     public static void parseoJsonDevicesGson(String json) {
         Gson gson = new Gson();
@@ -230,7 +127,7 @@ public class JsonManager {
             double cost = 0;
             try {
                 urlPaths = new URL(EntornoTools.endpoint + "/paths/"+srcDevice+"/"+dstDevice);
-                String jsonPath = getJSONGet(urlPaths, EntornoTools.user, EntornoTools.password);
+                String jsonPath = HttpTools.doJSONGet(urlPaths);
                 cost = parseoJsonPathGson(gson, jsonPath);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(JsonManager.class.getName()).log(Level.SEVERE, null, ex);
