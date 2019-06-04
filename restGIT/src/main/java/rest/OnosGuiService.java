@@ -519,7 +519,7 @@ public class OnosGuiService {
 				try {
 					System.out.println("Ingress sw "+ingress.getId()+" para "+ meterReq.getHost());
 					onosResponse = EntornoTools.addMeter(ingress.getId(), meterReq.getRate(), meterReq.getBurst());
-				
+					System.out.println("Meter añadido? respuesta de onos: "+onosResponse);
 					// GET METER ID ALREADY INSTALLED
 					List<Meter> meter = EntornoTools.getMeters(ingress.getId());
 					int meterId = meter.size();
