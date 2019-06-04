@@ -76,6 +76,9 @@ public class OnosGuiService {
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
 		
+		System.out.println("Autenticacion para: "+EntornoTools.user+":"+EntornoTools.user+" ONOS corriendo en: "+ EntornoTools.onosHost);
+		System.out.println("ENDPOINT:" + EntornoTools.endpoint);
+		
 		try {
 			EntornoTools.descubrirEntorno();
 		} catch (IOException e) {
