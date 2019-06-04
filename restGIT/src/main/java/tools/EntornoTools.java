@@ -366,6 +366,7 @@ public class EntornoTools {
 				"    }\r\n" + 
 				"  ]\r\n" + 
 				"}";
+		System.out.println(jsonOut);
 		
 		try {
 			onosResponse = HttpTools.doJSONPost(new URL(url), jsonOut);

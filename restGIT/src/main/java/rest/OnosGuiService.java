@@ -494,6 +494,9 @@ public class OnosGuiService {
 		Response resRest = null;
 		String onosResponse = "";
 		String url = "";
+		String portAux = "";
+		int meterIdAux = -1;
+		String hostMeterAux = "";
 		
 		//DESCUBRIR ENTORNO
 		
@@ -527,9 +530,11 @@ public class OnosGuiService {
 						
 					//Install flows
 					for(String port : outputSwitchPorts) {
-
-						EntornoTools.addQosFlow(ingress.getId(), port, meterId, meterReq.getHost());
+						portAux = port;
+						meterIdAux = meterId;
+						hostMeterAux = meterReq.getHost();
 						
+						EntornoTools.addQosFlow(ingress.getId(), port, meterId, meterReq.getHost());
 						
 					}
 					
@@ -537,7 +542,12 @@ public class OnosGuiService {
 					resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+onosResponse+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 					return resRest;
 				} catch (IOException e) {
-					resRest = Response.ok("IO: "+e.getMessage()+"\n"+onosResponse+"\n"+"\nHOST:"+h.getId(), MediaType.TEXT_PLAIN).build();
+					resRest = Response.ok("IO: "+e.getMessage()+"\n"+onosResponse+
+							"\n"+"\nHOST:"+h.getId()+
+							"\ningress: "+ingress.getId()+
+							"\nport: "+portAux+
+							"\nmeter id: "+meterIdAux+
+							"\nmeter Host from request: "+meterReq.getHost(), MediaType.TEXT_PLAIN).build();
 					//resRest = Response.serverError().build();
 					return resRest;
 				}

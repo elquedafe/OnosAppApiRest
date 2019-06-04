@@ -39,11 +39,13 @@ public class HttpTools {
                 response += line+"\n";
             }
             
-            InputStream contentError = (InputStream)connection.getErrorStream();
+            /*InputStream contentError = (InputStream)connection.getErrorStream();
             inError = new BufferedReader (new InputStreamReader (content));
             while ((line = inError.readLine()) != null) {
                 response += line+"\n";
-            }
+            }*/
+            System.out.println("from doJSONPost -> "+
+            "respuesta: "+response);
         } catch (IOException e) {
                 throw new IOException(e);
         }
