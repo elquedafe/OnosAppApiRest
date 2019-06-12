@@ -44,6 +44,7 @@ import architecture.Host;
 import architecture.Link;
 import architecture.Meter;
 import architecture.Switch;
+import architecture.Vpls;
 import rest.VplsOnosRequestAux;
 
 /**
@@ -423,7 +424,7 @@ public class EntornoTools {
     	String respuestaOnos = "";
     	String url = EntornoTools.endpoint+"/flows/"+switchId;
     	String body = "{\"priority\": 1500,\r\n" + 
-				"\"timeout\": 10,\r\n" + 
+				"\"timeout\": 60,\r\n" + 
 				"\"isPermanent\": false,\r\n" + 
 				"\"deviceId\": \""+switchId+"\",\r\n" + 
 				"\"tableId\": 0,\"groupId\": 0,\"appId\": \"org.onosproject.fwd\",\r\n" + 
@@ -511,35 +512,41 @@ public class EntornoTools {
 			LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
 			LinkedTreeMap apps =  (LinkedTreeMap)jsonObject.get("apps");
 			LinkedTreeMap org =  (LinkedTreeMap)apps.get("org.onosproject.vpls");
-			LinkedTreeMap vpls =  (LinkedTreeMap)org.get("vpls");
-			ArrayList vplsList = (ArrayList)vpls.get("vplsList");
-			for(Object o : vplsList) {
-				LinkedTreeMap mapVpls = (LinkedTreeMap)o;
+			if(org != null) {
+				LinkedTreeMap vpls =  (LinkedTreeMap)org.get("vpls");
+				ArrayList vplsList = (ArrayList)vpls.get("vplsList");
+				for(Object o : vplsList) {
+					LinkedTreeMap mapVpls = (LinkedTreeMap)o;
+					
+					String name = (String)mapVpls.get("name");
+					List<String> listInterfaces = new ArrayList<String>();
+					ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
+					for(Object ob : interfaces) {
+						String interf = (String)ob;
+						listInterfaces.add(interf);
+					}
+					
+					//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
+					if(reqVplsName.equals(name)) {
+						sameName = true;
+						listInterfaces.clear();
+						listInterfaces.addAll(reqListInterfaces);
+					}
+					vplss.add(new VplsOnosRequestAux(name, listInterfaces));
 				
-				String name = (String)mapVpls.get("name");
-				List<String> listInterfaces = new ArrayList<String>();
-				ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
-				for(Object ob : interfaces) {
-					String interf = (String)ob;
-					listInterfaces.add(interf);
+					//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
+					//genJson += "\"interfaces\": ";
+					//genJson += listInterfaces.toString();
+					//genJson += "},";
+					
 				}
-				
-				//NEW VPLS
-				if(reqVplsName.equals(name)) {
-					sameName = true;
-					listInterfaces.clear();
-					listInterfaces.addAll(reqListInterfaces);
-				}
-				vplss.add(new VplsOnosRequestAux(name, listInterfaces));
-			
-				//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
-				//genJson += "\"interfaces\": ";
-				//genJson += listInterfaces.toString();
-				//genJson += "},";
-				
+				if(!sameName)
+					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
 			}
-			if(!sameName)
+			else {
 				vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
+			}
+			
 
 			genJson += gson.toJson(vplss);
 			genJson +="}}}}";
@@ -614,4 +621,45 @@ public class EntornoTools {
     	//System.out.println("JSON to generate VPLS: \n"+genJson);
     	return genJson;
     }
+
+	public static String getVpls() {
+		// TODO Auto-generated method stub
+		Gson gson = new Gson();
+		String json = "";
+		List<Vpls> vplsList = null;
+		try {
+			
+			json = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+			LogTools.info("getVpls", "Json from ONOS: "+json);
+			vplsList = JsonManager.parseoVpls(json);
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return gson.toJson(vplsList);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return gson.toJson(vplsList);
+		}
+		return gson.toJson(vplsList);
+	}
+	
+	public static String deleteVpls(String vplsName) throws IOException{
+		String json = "";
+		String response = "";
+			json = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+		//DELETE ALL VPLS
+		HttpTools.doDelete(new URL(EntornoTools.endpointNetConf));
+		
+		//ADD ONLY NOT DELETED
+		List<Vpls> vplss = JsonManager.parseoVpls(json);
+		for(int i = 0; i < vplss.size(); i++) {
+			if(!vplss.get(i).getName().equals(vplsName)) {
+				json = EntornoTools.addVplsJson(vplss.get(i).getName(), vplss.get(i).getInterfaces());
+				response = HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), json);
+			}
+		}
+		return response;
+	}
 }

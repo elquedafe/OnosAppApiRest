@@ -16,10 +16,12 @@ import com.google.gson.internal.LinkedTreeMap;
 import architecture.Host;
 import architecture.Meter;
 import architecture.Switch;
+import architecture.Vpls;
 import rest.MeterClientRequest;
 import rest.VplsClientRequest;
 import tools.EntornoTools;
 import tools.HttpTools;
+import tools.JsonManager;
 
 public class Testmain {
 
@@ -37,22 +39,77 @@ public class Testmain {
 			e.printStackTrace();
 		}
 		
-		/*******ADD METER******/
+		/*********DELETE 1 VPLS************/
+		/*String json = "";
+		String vplsToDelete = "VPLS1";
+		
+		
 		try {
-			EntornoTools.getAllMeters();
+			json = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//DELETE ALL VPLS
+		try {
+			HttpTools.doDelete(new URL(EntornoTools.endpointNetConf));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		/******ADD 1 VPLS*******/
+		//ADD ONLY NOT DELETED
+		List<Vpls> vplss = JsonManager.parseoVpls(json);
+		for(int i = 0; i < vplss.size(); i++) {
+			if(!vplss.get(i).getName().equals(vplsToDelete)) {
+				json = EntornoTools.addVplsJson(vplss.get(i).getName(), vplss.get(i).getInterfaces());
+				try {
+					HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), json);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}*/
+		
+		/********GET VPLS************/
+		/*String jsonToClient = EntornoTools.getVpls();
+		System.out.println(jsonToClient);*/
+		
+		/*******ADD METER******/
+		/*try {
+			EntornoTools.getAllMeters();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		
+		/******ADD 1 or 2 VPLS*******/
 		/*List<String> interfaces = new ArrayList<String>();
-		interfaces.add("10.0.0.1");
 		interfaces.add("10.0.0.2");
+		interfaces.add("10.0.0.3");
 		VplsClientRequest vplsReq = new VplsClientRequest("VPLS1", interfaces);
 		
-		EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());*/
+		String json = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+		try {
+			HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
+		interfaces = new ArrayList<String>();
+		interfaces.add("10.0.0.1");
+		interfaces.add("10.0.0.4");
+		vplsReq = new VplsClientRequest("VPLS2", interfaces);
+		
+		json = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+		try {
+			HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), json);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 		
 		/****ACTUAL VPLS STATE IN JSON POST FORMAT****/
 		/*String json = "{\"ports\":{";

@@ -19,6 +19,7 @@ architecture/FlowInstruction.class
 architecture/LinkPort.class
 architecture/Cluster.class
 architecture/FlowCriteria.class
+architecture/Vpls.class
 rest/MeterClientRequest.class
 architecture/FlowSelector.class
 architecture/SimplePort.class

@@ -199,6 +199,31 @@ public class OnosGuiService {
 		resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
 		return resRest;
 	}
+	
+	/**
+	 * Get all flows from all the switches of the network
+	 * @return All flows in the network
+	 */
+	@Path("vpls")
+	@GET
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response getVpls() {
+		LogTools.rest("GET", "getVpls");
+		Response resRest;
+		try {
+			LogTools.info("getVpls", "Discovering environment");
+			EntornoTools.descubrirEntorno();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		String json = EntornoTools.getVpls();
+
+		//String json = gson.toJson(map);
+		LogTools.info("getVpls", "response to client: " + json);
+		resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
+		return resRest;
+	}
 
 	/**
 	 * Create a flow for the given switch
@@ -324,12 +349,14 @@ public class OnosGuiService {
 
 		try {
 			//GET CURRENT TOPOLOGY STATE
-			LogTools.info("getAllVpls", "Discovering environment");
+			LogTools.info("setAllVpls", "Discovering environment");
 			EntornoTools.descubrirEntorno();
 
 			//GET JSON FOR ONOS
 			jsonOut = jsonVplsGeneration(vplsReq);
 
+			LogTools.info("setAllVpls", "JSON to ONOS for VPLS"+jsonOut);
+			
 			url = EntornoTools.endpointNetConf;
 			HttpTools.doJSONPost(new URL(url), jsonOut);
 		} catch (MalformedURLException e) {
@@ -367,8 +394,9 @@ public class OnosGuiService {
 			
 			
 			VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-
-			jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+			
+			if(vplsReq.getVplsName().equals(vplsName))
+				jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
 
 			HttpTools.doDelete(new URL(url));
 			HttpTools.doJSONPost(new URL(url), jsonOut);
@@ -505,9 +533,10 @@ public class OnosGuiService {
 		
 		//3. Set vpls want to maintain
 		
-		url = EntornoTools.endpointNetConf;
+		
 		try {
-			onosResponse = HttpTools.doDelete(new URL(url));
+			onosResponse = EntornoTools.deleteVpls(vplsName);
+			//onosResponse = HttpTools.doDelete(new URL(url));
 		} catch (MalformedURLException e) {
 			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 			return resRest;

@@ -5,6 +5,7 @@ import java.util.List;
 public class VplsOnosRequestAux {
 	private String name;
 	private List<String> interfaces;
+	private String encapsulation;
 	/**
 	 * @param name
 	 * @param interfaces

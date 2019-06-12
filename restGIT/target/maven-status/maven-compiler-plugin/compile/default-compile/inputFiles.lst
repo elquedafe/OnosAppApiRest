@@ -2,6 +2,7 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Flow.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/tools/JsonManager.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowInstruction.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Vpls.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/AuthorizationClientRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Environment.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowTreatment.java

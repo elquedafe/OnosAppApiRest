@@ -33,6 +33,7 @@ import architecture.Host;
 import architecture.Link;
 import architecture.Port;
 import architecture.Switch;
+import architecture.Vpls;
 
 public class JsonManager {
 
@@ -248,6 +249,26 @@ public class JsonManager {
             EntornoTools.entorno.addHost(h);
         }
     }
+
+	public static List<Vpls> parseoVpls(String json) {
+		Gson gson = new Gson();
+		List<Vpls> vplsList = new ArrayList<Vpls>();
+		
+		LinkedTreeMap jsonObject = (LinkedTreeMap)gson.fromJson(json, LinkedTreeMap.class);
+		LinkedTreeMap apps = (LinkedTreeMap)jsonObject.get("apps");
+		LinkedTreeMap orgVpls = (LinkedTreeMap)apps.get("org.onosproject.vpls");
+		LinkedTreeMap vpls = (LinkedTreeMap)orgVpls.get("vpls");
+		ArrayList vplsL = (ArrayList)vpls.get("vplsList");
+		
+		for(Object ob : vplsL){
+            LinkedTreeMap vplsNode = (LinkedTreeMap)ob;
+            Vpls v = gson.fromJson(gson.toJson(vplsNode), Vpls.class);
+            vplsList.add(v);
+        }
+		
+		
+		return vplsList;
+	}
 
 }
 

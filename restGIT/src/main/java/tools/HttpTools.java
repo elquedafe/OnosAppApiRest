@@ -21,7 +21,7 @@ public class HttpTools {
 		BufferedReader in = null;
 		BufferedReader inError = null;
 
-		LogTools.post("", url.toString(), body);
+		LogTools.post("POST", url.toString(), body);
 
 		try {
 			encoding = Base64.getEncoder().encodeToString((EntornoTools.user + ":"+ EntornoTools.password).getBytes("UTF-8"));
