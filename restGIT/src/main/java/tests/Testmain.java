@@ -37,14 +37,21 @@ public class Testmain {
 			e.printStackTrace();
 		}
 		
+		/*******ADD METER******/
+		try {
+			EntornoTools.getAllMeters();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		/******ADD 1 VPLS*******/
-		List<String> interfaces = new ArrayList<String>();
+		/*List<String> interfaces = new ArrayList<String>();
 		interfaces.add("10.0.0.1");
 		interfaces.add("10.0.0.2");
 		VplsClientRequest vplsReq = new VplsClientRequest("VPLS1", interfaces);
 		
-		EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+		EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());*/
 		
 		
 		/****ACTUAL VPLS STATE IN JSON POST FORMAT****/

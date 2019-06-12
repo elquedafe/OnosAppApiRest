@@ -109,7 +109,7 @@ public class EntornoTools {
         json = HttpTools.doJSONGet(urlHosts);
 //        parser.parseoJsonHosts(json);
         JsonManager.parseoJsonHostsGson(json);
-        System.out.println(json);
+        //System.out.println(json);
 //        System.out.println("\n***HOSTS CARGADOS***");
     
 //      System.out.println("\n***TOPOLOGIA CARGADA***");
@@ -247,9 +247,8 @@ public class EntornoTools {
 		
 	}
     
-    public static List<Meter> getAllMeters() {
+    public static List<Meter> getAllMeters() throws IOException{
     	List<Meter> listMeters = new ArrayList<Meter>();
-    	List<Band> listBands = new ArrayList<Band>();
     	String url = EntornoTools.endpoint+"/meters/";
     	try {
 			String json = HttpTools.doJSONGet(new URL(url));
@@ -270,29 +269,33 @@ public class EntornoTools {
 				String appId = (String)mapMeter.get("appId");
 				String state = (String)mapMeter.get("state");
 				
-				ArrayList bands = (ArrayList)mapMeter.get("bands");
+				ArrayList bandsArray = (ArrayList)mapMeter.get("bands");
+
+		    	List<Band> bands = new ArrayList<Band>();
 				Band band = null;
-				for(Object b : bands) {
+				for(Object b : bandsArray) {
 					LinkedTreeMap mapBand = (LinkedTreeMap)b;
 					
 					String type = (String)mapBand.get("type");
-					int rate = (int)(double)mapMeter.get("packets");
-					int packetsBand = (int)(double)mapMeter.get("packets");
-					int bytesBand = (int)(double)mapMeter.get("packets");
-					int burstSize = (int)(double)mapMeter.get("packets");
+					int rate = (int)(double)mapBand.get("rate");
+					int packetsBand = (int)(double)mapBand.get("packets");
+					int bytesBand = (int)(double)mapBand.get("bytes");
+					int burstSize = (int)(double)mapBand.get("burstSize");
 					
 					band = new Band(type, rate, packetsBand, bytesBand, burstSize);
-					listBands.add(band);
+					bands.add(band);
 				}
 				
-				Meter m = new Meter(id, life, packets, bytes, referenceCount, unit, burst, deviceId, appId, state, listBands);
+				Meter m = new Meter(id, life, packets, bytes, referenceCount, unit, burst, deviceId, appId, state, bands);
 				listMeters.add(m);
 				
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
+			throw new IOException();
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new IOException();
 		}
     	
     	
@@ -366,7 +369,7 @@ public class EntornoTools {
 				"    }\r\n" + 
 				"  ]\r\n" + 
 				"}";
-		System.out.println(jsonOut);
+		//System.out.println(jsonOut);
 		
 		try {
 			onosResponse = HttpTools.doJSONPost(new URL(url), jsonOut);
@@ -391,7 +394,7 @@ public class EntornoTools {
 	        	LinkedTreeMap mapLink = (LinkedTreeMap)l;
 	        	LinkedTreeMap src = (LinkedTreeMap)mapLink.get("src");
 	        	String port = (String)src.get("port");
-	        	System.out.println("Puerto de salida de "+switchId+" encontrado: "+ port);
+	        	//System.out.println("Puerto de salida de "+switchId+" encontrado: "+ port);
 	        	listPorts.add(port);
 	        }
 	        
@@ -452,7 +455,7 @@ public class EntornoTools {
 				"	}\r\n" + 
 				"}";
     	try {
-    		System.out.println("JSON FLUJO QOS: \n"+body+"\n"+switchId+"\n"+outPort+"\n"+meterId+"\n"+ip);
+    		//System.out.println("JSON FLUJO QOS: \n"+body+"\n"+switchId+"\n"+outPort+"\n"+meterId+"\n"+ip);
 			String out = HttpTools.doJSONPost(new URL(url), body);
 		} catch (MalformedURLException e) {
 			respuestaOnos = "IO error";
@@ -478,7 +481,7 @@ public class EntornoTools {
 			genJson = genJson.substring(0, genJson.length()-1);
 		}
 
-    	System.out.println(genJson);
+    	//System.out.println(genJson);
 		return genJson;
     }
     
@@ -552,11 +555,11 @@ public class EntornoTools {
 			genJson = genJson.substring(0, genJson.length()-1);
 		}*/
 
-    	System.out.println("JSON to generate VPLS: \n"+genJson);
+    	//System.out.println("JSON to generate VPLS: \n"+genJson);
     	return genJson;
     }
     
-    public static String updateVplsJson(String reqVplsName, List<String> reqListInterfaces, String jsonVplsState) {
+    public static String updateVplsJson(String reqVplsName, List<String> reqListInterfaces, String jsonVplsState) throws IOException{
     	Gson gson = new Gson();
     	List<VplsOnosRequestAux> vplss = new ArrayList<VplsOnosRequestAux>();
     	String genJson = "";
@@ -598,15 +601,17 @@ public class EntornoTools {
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new IOException();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new IOException();
 		}
     	//DELETE LAST COMMA
 		/*if(genJson.endsWith(",")) {
 			genJson = genJson.substring(0, genJson.length()-1);
 		}*/
-    	System.out.println("JSON to generate VPLS: \n"+genJson);
+    	//System.out.println("JSON to generate VPLS: \n"+genJson);
     	return genJson;
     }
 }

@@ -5,6 +5,7 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/AuthorizationClientRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Environment.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowTreatment.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/tools/LogTools.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowSelector.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Link.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Band.java

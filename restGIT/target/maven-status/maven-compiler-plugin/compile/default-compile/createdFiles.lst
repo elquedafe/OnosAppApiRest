@@ -22,5 +22,6 @@ architecture/FlowCriteria.class
 rest/MeterClientRequest.class
 architecture/FlowSelector.class
 architecture/SimplePort.class
+tools/LogTools.class
 architecture/Link.class
 architecture/Switch.class
