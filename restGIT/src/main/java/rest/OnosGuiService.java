@@ -398,7 +398,7 @@ public class OnosGuiService {
 			if(vplsReq.getVplsName().equals(vplsName))
 				jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
 
-			HttpTools.doDelete(new URL(url));
+			//HttpTools.doDelete(new URL(url));
 			HttpTools.doJSONPost(new URL(url), jsonOut);
 		} catch (MalformedURLException e) {
 			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();

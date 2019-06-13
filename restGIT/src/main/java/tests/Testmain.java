@@ -39,6 +39,55 @@ public class Testmain {
 			e.printStackTrace();
 		}
 		
+		/*******ADD 2 VPLS*********/
+		String url = EntornoTools.endpointNetConf;
+		List<String> interfaces = new ArrayList<String>();
+		interfaces.add("10.0.0.2");
+		interfaces.add("10.0.0.4");
+		VplsClientRequest vplsReq = new VplsClientRequest("VPLS1", interfaces);
+		
+
+		String jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+		try {
+			//HttpTools.doDelete(new URL(url));
+			//Thread.sleep(200);
+			HttpTools.doJSONPost(new URL(url), jsonOut);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		interfaces = new ArrayList<String>();
+		interfaces.add("10.0.0.1");
+		interfaces.add("10.0.0.3");
+		vplsReq = new VplsClientRequest("VPLS2", interfaces);
+		jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+
+		try {
+			//HttpTools.doDelete(new URL(url));
+			//Thread.sleep(200);
+			HttpTools.doJSONPost(new URL(url), jsonOut);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		/*******DELETE 1 VPLS (new)************/
+		try {
+			EntornoTools.deleteVpls("VPLS1");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		/*********DELETE 1 VPLS************/
 		/*String json = "";
 		String vplsToDelete = "VPLS1";

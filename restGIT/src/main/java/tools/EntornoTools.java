@@ -646,20 +646,70 @@ public class EntornoTools {
 	}
 	
 	public static String deleteVpls(String vplsName) throws IOException{
-		String json = "";
-		String response = "";
-			json = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
-		//DELETE ALL VPLS
-		HttpTools.doDelete(new URL(EntornoTools.endpointNetConf));
-		
-		//ADD ONLY NOT DELETED
-		List<Vpls> vplss = JsonManager.parseoVpls(json);
-		for(int i = 0; i < vplss.size(); i++) {
-			if(!vplss.get(i).getName().equals(vplsName)) {
-				json = EntornoTools.addVplsJson(vplss.get(i).getName(), vplss.get(i).getInterfaces());
-				response = HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), json);
+		Gson gson = new Gson();
+    	boolean sameName = false;
+    	List<VplsOnosRequestAux> vplss = new ArrayList<VplsOnosRequestAux>();
+    	String genJson = "";
+    	genJson += getVplsStateJsonPostFormat();
+    	genJson+= "\"apps\":{"
+    			+ "\"org.onosproject.vpls\": {"
+    			+ "\"vpls\":{"
+    			+ "\"vplsList\":";
+    	try {
+			String json = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+			
+			LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
+			LinkedTreeMap apps =  (LinkedTreeMap)jsonObject.get("apps");
+			LinkedTreeMap org =  (LinkedTreeMap)apps.get("org.onosproject.vpls");
+			if(org != null) {
+				LinkedTreeMap vpls =  (LinkedTreeMap)org.get("vpls");
+				ArrayList vplsList = (ArrayList)vpls.get("vplsList");
+				for(Object o : vplsList) {
+					LinkedTreeMap mapVpls = (LinkedTreeMap)o;
+					
+					//If vpls is the one to delete do not include in the list of new vpls's
+					String name = (String)mapVpls.get("name");
+					if(!name.equals(vplsName)) {
+						List<String> listInterfaces = new ArrayList<String>();
+						ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
+						for(Object ob : interfaces) {
+							String interf = (String)ob;
+							listInterfaces.add(interf);
+						}
+						vplss.add(new VplsOnosRequestAux(name, listInterfaces));
+					}
+					
+				}
 			}
+			genJson += gson.toJson(vplss);
+			genJson +="}}}}";
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return response;
+    	String response = HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), genJson);
+    	return response;
+		
 	}
+	
+//	public static String deleteVpls(String vplsName) throws IOException{
+//		String json = "";
+//		String response = "";
+//			json = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+//		//DELETE ALL VPLS
+//		HttpTools.doDelete(new URL(EntornoTools.endpointNetConf));
+//		
+//		//ADD ONLY NOT DELETED
+//		List<Vpls> vplss = JsonManager.parseoVpls(json);
+//		for(int i = 0; i < vplss.size(); i++) {
+//			if(!vplss.get(i).getName().equals(vplsName)) {
+//				json = EntornoTools.addVplsJson(vplss.get(i).getName(), vplss.get(i).getInterfaces());
+//				response = HttpTools.doJSONPost(new URL(EntornoTools.endpointNetConf), json);
+//			}
+//		}
+//		return response;
+//	}
 }
