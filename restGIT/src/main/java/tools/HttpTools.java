@@ -10,12 +10,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 
+import rest.gsonobjects.onosside.OnosResponse;
+
 public class HttpTools {
 
-	public static String doJSONPost(URL url, String body) throws IOException{
+	public static OnosResponse doJSONPost(URL url, String body) throws IOException{
 		String encoding;
 		String line;
-		String response="";
+		OnosResponse response= new OnosResponse();
 		HttpURLConnection connection = null;
 		OutputStreamWriter osw = null;
 		BufferedReader in = null;
@@ -36,19 +38,17 @@ public class HttpTools {
 			osw.write(body);
 			osw.flush();
 
-			/*InputStream content = (InputStream)connection.getInputStream();
+			//MAYBE COMENTAR
+			InputStream content = (InputStream)connection.getInputStream();
             in = new BufferedReader (new InputStreamReader (content));
+            String str = "";
             while ((line = in.readLine()) != null) {
-                response += line+"\n";
-            }*/
+            	str += str+"\n";
+            }
 
-			connection.getInputStream();
-			response = String.valueOf(connection.getResponseCode());
-			/*InputStream contentError = (InputStream)connection.getErrorStream();
-            inError = new BufferedReader (new InputStreamReader (content));
-            while ((line = inError.readLine()) != null) {
-                response += line+"\n";
-            }*/
+            response.setMessage(str);
+			response.setCode(connection.getResponseCode());
+			
 		} catch (IOException e) {
 			LogTools.error("doJSONPost", e.getMessage());
 			throw new IOException(e);
@@ -67,10 +67,10 @@ public class HttpTools {
 		return response;
 	}
 
-	public static String doDelete(URL url) throws IOException{
+	public static OnosResponse doDelete(URL url) throws IOException{
 		String encoding;
 		String line;
-		String response="";
+		OnosResponse response= new OnosResponse();
 		HttpURLConnection connection = null;
 		OutputStreamWriter osw = null;
 		BufferedReader in = null;
@@ -85,8 +85,17 @@ public class HttpTools {
 			connection.setRequestMethod("DELETE");
 			connection.setDoOutput(true);
 			connection.setRequestProperty("Authorization", "Basic " + encoding);
-			connection.getInputStream();
-			response = String.valueOf(connection.getResponseCode());
+			
+			//MAYBE COMENTAR
+			InputStream content = (InputStream)connection.getInputStream();
+            in = new BufferedReader (new InputStreamReader (content));
+            String str = "";
+            while ((line = in.readLine()) != null) {
+            	str += str+"\n";
+            }
+			
+			response.setMessage(str);
+			response.setCode(connection.getResponseCode());
 
 
 		} catch (IOException e) {
@@ -107,7 +116,8 @@ public class HttpTools {
 		return response;
 	}
 
-	public static String doJSONGet(URL url) throws IOException{
+	public static OnosResponse doJSONGet(URL url) throws IOException{
+		OnosResponse response = new OnosResponse();
 		String encoding;
 		String line;
 		String json="";
@@ -122,12 +132,14 @@ public class HttpTools {
 			connection.setDoOutput(true);
 			connection.setRequestProperty("Authorization", "Basic " + encoding);
 			InputStream content = (InputStream)connection.getInputStream();
+			response.setCode(connection.getResponseCode());
 			BufferedReader in   = 
 					new BufferedReader (new InputStreamReader (content));
 			while ((line = in.readLine()) != null) {
 				//System.out.println(line);
 				json += line+"\n";
 			}
+			response.setMessage(json);
 		} catch (IOException e) {
 			LogTools.error("doJSONGet", e.getMessage());
 			throw new IOException(e);
@@ -137,11 +149,10 @@ public class HttpTools {
 				connection.disconnect();
 		}
 
-		if(json.length() < 900)
-			LogTools.info("doJSONGet", "ONOS response:\n" + json);
-		else
-			LogTools.info("doJSONGet", "ONOS response:\n");
-		return json;
+		if(json.length() < 900) LogTools.info("doJSONGet", "ONOS response:\n" + json);
+		else LogTools.info("doJSONGet", "ONOS response:\n");
+		
+		return response;
 	}
 
 }

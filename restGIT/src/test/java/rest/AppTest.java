@@ -39,7 +39,7 @@ public class AppTest
         	EntornoTools.user = "onos";
         	EntornoTools.password = "rocks";
         	EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
-			EntornoTools.descubrirEntorno();
+			EntornoTools.getEnvironment();
 			entorno = EntornoTools.entorno;
 			String json = gson.toJson(entorno);
 			//System.out.println(json);

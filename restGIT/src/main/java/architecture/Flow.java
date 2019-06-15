@@ -1,19 +1,9 @@
 package architecture;
 
 
-import com.google.gson.internal.LinkedTreeMap;
 import java.util.Vector;
 
 public class Flow {
-    /*private String id;
-    private int idTable;
-    private int idGrupo;
-    private int prioridad;
-    private String estado;
-    private int nPaquetes;
-    private int nBytes;
-    private String ovs;
-    private FlowSelector flowSelector;*/
     private String id;
     private String tableId;
     private String appId;
@@ -48,7 +38,7 @@ public class Flow {
         this.bytes = 0;
         this.liveType = "";
         this.lastSeen = 0;
-        this.flowTreatment = null;
+        this.setFlowTreatment(null);
         this.flowSelector = null;
     }
 
@@ -67,7 +57,7 @@ public class Flow {
         this.bytes = bytes;
         this.liveType = liveType;
         this.lastSeen = lastSeen;
-        this.flowTreatment = flowTreatment;
+        this.setFlowTreatment(flowTreatment);
         this.flowSelector = flowSelector;
     }
     
@@ -256,7 +246,15 @@ public class Flow {
         this.deviceId = deviceId;
     }*/
 
-    @Override
+    public FlowTreatment getFlowTreatment() {
+		return flowTreatment;
+	}
+
+	public void setFlowTreatment(FlowTreatment flowTreatment) {
+		this.flowTreatment = flowTreatment;
+	}
+
+	@Override
     public String toString() {
         return this.deviceId+ "=" + this.id + "\t--> " + "\t| " + this.packets+ " paquetes\t|\t" + this.bytes + " bytes" + "\t|\t" + this.priority;
     }

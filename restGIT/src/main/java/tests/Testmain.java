@@ -17,8 +17,8 @@ import architecture.Host;
 import architecture.Meter;
 import architecture.Switch;
 import architecture.Vpls;
-import rest.MeterClientRequest;
-import rest.VplsClientRequest;
+import rest.gsonobjects.clientside.MeterClientRequest;
+import rest.gsonobjects.clientside.VplsClientRequest;
 import tools.EntornoTools;
 import tools.HttpTools;
 import tools.JsonManager;
@@ -33,7 +33,7 @@ public class Testmain {
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
 		try {
-			EntornoTools.descubrirEntorno();
+			EntornoTools.getEnvironment();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

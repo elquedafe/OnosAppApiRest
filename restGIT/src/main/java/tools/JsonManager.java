@@ -34,12 +34,13 @@ import architecture.Link;
 import architecture.Port;
 import architecture.Switch;
 import architecture.Vpls;
+import rest.gsonobjects.onosside.OnosResponse;
 
 public class JsonManager {
 
     
 
-    public static void parseoJsonDevicesGson(String json) {
+    public static void parseJsonDevicesGson(String json) {
         Gson gson = new Gson();
         
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -65,7 +66,7 @@ public class JsonManager {
         }
     }
 
-    public static void parseoJsonPuertosGson(String json) {
+    public static void parseJsonPortsGson(String json) {
         String id = "";
         Gson gson = new Gson();
         
@@ -88,8 +89,10 @@ public class JsonManager {
         }
     }
 
-    public static void parseoJsonClustersGson(String json) {
+    public static void parseJsonClustersGson(String json) {
         Gson gson = new Gson();
+        
+        EntornoTools.entorno.getListClusters().clear();
         
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
         ArrayList clusters = (ArrayList)jsonObject.get("nodes");
@@ -106,7 +109,7 @@ public class JsonManager {
         }
     }
 
-    public static void parseoJsonLinksGson(String json) {
+    public static void parseJsonLinksGson(String json) {
         Gson gson = new Gson();
         
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -128,8 +131,8 @@ public class JsonManager {
             double cost = 0;
             try {
                 urlPaths = new URL(EntornoTools.endpoint + "/paths/"+srcDevice+"/"+dstDevice);
-                String jsonPath = HttpTools.doJSONGet(urlPaths);
-                cost = parseoJsonPathGson(gson, jsonPath);
+                OnosResponse jsonPath = HttpTools.doJSONGet(urlPaths);
+                cost = parseJsonPathGson(gson, jsonPath.getMessage());
             } catch (MalformedURLException ex) {
                 Logger.getLogger(JsonManager.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -141,7 +144,7 @@ public class JsonManager {
         }
     }
     
-    private static double parseoJsonPathGson(Gson gson, String jsonPath) {
+    private static double parseJsonPathGson(Gson gson, String jsonPath) {
         double cost = 0;
         LinkedTreeMap jsonPathsObject = gson.fromJson(jsonPath, LinkedTreeMap.class);
                 ArrayList paths = (ArrayList)jsonPathsObject.get("paths");
@@ -152,7 +155,7 @@ public class JsonManager {
         return cost;
     }
 
-    public static void parseoJsonFlowGson(String json) {
+    public static void parseJsonFlowGson(String json) {
         Gson gson = new Gson();
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
         ArrayList flows = (ArrayList)jsonObject.get("flows");
@@ -221,7 +224,7 @@ public class JsonManager {
         
     }
 
-    public static void parseoJsonHostsGson(String json) {
+    public static void parseJsonHostsGson(String json) {
         Gson gson = new Gson();
         LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
         ArrayList hosts = (ArrayList)jsonObject.get("hosts");
@@ -250,7 +253,7 @@ public class JsonManager {
         }
     }
 
-	public static List<Vpls> parseoVpls(String json) {
+	public static List<Vpls> parseVpls(String json) {
 		Gson gson = new Gson();
 		List<Vpls> vplsList = new ArrayList<Vpls>();
 		

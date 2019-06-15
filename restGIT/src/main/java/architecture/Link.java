@@ -1,6 +1,7 @@
 
 package architecture;
 
+@SuppressWarnings("unused")
 public class Link {
 	private String src;
 	private String srcPort;

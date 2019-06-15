@@ -34,7 +34,203 @@ public class Switch {
             this.flows = new HashMap<String, Flow>();
 	}
         
-        public Switch(String id, 
+        /**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the role
+	 */
+	public String getRole() {
+		return role;
+	}
+
+	/**
+	 * @param role the role to set
+	 */
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	/**
+	 * @return the mfr
+	 */
+	public String getMfr() {
+		return mfr;
+	}
+
+	/**
+	 * @param mfr the mfr to set
+	 */
+	public void setMfr(String mfr) {
+		this.mfr = mfr;
+	}
+
+	/**
+	 * @return the hw
+	 */
+	public String getHw() {
+		return hw;
+	}
+
+	/**
+	 * @param hw the hw to set
+	 */
+	public void setHw(String hw) {
+		this.hw = hw;
+	}
+
+	/**
+	 * @return the sw
+	 */
+	public String getSw() {
+		return sw;
+	}
+
+	/**
+	 * @param sw the sw to set
+	 */
+	public void setSw(String sw) {
+		this.sw = sw;
+	}
+
+	/**
+	 * @return the serial
+	 */
+	public String getSerial() {
+		return serial;
+	}
+
+	/**
+	 * @param serial the serial to set
+	 */
+	public void setSerial(String serial) {
+		this.serial = serial;
+	}
+
+	/**
+	 * @return the driver
+	 */
+	public String getDriver() {
+		return driver;
+	}
+
+	/**
+	 * @param driver the driver to set
+	 */
+	public void setDriver(String driver) {
+		this.driver = driver;
+	}
+
+	/**
+	 * @return the chassisId
+	 */
+	public String getChassisId() {
+		return chassisId;
+	}
+
+	/**
+	 * @param chassisId the chassisId to set
+	 */
+	public void setChassisId(String chassisId) {
+		this.chassisId = chassisId;
+	}
+
+	/**
+	 * @return the lastUpdate
+	 */
+	public String getLastUpdate() {
+		return lastUpdate;
+	}
+
+	/**
+	 * @param lastUpdate the lastUpdate to set
+	 */
+	public void setLastUpdate(String lastUpdate) {
+		this.lastUpdate = lastUpdate;
+	}
+
+	/**
+	 * @return the humanReadableLastUpdate
+	 */
+	public String getHumanReadableLastUpdate() {
+		return humanReadableLastUpdate;
+	}
+
+	/**
+	 * @param humanReadableLastUpdate the humanReadableLastUpdate to set
+	 */
+	public void setHumanReadableLastUpdate(String humanReadableLastUpdate) {
+		this.humanReadableLastUpdate = humanReadableLastUpdate;
+	}
+
+	/**
+	 * @return the annotations
+	 */
+	public LinkedTreeMap getAnnotations() {
+		return annotations;
+	}
+
+	/**
+	 * @param annotations the annotations to set
+	 */
+	public void setAnnotations(LinkedTreeMap annotations) {
+		this.annotations = annotations;
+	}
+
+	/**
+	 * @return the ports
+	 */
+	public List<Port> getPorts() {
+		return ports;
+	}
+
+	/**
+	 * @param ports the ports to set
+	 */
+	public void setPorts(List<Port> ports) {
+		this.ports = ports;
+	}
+
+	/**
+	 * @return the flows
+	 */
+	public Map<String, Flow> getFlows() {
+		return flows;
+	}
+
+	/**
+	 * @param flows the flows to set
+	 */
+	public void setFlows(Map<String, Flow> flows) {
+		this.flows = flows;
+	}
+
+	/**
+	 * @return the links
+	 */
+	public List<Link> getLinks() {
+		return links;
+	}
+
+	/**
+	 * @param links the links to set
+	 */
+	public void setLinks(List<Link> links) {
+		this.links = links;
+	}
+
+		public Switch(String id, 
                 String type, 
                 boolean available, 
                 String role, 
