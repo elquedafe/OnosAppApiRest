@@ -39,8 +39,12 @@ public class Testmain {
 			e.printStackTrace();
 		}
 		
+		/******GET VPLS*********/
+		String g = EntornoTools.getVpls();
+		
+		
 		/*******ADD 2 VPLS*********/
-		String url = EntornoTools.endpointNetConf;
+		/*String url = EntornoTools.endpointNetConf;
 		List<String> interfaces = new ArrayList<String>();
 		interfaces.add("10.0.0.2");
 		interfaces.add("10.0.0.4");
@@ -79,7 +83,7 @@ public class Testmain {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
-		
+		*/
 		/*******DELETE 1 VPLS (new)************/
 		try {
 			EntornoTools.deleteVpls("VPLS1");
