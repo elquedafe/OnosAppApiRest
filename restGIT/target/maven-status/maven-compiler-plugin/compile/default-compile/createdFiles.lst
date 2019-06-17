@@ -16,7 +16,6 @@ architecture/Port.class
 rest/resources/AuthorizationWebResource.class
 architecture/Meter.class
 architecture/FlowInstruction.class
-architecture/LinkPort.class
 rest/resources/FlowWebResources.class
 architecture/Cluster.class
 architecture/FlowCriteria.class
@@ -27,7 +26,6 @@ rest/gsonobjects/clientside/FlowClientRequest.class
 rest/resources/OnosGuiService.class
 rest/gsonobjects/clientside/VplsClientRequest.class
 architecture/FlowSelector.class
-architecture/SimplePort.class
 tools/LogTools.class
 rest/resources/VplsWebResource.class
 architecture/Link.class

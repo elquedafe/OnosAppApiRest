@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -25,6 +26,7 @@ import architecture.Flow;
 import architecture.Switch;
 import rest.gsonobjects.clientside.FlowClientRequest;
 import rest.gsonobjects.onosside.FlowOnosRequest;
+import rest.gsonobjects.onosside.OnosResponse;
 import tools.EntornoTools;
 import tools.HttpTools;
 import tools.LogTools;
@@ -168,6 +170,31 @@ public class FlowWebResources {
 		String json = gson.toJson(map);
 		LogTools.info("getFlows", "response to client: " + json);
 		resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
+		return resRest;
+	}
+	
+	/**
+	 * Delete flow from switches of the network
+	 * @return All flows in the network
+	 */
+	@Path("{switchId}/{flowId}")
+	@DELETE
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response deleteFlow(@PathParam("switchId") String switchId, @PathParam("flowId") String flowId) {
+		LogTools.rest("DELETE", "deleteFlow");
+		Response resRest;
+		String json = "";
+		OnosResponse response;
+		try {
+			response = HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+switchId+"/"+flowId));
+		} 
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			
+			e.printStackTrace();
+			return Response.ok(gson.toJson(new OnosResponse(e.getMessage(),404)), MediaType.APPLICATION_JSON_TYPE).build();
+		}
+		resRest = Response.ok(gson.toJson(response), MediaType.APPLICATION_JSON_TYPE).build();
 		return resRest;
 	}
 

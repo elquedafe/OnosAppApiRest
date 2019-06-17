@@ -61,12 +61,12 @@ import tools.LogTools;
  */
 //@Path("/rest")
 public class OnosGuiService {
-	private Gson gson;
-
-	public OnosGuiService() {
-		LogTools.info("OnosGuiService", "***OnosGuiService - Instantiate ONOS GUI API REST Service***");
-		gson = new Gson();
-	}
+//	private Gson gson;
+//
+//	public OnosGuiService() {
+//		LogTools.info("OnosGuiService", "***OnosGuiService - Instantiate ONOS GUI API REST Service***");
+//		gson = new Gson();
+//	}
 
 //	/**
 //	 * Create a meter for the given switch
