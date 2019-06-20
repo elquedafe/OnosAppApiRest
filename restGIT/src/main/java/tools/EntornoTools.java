@@ -571,6 +571,74 @@ public class EntornoTools {
 
 	}
 
+	public static OnosResponse addQosFlowWithPort(String switchId, String outPort, int meterId, String ip, int clientPort, String portType) throws IOException {
+		OnosResponse response = null;
+		String url = EntornoTools.endpoint+"/flows/"+switchId;
+		String body = "{\"priority\": 1500,\r\n" + 
+				"\"timeout\": 0,\r\n" + 
+				"\"isPermanent\": true,\r\n" + 
+				"\"deviceId\": \""+switchId+"\",\r\n" + 
+				"\"tableId\": 0,\"groupId\": 0,\"appId\": \"org.onosproject.fwd\",\r\n" + 
+				"\"treatment\": \r\n" + 
+				"	{	\r\n" + 
+				"		\"instructions\": [\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"OUTPUT\",\r\n" + 
+				"				\"port\": \""+outPort+"\"\r\n" + 
+				"			},\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"METER\",\r\n" + 
+				"				\"meterId\":"+meterId+"\r\n" + 
+				"			}\r\n" + 
+				"		]\r\n" + 
+				"	},\r\n" + 
+				"\"selector\": \r\n" + 
+				"	{\r\n" + 
+				"		\"criteria\": [\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"ETH_TYPE\",\r\n" + 
+				"				\"ethType\": \"0x800\"\r\n" + 
+				"			},\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"IPV4_SRC\",\r\n" + 
+				"				\"ip\": \""+ip+"/32\"\r\n" + 
+				"			},\r\n";
+		if(portType.equalsIgnoreCase("tcp")){
+		body += "			{\n" + 
+				"				\"type\": \"IP_PROTO\",\n" + 
+				"				\"protocol\": 6\n" + 
+				"			},\n"+
+				"			{\n" + 
+				"				\"type\": \"TCP_SRC\",\n" + 
+				"				\"tcpPort\": \""+clientPort+"\"\n" + 
+				"			}"+
+				"		]\r\n" + 
+				"	}\r\n" + 
+				"}";
+		}
+		else if(portType.equalsIgnoreCase("tcp")){
+			body += "			{\n" + 
+					"				\"type\": \"IP_PROTO\",\n" + 
+					"				\"protocol\":11\n" + 
+					"			},\n"+
+					"			{\n" + 
+					"				\"type\": \"UDP_SRC\",\n" + 
+					"				\"udpPort\": \""+clientPort+"\"\n" + 
+					"			}"+
+					"		]\r\n" + 
+					"	}\r\n" + 
+					"}";
+		}
+		try {
+			//System.out.println("JSON FLUJO QOS: \n"+body+"\n"+switchId+"\n"+outPort+"\n"+meterId+"\n"+ip);
+			response = HttpTools.doJSONPost(new URL(url), body);
+		} catch (MalformedURLException e) {
+			response = new OnosResponse("URL error", 404);
+		}
+		return response;
+		
+	}
+
 	//	public static String deleteVpls(String vplsName) throws IOException{
 	//		String json = "";
 	//		String response = "";

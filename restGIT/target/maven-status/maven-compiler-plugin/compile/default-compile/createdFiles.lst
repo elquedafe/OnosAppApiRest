@@ -23,6 +23,7 @@ architecture/Vpls.class
 rest/gsonobjects/clientside/AuthorizationClientRequest.class
 rest/resources/MeterWebResource.class
 rest/gsonobjects/clientside/FlowClientRequest.class
+rest/gsonobjects/clientside/MeterClientRequestPort.class
 rest/resources/OnosGuiService.class
 rest/gsonobjects/clientside/VplsClientRequest.class
 architecture/FlowSelector.class
