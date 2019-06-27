@@ -3,17 +3,19 @@ package architecture;
 import java.util.List;
 
 public class Meter {
-	String id;
-	int life;
-	int packets;
-	int bytes;
-	int referenceCount;
-	String unit;
-	boolean burst;
-	String deviceId;
-	String appId;
-	String state;
-	List<Band> bands;
+	
+	private String id;
+	private int life;
+	private int packets;
+	private int bytes;
+	private int referenceCount;
+	private String unit;
+	private boolean burst;
+	private String deviceId;
+	private String appId;
+	private String state;
+	private List<Band> bands;
+	
 	/**
 	 * @param id
 	 * @param life

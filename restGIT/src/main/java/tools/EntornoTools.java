@@ -639,6 +639,18 @@ public class EntornoTools {
 		
 	}
 
+	public static List<Flow> compareFlows(String switchId, Environment oldEnv, Environment newEnv) {
+		List<Flow> flows = new ArrayList<Flow>();
+		
+		for(Flow flow : newEnv.getMapSwitches().get(switchId).getFlows().values()) {
+			if(!oldEnv.getMapSwitches().get(switchId).getFlows().containsKey(flow.getId())) {
+				flows.add(flow);
+			}
+		}
+		
+		return flows;
+	}
+
 	//	public static String deleteVpls(String vplsName) throws IOException{
 	//		String json = "";
 	//		String response = "";

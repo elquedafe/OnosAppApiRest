@@ -6,6 +6,8 @@ public class Vpls {
 	private String name;
 	private List<String> interfaces;
 	private String encapsulation;
+	
+	
 	/**
 	 * @return the name
 	 */

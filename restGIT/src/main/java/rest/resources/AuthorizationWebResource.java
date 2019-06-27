@@ -1,10 +1,15 @@
 package rest.resources;
 
 import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,19 +22,20 @@ import javax.ws.rs.core.Response;
 
 import com.google.gson.Gson;
 
-import rest.gsonobjects.clientside.AuthorizationClientRequest;
+import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.userside.AuthorizationClientRequest;
 import tools.EntornoTools;
 import tools.LogTools;
 
 @Path("/rest/authorization")
 public class AuthorizationWebResource {
 	private Gson gson;
-	
+
 	public AuthorizationWebResource() {
 		LogTools.info("AuthorizationWebResource", "***ONOS SIMPLE REST API (OSRA) Service***");
 		gson = new Gson();
 	}
-	
+
 	/**
 	 * Create a meter for the given switch
 	 * @param switchId Switch ID where meter is installed
@@ -42,15 +48,18 @@ public class AuthorizationWebResource {
 	public Response setAuth(String jsonIn) {
 		LogTools.rest("POST", "setAuth", jsonIn);
 		String messageToClient = "";
-
-		Response resRest;
+		//String propertiesFilename = "users.properties";
+		Response resRest=null;
 		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
 
 		EntornoTools.onosHost = authReq.getOnosHost();
-		EntornoTools.user = authReq.getUser();
-		EntornoTools.password = authReq.getPassword();
+		EntornoTools.user = authReq.getUserOnos();
+		EntornoTools.password = authReq.getPasswordOnos();
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
+
+		LogTools.rest("POST", "setAuth", "usuarioOnos "+EntornoTools.user+" passOnos "+EntornoTools.password);
+		//if(authRestUser(authReq.getUserRest(),authReq.getPasswordRest())) {
 
 		// Check ONOS connectivity
 		try {
@@ -58,7 +67,7 @@ public class AuthorizationWebResource {
 			if(ping(EntornoTools.onosHost)){
 				LogTools.info("setAuth", "ONOS connectivity");
 				LogTools.info("setAuth", "Discovering environment");
-				
+
 				//Discover environment
 				EntornoTools.getEnvironment();
 				messageToClient= "Success ONOS connectivity";
@@ -75,9 +84,10 @@ public class AuthorizationWebResource {
 			return resRest;
 		}
 		resRest = Response.ok("[{\"response\":\""+messageToClient+"\"},"+"{\"onosCode\":"+String.valueOf(200)+"}]", MediaType.APPLICATION_JSON_TYPE).build();
+		//}
 		return resRest;
 	}
-	
+
 	/**
 	 * Checks weather or not a host is available
 	 * @param ip ip address or hostname of the destination
@@ -108,4 +118,26 @@ public class AuthorizationWebResource {
 		}
 
 	}
+
+//	private boolean authRestUser(String userRest, String passwordRest) {
+//		String propertiesFilename = "users.properties";
+//		String passwd = null;
+//		boolean authenticated = false;
+//		try {
+//			InputStream input = new FileInputStream(propertiesFilename);
+//
+//			Properties prop = new Properties();
+//			prop.load(input);
+//
+//			passwd = prop.getProperty(userRest);
+//			if(passwd.equals(passwordRest)) {
+//				return true;
+//			}
+//
+//		} catch (IOException io) {
+//			io.printStackTrace();
+//			return false;
+//		}
+//		return authenticated;
+//	}
 }

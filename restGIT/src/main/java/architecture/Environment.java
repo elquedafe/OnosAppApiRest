@@ -9,7 +9,7 @@ public class Environment {
     private Map<String, Switch> switches;
     private List<Cluster> clusters;
     private Map<String, Host> hosts;
-
+    
     public Environment() {
             this.switches = new HashMap<String, Switch>();
             this.clusters = new ArrayList<Cluster>();

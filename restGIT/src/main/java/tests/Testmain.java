@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +27,12 @@ import architecture.Host;
 import architecture.Meter;
 import architecture.Switch;
 import architecture.Vpls;
-import rest.gsonobjects.clientside.AuthorizationClientRequest;
-import rest.gsonobjects.clientside.MeterClientRequest;
-import rest.gsonobjects.clientside.MeterClientRequestPort;
-import rest.gsonobjects.clientside.VplsClientRequest;
 import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.userside.AuthorizationClientRequest;
+import rest.gsonobjects.userside.MeterClientRequest;
+import rest.gsonobjects.userside.MeterClientRequestPort;
+import rest.gsonobjects.userside.VplsClientRequest;
+import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.HttpTools;
 import tools.JsonManager;
@@ -45,60 +47,63 @@ public class Testmain {
 		EntornoTools.password = "rocks";
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
-		try {
-			EntornoTools.getEnvironment();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			EntornoTools.getEnvironment();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		Gson gson = new Gson();
 
 
+		/******Check Database*******/
+		
+		boolean auth = DatabaseTools.isAuthenticated("Basic YWRtaW46YWRtaW4="); //alvaro:alvaro=Basic YWx2YXJvOmFsdmFybw==   admin:admin
 
 		/*******DELETE METER SOCKET*********/
-		Response resRest = null;
-		OnosResponse onosResponse = null;
-		boolean matchType = false;
-		boolean matchPort = false;
-		boolean matchIp = false;
-		String hostIp = "10.0.0.1";
-		String hostPort = "54244";
-		String meterId = "";
-		try {
-			EntornoTools.getEnvironment();
-			List<Switch> ingress = EntornoTools.getIngressSwitchesByHost(hostIp);
-			for(Switch s : ingress) {
-				for(Flow f : s.getMapFlows().values()) {
-					matchType = false;
-					matchPort = false;
-					matchIp = false;
-					for(FlowCriteria criteria : f.getFlowSelector().getListFlowCriteria()) {
-						if(criteria.getType().equals("IPV4_SRC") && criteria.getCriteria().getValue().equals(hostIp+"/32"))
-							matchIp = true;
-						if(criteria.getType().equals("TCP_SRC") || criteria.getType().equals("UDP_SRC"))
-							matchType = true;
-						if(criteria.getCriteria().getValue().equals(String.valueOf(Double.parseDouble(hostPort))) )
-							matchPort = true;
-
-					}
-					if(matchIp && matchType && matchPort) {
-						onosResponse = HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+s.getId()+"/"+f.getId()));
-						for(FlowInstruction instruction : f.getFlowTreatment().getListInstructions()) {
-							if(instruction.getInstructions().containsKey("meterId")) {
-								meterId = instruction.getInstructions().get("meterId");
-								HttpTools.doDelete(new URL(EntornoTools.endpoint+"/meters/"+s.getId()+"/"+meterId));
-							}
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-		}
-
-		resRest = Response.ok(gson.toJson(onosResponse), MediaType.APPLICATION_JSON_TYPE).build();
+//		Response resRest = null;
+//		OnosResponse onosResponse = null;
+//		boolean matchType = false;
+//		boolean matchPort = false;
+//		boolean matchIp = false;
+//		String hostIp = "10.0.0.1";
+//		String hostPort = "54244";
+//		String meterId = "";
+//		try {
+//			EntornoTools.getEnvironment();
+//			List<Switch> ingress = EntornoTools.getIngressSwitchesByHost(hostIp);
+//			for(Switch s : ingress) {
+//				for(Flow f : s.getMapFlows().values()) {
+//					matchType = false;
+//					matchPort = false;
+//					matchIp = false;
+//					for(FlowCriteria criteria : f.getFlowSelector().getListFlowCriteria()) {
+//						if(criteria.getType().equals("IPV4_SRC") && criteria.getCriteria().getValue().equals(hostIp+"/32"))
+//							matchIp = true;
+//						if(criteria.getType().equals("TCP_SRC") || criteria.getType().equals("UDP_SRC"))
+//							matchType = true;
+//						if(criteria.getCriteria().getValue().equals(String.valueOf(Double.parseDouble(hostPort))) )
+//							matchPort = true;
+//
+//					}
+//					if(matchIp && matchType && matchPort) {
+//						onosResponse = HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+s.getId()+"/"+f.getId()));
+//						for(FlowInstruction instruction : f.getFlowTreatment().getListInstructions()) {
+//							if(instruction.getInstructions().containsKey("meterId")) {
+//								meterId = instruction.getInstructions().get("meterId");
+//								HttpTools.doDelete(new URL(EntornoTools.endpoint+"/meters/"+s.getId()+"/"+meterId));
+//							}
+//						}
+//					}
+//				}
+//			}
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//
+//		}
+//
+//		resRest = Response.ok(gson.toJson(onosResponse), MediaType.APPLICATION_JSON_TYPE).build();
 
 
 
