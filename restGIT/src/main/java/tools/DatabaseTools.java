@@ -119,7 +119,7 @@ public class DatabaseTools {
 
 		String user = getUserPassFromCoded(authString)[0];
 		try {
-			ResultSet rs = executeStatement("SELECT * FROM Flow WHERE IdUser='"+user+"'");
+			ResultSet rs = executeStatement("SELECT * FROM Flow WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')");
 			while (rs.next()){
 				idFlow = rs.getString("IdFlow");
 				idSwitch = rs.getString("IdSwitch");
@@ -153,7 +153,13 @@ public class DatabaseTools {
 			String authInfo = authParts[1];
 			LogTools.info("isAdministrator", "authInfo: "+authInfo);
 			// Decode the data back to original string
-			byte[] bytes = null;
+			byte[] bytes;
+			try {
+				bytes = new BASE64Decoder().decodeBuffer(authInfo);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
 			LogTools.info("isAdministrator", "bytes: "+bytes);
 			decodedAuth = new String(bytes);
 			decoded = decodedAuth.split(":");

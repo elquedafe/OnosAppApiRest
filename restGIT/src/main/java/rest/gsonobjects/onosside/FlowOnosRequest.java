@@ -20,7 +20,7 @@ public class FlowOnosRequest {
 	public FlowOnosRequest() {
 		this.priority = 0;
 		this.timeout = 0;
-		this.isPermanent = false;
+		this.isPermanent = true;
 		this.deviceId = "";
 		this.tableId = 0;
 		this.groupId = 0;

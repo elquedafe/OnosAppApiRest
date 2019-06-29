@@ -639,11 +639,11 @@ public class EntornoTools {
 		
 	}
 
-	public static List<Flow> compareFlows(String switchId, Environment oldEnv, Environment newEnv) {
+	public static List<Flow> compareFlows(String switchId, Map<String, Flow> oldFlowsState, Map<String, Flow> newFlowsState) {
 		List<Flow> flows = new ArrayList<Flow>();
 		
-		for(Flow flow : newEnv.getMapSwitches().get(switchId).getFlows().values()) {
-			if(!oldEnv.getMapSwitches().get(switchId).getFlows().containsKey(flow.getId())) {
+		for(Flow flow : newFlowsState.values()) {
+			if(!oldFlowsState.containsKey(flow.getId())) {
 				flows.add(flow);
 			}
 		}

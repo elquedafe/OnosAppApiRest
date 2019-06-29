@@ -56,7 +56,7 @@ public class FlowsUserWebResource {
 	public Response getFlows(@HeaderParam("authorization") String authString) {
 		LogTools.rest("GET", "getFlows");
 		Response resRest;
-		
+
 		//Check if user is authorized
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
@@ -179,10 +179,30 @@ public class FlowsUserWebResource {
 		        "}";*/
 			String url = EntornoTools.endpoint+"/flows/"+flowReq.getSwitchId();
 			try {
-				Environment oldEnv = EntornoTools.entorno;
+				EntornoTools.getEnvironment();
+				//				Environment oldEnv = EntornoTools.entorno;
+				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+				for(Map.Entry<String, Flow> flow: EntornoTools.entorno.getMapSwitches().get(flowReq.getSwitchId()).getFlows().entrySet()){
+					oldFlowsState.put(flow.getKey(), flow.getValue());
+				}
 				HttpTools.doJSONPost(new URL(url), jsonOut);
-				Environment newEnv = EntornoTools.entorno;
-				List<Flow> flowsNews = EntornoTools.compareFlows(flowReq.getSwitchId(), oldEnv, newEnv);
+
+				//Wait for new state
+//				try {
+//					Thread.sleep(200);
+//				} catch (InterruptedException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
+
+				EntornoTools.getEnvironment();
+				Map<String, Flow>  newFlowsState = new HashMap<String, Flow>();
+				for(Map.Entry<String, Flow> flow: EntornoTools.entorno.getMapSwitches().get(flowReq.getSwitchId()).getFlows().entrySet()){
+					newFlowsState.put(flow.getKey(), flow.getValue());
+				}
+				List<Flow> flowsNews;
+				System.out.println(".");
+				flowsNews = EntornoTools.compareFlows(flowReq.getSwitchId(), oldFlowsState, newFlowsState);
 				if(flowsNews.size()>0) {
 					for(Flow flow : flowsNews) {
 						try {
@@ -190,7 +210,7 @@ public class FlowsUserWebResource {
 						} catch (ClassNotFoundException | SQLException e) {
 							e.printStackTrace();
 							//TODO: Delete flow from onos and send error to client
-							
+
 						}
 					}
 				}
