@@ -30,10 +30,13 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterClientRequestPort.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/tools/DatabaseTools.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowTreatment.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/database/objects/FlowDBResponse.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/FlowOnosRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/RegisterWebResources.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/VplsUserWebResource.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/FlowSocketOnosRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/administration/MetersAdministratorWebResource.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/FlowSocketClientRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/tools/HttpTools.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/MetersUserWebResource.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowCriteria.java
