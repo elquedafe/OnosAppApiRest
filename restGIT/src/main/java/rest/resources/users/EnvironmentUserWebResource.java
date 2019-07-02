@@ -38,7 +38,7 @@ public class EnvironmentUserWebResource {
 		Response resRest = null;
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
-				EntornoTools.getEnvironment();
+				EntornoTools.getEnvironmentByUser(authString);
 				//this.entorno = EntornoTools.entorno;
 			} catch (IOException e) {
 				e.printStackTrace();

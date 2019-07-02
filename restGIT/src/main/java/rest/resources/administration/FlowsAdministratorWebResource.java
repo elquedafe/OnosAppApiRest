@@ -96,10 +96,10 @@ public class FlowsAdministratorWebResource {
 			FlowClientRequest flowReq = gson.fromJson(jsonIn, FlowClientRequest.class);
 			FlowOnosRequest flowOnos = new FlowOnosRequest(flowReq.getPriority(), 
 					flowReq.getTimeout(), flowReq.isPermanent(), flowReq.getSwitchId());
-			LinkedList<LinkedHashMap<String,String>> auxList = new LinkedList<LinkedHashMap<String,String>>();
-			LinkedHashMap<String, String> auxMap = new LinkedHashMap<String,String>();
-			Map<String, LinkedList<LinkedHashMap<String, String>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
-			Map<String, LinkedList<LinkedHashMap<String,String>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
+			LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
+			LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
+			Map<String, LinkedList<LinkedHashMap<String, Object>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 
 			//TREATMENT
 			auxMap.put("type", "OUTPUT");
@@ -110,18 +110,18 @@ public class FlowsAdministratorWebResource {
 
 			//SELECTOR
 			//criteria 1
-			auxMap = new LinkedHashMap<String, String>();
-			auxList = new LinkedList<LinkedHashMap<String,String>>();
+			auxMap = new LinkedHashMap<String, Object>();
+			auxList = new LinkedList<LinkedHashMap<String,Object>>();
 			auxMap.put("type", "IN_PORT");
 			auxMap.put("port", flowReq.getSrcPort());
 			auxList.add(auxMap);
 			//criteria 2
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "ETH_DST");
 			auxMap.put("mac", flowReq.getDstHost());
 			auxList.add(auxMap);
 			//criteria 3
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "ETH_SRC");
 			auxMap.put("mac", flowReq.getSrcHost());
 			auxList.add(auxMap);

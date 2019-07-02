@@ -48,7 +48,7 @@ public class AuthorizationWebResource {
 	public Response setAuth(String jsonIn) {
 		LogTools.rest("POST", "setAuth", jsonIn);
 		String messageToClient = "";
-		//String propertiesFilename = "users.properties";
+
 		Response resRest=null;
 		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
 
@@ -59,8 +59,7 @@ public class AuthorizationWebResource {
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
 
 		LogTools.rest("POST", "setAuth", "usuarioOnos "+EntornoTools.user+" passOnos "+EntornoTools.password);
-		//if(authRestUser(authReq.getUserRest(),authReq.getPasswordRest())) {
-
+		
 		// Check ONOS connectivity
 		try {
 			LogTools.info("setAuth", "Cheking connectivity to ONOS");
@@ -84,7 +83,7 @@ public class AuthorizationWebResource {
 			return resRest;
 		}
 		resRest = Response.ok("[{\"response\":\""+messageToClient+"\"},"+"{\"onosCode\":"+String.valueOf(200)+"}]", MediaType.APPLICATION_JSON_TYPE).build();
-		//}
+		
 		return resRest;
 	}
 

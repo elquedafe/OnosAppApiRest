@@ -200,7 +200,7 @@ public class DatabaseTools {
 	public static void register(String user, String password, boolean isAdmin) throws ClassNotFoundException, SQLException {
 		String sql = "INSERT INTO User "
 				+ "(UserName, Password, IsAdmin) "
-				+ "VALUES ('"+user+"', '"+password+"', "+(isAdmin ? 1 : 0)+"))";
+				+ "VALUES ('"+user+"', '"+password+"', "+(isAdmin ? 1 : 0)+")";
 		executeStatement(sql);
 	}
 

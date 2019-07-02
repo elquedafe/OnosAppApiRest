@@ -14,8 +14,8 @@ public class FlowOnosRequest {
 	private int tableId;
 	private int groupId;
 	private String appId;
-	private Map<String, LinkedList<LinkedHashMap<String,String>>> treatment;
-	private Map<String, LinkedList<LinkedHashMap<String,String>>> selector;
+	private Map<String, LinkedList<LinkedHashMap<String,Object>>> treatment;
+	private Map<String, LinkedList<LinkedHashMap<String,Object>>> selector;
 	
 	public FlowOnosRequest() {
 		this.priority = 0;
@@ -25,8 +25,8 @@ public class FlowOnosRequest {
 		this.tableId = 0;
 		this.groupId = 0;
 		this.appId = "org.onosproject.fwd";
-		this.treatment = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
-		this.selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
+		this.treatment = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+		this.selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 	}
 	
 	public FlowOnosRequest(int priority, int timeout, boolean isPermanent, String deviceId) {
@@ -38,13 +38,13 @@ public class FlowOnosRequest {
 		this.tableId = 0;
 		this.groupId = 0;
 		this.appId = "org.onosproject.fwd";
-		this.treatment = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
-		this.selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
+		this.treatment = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+		this.selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 	}
 	
 	public FlowOnosRequest(int priority, int timeout, boolean isPermanent, String deviceId, int tableId, int groupId,
-			String appId, Map<String, LinkedList<LinkedHashMap<String, String>>> treatment,
-			Map<String, LinkedList<LinkedHashMap<String, String>>> selector) {
+			String appId, Map<String, LinkedList<LinkedHashMap<String, Object>>> treatment,
+			Map<String, LinkedList<LinkedHashMap<String, Object>>> selector) {
 		super();
 		this.priority = priority;
 		this.timeout = timeout;
@@ -158,28 +158,28 @@ public class FlowOnosRequest {
 	/**
 	 * @return the treatment
 	 */
-	public Map<String, LinkedList<LinkedHashMap<String, String>>> getTreatment() {
+	public Map<String, LinkedList<LinkedHashMap<String, Object>>> getTreatment() {
 		return treatment;
 	}
 
 	/**
 	 * @param treatment the treatment to set
 	 */
-	public void setTreatment(Map<String, LinkedList<LinkedHashMap<String, String>>> treatment) {
+	public void setTreatment(Map<String, LinkedList<LinkedHashMap<String, Object>>> treatment) {
 		this.treatment = treatment;
 	}
 
 	/**
 	 * @return the selector
 	 */
-	public Map<String, LinkedList<LinkedHashMap<String, String>>> getSelector() {
+	public Map<String, LinkedList<LinkedHashMap<String, Object>>> getSelector() {
 		return selector;
 	}
 
 	/**
 	 * @param selector the selector to set
 	 */
-	public void setSelector(Map<String, LinkedList<LinkedHashMap<String, String>>> selector) {
+	public void setSelector(Map<String, LinkedList<LinkedHashMap<String, Object>>> selector) {
 		this.selector = selector;
 	}
 	

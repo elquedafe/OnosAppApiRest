@@ -150,7 +150,7 @@ public class HttpTools {
 		}
 
 		if(json.length() < 900) LogTools.info("doJSONGet", "ONOS response:\n" + json);
-		else LogTools.info("doJSONGet", "ONOS response:\n");
+		else LogTools.info("doJSONGet", "ONOS response:\n"+json.substring(0, 900)+"...");
 		
 		return response;
 	}

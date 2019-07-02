@@ -31,8 +31,11 @@ import architecture.Flow;
 import architecture.Switch;
 import rest.database.objects.FlowDBResponse;
 import rest.gsonobjects.onosside.FlowOnosRequest;
+import rest.gsonobjects.onosside.IntentOnosRequest;
 import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.onosside.Point;
 import rest.gsonobjects.userside.FlowClientRequest;
+import rest.gsonobjects.userside.FlowSocketClientRequest;
 import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.HttpTools;
@@ -108,10 +111,10 @@ public class FlowsUserWebResource {
 			FlowClientRequest flowReq = gson.fromJson(jsonIn, FlowClientRequest.class);
 			FlowOnosRequest flowOnos = new FlowOnosRequest(flowReq.getPriority(), 
 					flowReq.getTimeout(), flowReq.isPermanent(), flowReq.getSwitchId());
-			LinkedList<LinkedHashMap<String,String>> auxList = new LinkedList<LinkedHashMap<String,String>>();
-			LinkedHashMap<String, String> auxMap = new LinkedHashMap<String,String>();
-			Map<String, LinkedList<LinkedHashMap<String, String>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
-			Map<String, LinkedList<LinkedHashMap<String,String>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
+			LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
+			LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
+			Map<String, LinkedList<LinkedHashMap<String, Object>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 
 			//TREATMENT
 			auxMap.put("type", "OUTPUT");
@@ -122,18 +125,18 @@ public class FlowsUserWebResource {
 
 			//SELECTOR
 			//criteria 1
-			auxMap = new LinkedHashMap<String, String>();
-			auxList = new LinkedList<LinkedHashMap<String,String>>();
+			auxMap = new LinkedHashMap<String, Object>();
+			auxList = new LinkedList<LinkedHashMap<String,Object>>();
 			auxMap.put("type", "IN_PORT");
 			auxMap.put("port", flowReq.getSrcPort());
 			auxList.add(auxMap);
 			//criteria 2
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "ETH_DST");
 			auxMap.put("mac", flowReq.getDstHost());
 			auxList.add(auxMap);
 			//criteria 3
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "ETH_SRC");
 			auxMap.put("mac", flowReq.getSrcHost());
 			auxList.add(auxMap);
@@ -188,12 +191,12 @@ public class FlowsUserWebResource {
 				HttpTools.doJSONPost(new URL(url), jsonOut);
 
 				//Wait for new state
-//				try {
-//					Thread.sleep(200);
-//				} catch (InterruptedException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
+				//				try {
+				//					Thread.sleep(200);
+				//				} catch (InterruptedException e1) {
+				//					// TODO Auto-generated catch block
+				//					e1.printStackTrace();
+				//				}
 
 				EntornoTools.getEnvironment();
 				Map<String, Flow>  newFlowsState = new HashMap<String, Flow>();
@@ -202,7 +205,120 @@ public class FlowsUserWebResource {
 				}
 				List<Flow> flowsNews;
 				System.out.println(".");
-				flowsNews = EntornoTools.compareFlows(flowReq.getSwitchId(), oldFlowsState, newFlowsState);
+				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+				if(flowsNews.size()>0) {
+					for(Flow flow : flowsNews) {
+						try {
+							DatabaseTools.addFlowByUserId(flow, authString);
+						} catch (ClassNotFoundException | SQLException e) {
+							e.printStackTrace();
+							//TODO: Delete flow from onos and send error to client
+
+						}
+					}
+				}
+			} catch (MalformedURLException e) {
+				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				return resRest;
+			} catch (IOException e) {
+				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+				resRest = Response.serverError().build();
+				return resRest;
+			}
+			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			return resRest;
+		}
+		else
+			return Response.status(401).build();
+	}
+
+	/**
+	 * Create a flow for the given switch
+	 * @param switchId Switch ID where flow is created
+	 * @param jsonIn JSON retrieved from client
+	 * @return
+	 */
+	@Path("{srcHost}/{dstHost}")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response setFlowSocket(@PathParam("srcHost") String srcHost, @PathParam("dstHost") String dstHost, String jsonIn, @HeaderParam("authorization") String authString) {
+		// TODO change all flow creation for Intents
+		LogTools.rest("POST", "setFlow", "From host " + srcHost + " to host "+dstHost+". JSON:\n" + jsonIn);
+		Response resRest;
+		String messageToClient = "";
+		if(DatabaseTools.isAuthenticated(authString)) {
+			FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
+			IntentOnosRequest intentOnos = new IntentOnosRequest();
+			IntentOnosRequest intentOnosInversed = new IntentOnosRequest();
+			
+			//CREATE INTENT SELECTOR
+			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = EntornoTools.createSelector(flowReq);
+			//INGRESS POINT
+			Point ingressPoint = EntornoTools.getIngressPoint(flowReq.getSrcHost());
+			//EGRESS POINT
+			Point egressPoint = EntornoTools.getIngressPoint(flowReq.getDstHost());
+			//COMPLETE INTENT
+			intentOnos.setIngressPoint(ingressPoint);
+			intentOnos.setEgressPoint(egressPoint);
+			intentOnos.setSelector(selector);
+			
+			//CREATE INTENT SELECTOR INVERSE
+			String auxSrcHost = flowReq.getSrcHost();
+			String auxSrcPort = flowReq.getSrcPort();
+			String auxDstHost = flowReq.getDstHost();
+			String auxDstPort = flowReq.getDstPort();
+			flowReq.setDstHost(auxSrcHost);
+			flowReq.setSrcHost(auxDstHost);
+			flowReq.setSrcPort(auxDstPort);
+			flowReq.setDstPort(auxSrcPort);
+			Map<String, LinkedList<LinkedHashMap<String,Object>>> selectorInversed = EntornoTools.createSelector(flowReq);
+			//COMPLETE INTENT
+			intentOnosInversed.setIngressPoint(egressPoint);
+			intentOnosInversed.setEgressPoint(ingressPoint);
+			intentOnosInversed.setSelector(selectorInversed);
+			
+			//Generate JSON to ONOS
+			String jsonOut = gson.toJson(intentOnos);
+			String jsonOutInversed = gson.toJson(intentOnosInversed);
+			LogTools.info("setFlowSocket", "json to create intent: "+jsonOut);
+			LogTools.info("setFlowSocket", "json to create intent INVERSED: "+jsonOutInversed);
+			String url = EntornoTools.endpoint+"/intents";
+			try {
+				
+				//GET OLD STATE
+				EntornoTools.getEnvironment();
+				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+						oldFlowsState.put(flow.getKey(), flow.getValue());
+				}
+				
+				// CREATE FLOWS
+				HttpTools.doJSONPost(new URL(url), jsonOut);
+				HttpTools.doJSONPost(new URL(url), jsonOutInversed);
+
+				//Wait for new state
+				//				try {
+				//					Thread.sleep(200);
+				//				} catch (InterruptedException e1) {
+				//					// TODO Auto-generated catch block
+				//					e1.printStackTrace();
+				//				}
+
+				//GET NEW STATE
+				EntornoTools.getEnvironment();
+				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
+				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+						newFlowsState.put(flow.getKey(), flow.getValue());
+				}
+				List<Flow> flowsNews;
+				System.out.println(".");
+				
+				// GET FLOWS CHANGED
+				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
 				if(flowsNews.size()>0) {
 					for(Flow flow : flowsNews) {
 						try {

@@ -17,6 +17,7 @@ architecture/Port.class
 tools/DatabaseTools.class
 rest/resources/RegisterWebResources.class
 architecture/FlowInstruction.class
+rest/gsonobjects/onosside/Point.class
 rest/gsonobjects/userside/FlowClientRequest.class
 rest/gsonobjects/userside/FlowSocketClientRequest.class
 rest/gsonobjects/userside/AuthorizationClientRequest.class
@@ -28,6 +29,7 @@ architecture/FlowSelector.class
 tools/LogTools.class
 architecture/Link.class
 rest/gsonobjects/userside/VplsClientRequest.class
+rest/gsonobjects/onosside/IntentOnosRequest.class
 architecture/Host.class
 tools/HttpTools.class
 rest/database/objects/FlowDBResponse.class
@@ -44,6 +46,7 @@ architecture/Meter.class
 rest/resources/administration/EnvironmentAdministratorWebResource.class
 rest/gsonobjects/userside/UserCredentials.class
 architecture/Cluster.class
+rest/gsonobjects/onosside/Constraint.class
 architecture/Vpls.class
 rest/gsonobjects/administratorside/VplsAdministratorRequest.class
 architecture/Switch.class

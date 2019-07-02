@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -45,8 +47,12 @@ import architecture.Link;
 import architecture.Meter;
 import architecture.Switch;
 import architecture.Vpls;
+import rest.database.objects.FlowDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.onosside.Point;
 import rest.gsonobjects.onosside.VplsOnosRequestAux;
+import rest.gsonobjects.userside.FlowSocketClientRequest;
+import rest.resources.users.FlowSelector;
 
 /**
  *
@@ -604,17 +610,17 @@ public class EntornoTools {
 				"				\"ip\": \""+ip+"/32\"\r\n" + 
 				"			},\r\n";
 		if(portType.equalsIgnoreCase("tcp")){
-		body += "			{\n" + 
-				"				\"type\": \"IP_PROTO\",\n" + 
-				"				\"protocol\": 6\n" + 
-				"			},\n"+
-				"			{\n" + 
-				"				\"type\": \"TCP_SRC\",\n" + 
-				"				\"tcpPort\": \""+clientPort+"\"\n" + 
-				"			}"+
-				"		]\r\n" + 
-				"	}\r\n" + 
-				"}";
+			body += "			{\n" + 
+					"				\"type\": \"IP_PROTO\",\n" + 
+					"				\"protocol\": 6\n" + 
+					"			},\n"+
+					"			{\n" + 
+					"				\"type\": \"TCP_SRC\",\n" + 
+					"				\"tcpPort\": \""+clientPort+"\"\n" + 
+					"			}"+
+					"		]\r\n" + 
+					"	}\r\n" + 
+					"}";
 		}
 		else if(portType.equalsIgnoreCase("tcp")){
 			body += "			{\n" + 
@@ -636,19 +642,124 @@ public class EntornoTools {
 			response = new OnosResponse("URL error", 404);
 		}
 		return response;
-		
+
 	}
 
-	public static List<Flow> compareFlows(String switchId, Map<String, Flow> oldFlowsState, Map<String, Flow> newFlowsState) {
+	public static List<Flow> compareFlows(Map<String, Flow> oldFlowsState, Map<String, Flow> newFlowsState) {
 		List<Flow> flows = new ArrayList<Flow>();
-		
+
 		for(Flow flow : newFlowsState.values()) {
 			if(!oldFlowsState.containsKey(flow.getId())) {
 				flows.add(flow);
 			}
 		}
-		
+
 		return flows;
+	}
+
+	public static void getEnvironmentByUser(String authString) throws MalformedURLException, IOException {
+		//String json = "";
+		OnosResponse response = new OnosResponse();
+		URL urlClusters = new URL(endpoint + "/cluster");
+		URL urlDevices = new URL(endpoint + "/devices");
+		URL urlLinks = new URL(endpoint + "/links");
+		String urlFlows = endpoint + "/flows";
+		URL urlHosts = new URL(endpoint + "/hosts");
+
+		// CLUSTERS
+		response = HttpTools.doJSONGet(urlClusters);
+		if(response.getCode()/100 == 2)
+			JsonManager.parseJsonClustersGson(response.getMessage());
+
+		// SWITCHES
+		response = HttpTools.doJSONGet(urlDevices);
+		if(response.getCode()/100 == 2)
+			JsonManager.parseJsonDevicesGson(response.getMessage());
+
+		//PORTS
+		if(entorno.getMapSwitches() != null) {
+			for(Switch s : entorno.getMapSwitches().values()){
+				response = HttpTools.doJSONGet(new URL(endpoint+"/devices/"+s.getId()+"/ports"));
+				if(response.getCode()/100 == 2)
+					JsonManager.parseJsonPortsGson(response.getMessage());
+			}
+		}
+
+		//LINKS
+		response = HttpTools.doJSONGet(urlLinks);
+		if(response.getCode()/100 == 2)
+			JsonManager.parseJsonLinksGson(response.getMessage());
+
+		//FLOWS
+		Map<String, FlowDBResponse> userFlows = DatabaseTools.getFlowsByUser(authString);
+		for(FlowDBResponse userFlow : userFlows.values()) {
+			response = HttpTools.doJSONGet(new URL(urlFlows+"/"+userFlow.getIdSwitch()+"/"+userFlow.getIdFlow()));
+			JsonManager.parseJsonFlowGson(response.getMessage());
+		}
+
+
+		//HOSTS
+		response = HttpTools.doJSONGet(urlHosts);
+		if(response.getCode()/100 == 2)
+			JsonManager.parseJsonHostsGson(response.getMessage()); 
+	}
+
+	public static Point getIngressPoint(String srcHost) {
+		Point point = null;
+		Host h = EntornoTools.getHostByIp(srcHost);
+		if (h != null) {
+			for(Map.Entry<String, String> location : h.getMapLocations().entrySet()) {
+				point = new Point(location.getValue(), location.getKey());
+			}
+
+		}
+		return point;
+	}
+
+	public static Map<String, LinkedList<LinkedHashMap<String,Object>>> createSelector(FlowSocketClientRequest flowReq) {
+		LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
+		LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
+		Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+		
+		auxMap = new LinkedHashMap<String, Object>();
+		auxList = new LinkedList<LinkedHashMap<String,Object>>();
+		auxMap.put("type", "ETH_TYPE");
+		if(flowReq.getIpVersion() == 4)
+			auxMap.put("ethType", "0x800");
+		else if(flowReq.getIpVersion() == 6)
+			auxMap.put("ethType", "0x86DD");
+		auxList.add(auxMap);
+		//criteria 2
+		auxMap = new LinkedHashMap<String, Object>();
+		if(flowReq.getIpVersion() == 4) {
+			auxMap.put("type", "IPV4_SRC");
+			auxMap.put("ip", flowReq.getSrcHost()+"/32");
+		}
+		else if(flowReq.getIpVersion() == 6) {
+			auxMap.put("type", "IPV6_SRC");
+			auxMap.put("ip", flowReq.getDstHost()+"/128");
+		}
+		auxList.add(auxMap);
+		//criteria 3
+		auxMap = new LinkedHashMap<String, Object>();
+		auxMap.put("type", "IP_PROTO");
+		auxMap.put("protocol", 6);
+		auxList.add(auxMap);
+		//criteria 4
+		if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+			auxMap = new LinkedHashMap<String, Object>();
+			auxMap.put("type", "TCP_SRC");
+			auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+			auxList.add(auxMap);
+		}
+		//criteria 5
+		auxMap = new LinkedHashMap<String, Object>();
+		auxMap.put("type", "TCP_DST");
+		auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
+		auxList.add(auxMap);
+
+		selector.put("criteria", auxList);
+		return selector;
 	}
 
 	//	public static String deleteVpls(String vplsName) throws IOException{

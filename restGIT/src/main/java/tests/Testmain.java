@@ -77,10 +77,10 @@ public class Testmain {
 		if(DatabaseTools.isAuthenticated(authString)) {
 			FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
 			FlowOnosRequest flowOnos = new FlowOnosRequest();
-			LinkedList<LinkedHashMap<String,String>> auxList = new LinkedList<LinkedHashMap<String,String>>();
-			LinkedHashMap<String, String> auxMap = new LinkedHashMap<String,String>();
-			Map<String, LinkedList<LinkedHashMap<String, String>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
-			Map<String, LinkedList<LinkedHashMap<String,String>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,String>>>();
+			LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
+			LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
+			Map<String, LinkedList<LinkedHashMap<String, Object>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 
 			//Get ingress switch + output ports
 			List<Switch> ingress = EntornoTools.getIngressSwitchesByHost(flowReq.getSrcHost());
@@ -97,19 +97,19 @@ public class Testmain {
 
 			//SELECTOR
 			//criteria 1
-			auxMap = new LinkedHashMap<String, String>();
-			auxList = new LinkedList<LinkedHashMap<String,String>>();
+			auxMap = new LinkedHashMap<String, Object>();
+			auxList = new LinkedList<LinkedHashMap<String,Object>>();
 			if(flowReq.getIpVersion() == 4) {
 				auxMap.put("type", "ETH_TYPE");
 				auxMap.put("ethType", "0x800");
 				auxList.add(auxMap);
 				
-				auxMap = new LinkedHashMap<String, String>();
+				auxMap = new LinkedHashMap<String, Object>();
 				auxMap.put("type", "IPV4_SRC");
 				auxMap.put("ip", (flowReq.getSrcHost()+"/32"));
 				auxList.add(auxMap);
 				
-				auxMap = new LinkedHashMap<String, String>();
+				auxMap = new LinkedHashMap<String, Object>();
 				auxMap.put("type", "IPV4_DST");
 				auxMap.put("ip", (flowReq.getDstHost()+"/32"));
 				auxList.add(auxMap);
@@ -119,28 +119,28 @@ public class Testmain {
 				auxMap.put("ethType", "0x86DD");
 				auxList.add(auxMap);
 				
-				auxMap = new LinkedHashMap<String, String>();
+				auxMap = new LinkedHashMap<String, Object>();
 				auxMap.put("type", "IPV6_SRC");
 				auxMap.put("ip", (flowReq.getSrcHost()+"/32"));
 				auxList.add(auxMap);
 				
-				auxMap = new LinkedHashMap<String, String>();
+				auxMap = new LinkedHashMap<String, Object>();
 				auxMap.put("type", "IPV6_DST");
 				auxMap.put("ip", (flowReq.getDstHost()+"/32"));
 				auxList.add(auxMap);
 			}
 			//criteria 2
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "IP_PROTO");
 			auxMap.put("protocol", "6");
 			auxList.add(auxMap);
 			//criteria 3
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "TCP_SRC");
 			auxMap.put("tcpPort", flowReq.getSrcPort());
 			auxList.add(auxMap);
 			//criteria 4
-			auxMap = new LinkedHashMap<String, String>();
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "TCP_DST");
 			auxMap.put("tcpPort", flowReq.getDstPort());
 			auxList.add(auxMap);
@@ -170,7 +170,7 @@ public class Testmain {
 				}
 				List<Flow> flowsNews;
 				System.out.println(".");
-				flowsNews = EntornoTools.compareFlows(ingress.get(0).getId(), oldFlowsState, newFlowsState);
+				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
 				if(flowsNews.size()>0) {
 					for(Flow flow : flowsNews) {
 						try {
