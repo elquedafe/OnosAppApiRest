@@ -275,5 +275,28 @@ public class JsonManager {
 		return vplsList;
 	}
 
+	public static String getPortFromPathJson(String id, String json) {
+		Gson gson = new Gson();
+		LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
+		ArrayList paths = (ArrayList)jsonObject.get("paths");
+		for(Object o : paths) {
+			LinkedTreeMap path = (LinkedTreeMap)o;
+			
+			ArrayList links = (ArrayList)path.get("links");
+			for(Object ob : links) {
+				LinkedTreeMap link = (LinkedTreeMap)ob;
+				
+				LinkedTreeMap src = (LinkedTreeMap)link.get("src");
+				
+				String portJson = (String)src.get("port");
+				String deviceJson = (String)src.get("device");
+				if(deviceJson.equals(id)) {
+					return portJson;
+				}
+			}
+		}
+		return null;
+	}
+
 }
 

@@ -213,7 +213,7 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 	
-	public static void addMeter(Meter meter, String authString) throws ClassNotFoundException, SQLException {
+	public static void addMeterByUser(Meter meter, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
 		String sql = "INSERT INTO Meter "
@@ -230,7 +230,7 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 	
-	public static void addVpls(String vplsName, String authString) throws ClassNotFoundException, SQLException {
+	public static void addVplsByUser(String vplsName, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
 		String sql = "INSERT INTO Meter "

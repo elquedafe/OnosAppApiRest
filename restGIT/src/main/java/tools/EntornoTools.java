@@ -52,7 +52,6 @@ import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.onosside.Point;
 import rest.gsonobjects.onosside.VplsOnosRequestAux;
 import rest.gsonobjects.userside.FlowSocketClientRequest;
-import rest.resources.users.FlowSelector;
 
 /**
  *
@@ -140,6 +139,31 @@ public class EntornoTools {
 
 		return listSwitches;
 
+	}
+
+	public static Switch getIngressSwitchByHost(String hostIp) {
+		Host host = null;
+		Switch s = null;
+		List<Switch> listSwitches = new ArrayList<Switch>();
+		try {
+			EntornoTools.getEnvironment();
+			for(Host h : EntornoTools.entorno.getMapHosts().values()) {
+				if(h.getIpList().contains(hostIp)) {
+					host = h;
+					break;
+				}
+			}
+			for(Map.Entry<String, String> location : host.getMapLocations().entrySet()) {
+				s = EntornoTools.entorno.getMapSwitches().get(location.getKey());
+				listSwitches.add(s);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		return listSwitches.get(0);
 	}
 
 	public static List<Meter> getAllMeters() throws IOException{
@@ -577,7 +601,7 @@ public class EntornoTools {
 
 	}
 
-	public static OnosResponse addQosFlowWithPort(String switchId, String outPort, int meterId, String ip, int clientPort, String portType) throws IOException {
+	public static OnosResponse addQosFlowWithPort(String ipVersion, String switchId, String outPort, String meterId, String srcIp, String srcPort, String dstIp, String dstPort, String portType) throws IOException {
 		OnosResponse response = null;
 		String url = EntornoTools.endpoint+"/flows/"+switchId;
 		String body = "{\"priority\": 1500,\r\n" + 
@@ -600,15 +624,35 @@ public class EntornoTools {
 				"	},\r\n" + 
 				"\"selector\": \r\n" + 
 				"	{\r\n" + 
-				"		\"criteria\": [\r\n" + 
-				"			{\r\n" + 
-				"				\"type\": \"ETH_TYPE\",\r\n" + 
-				"				\"ethType\": \"0x800\"\r\n" + 
-				"			},\r\n" + 
-				"			{\r\n" + 
-				"				\"type\": \"IPV4_SRC\",\r\n" + 
-				"				\"ip\": \""+ip+"/32\"\r\n" + 
-				"			},\r\n";
+				"		\"criteria\": [\r\n";
+		if(ipVersion.equalsIgnoreCase("4")){
+			body += "			{\r\n" + 
+					"				\"type\": \"ETH_TYPE\",\r\n" + 
+					"				\"ethType\": \"0x800\"\r\n" + 
+					"			},\r\n" + 
+					"			{\r\n" + 
+					"				\"type\": \"IPV4_SRC\",\r\n" + 
+					"				\"ip\": \""+srcIp+"/32\"\r\n" + 
+					"			},\r\n"+ 
+					"			{\r\n" + 
+					"				\"type\": \"IPV4_DST\",\r\n" + 
+					"				\"ip\": \""+dstIp+"\"/32\"\r\n" + 
+					"			},\r\n";
+		}
+		else if(ipVersion.equalsIgnoreCase("6")) {
+			body += "			{\r\n" + 
+					"				\"type\": \"ETH_TYPE\",\r\n" + 
+					"				\"ethType\": \"0x86DD\"\r\n" + 
+					"			},\r\n" + 
+					"			{\r\n" + 
+					"				\"type\": \"IPV6_SRC\",\r\n" + 
+					"				\"ip\": \""+srcIp+"/128\"\r\n" + 
+					"			},\r\n"+ 
+					"			{\r\n" + 
+					"				\"type\": \"IPV6_DST\",\r\n" + 
+					"				\"ip\": \""+dstIp+"\"/128\"\r\n" + 
+					"			},\r\n";
+		}
 		if(portType.equalsIgnoreCase("tcp")){
 			body += "			{\n" + 
 					"				\"type\": \"IP_PROTO\",\n" + 
@@ -616,24 +660,26 @@ public class EntornoTools {
 					"			},\n"+
 					"			{\n" + 
 					"				\"type\": \"TCP_SRC\",\n" + 
-					"				\"tcpPort\": \""+clientPort+"\"\n" + 
+					"				\"tcpPort\": \""+srcPort+"\"\n" + 
 					"			}"+
 					"		]\r\n" + 
 					"	}\r\n" + 
 					"}";
 		}
-		else if(portType.equalsIgnoreCase("tcp")){
+		else if(portType.equalsIgnoreCase("udp")){
 			body += "			{\n" + 
 					"				\"type\": \"IP_PROTO\",\n" + 
-					"				\"protocol\":11\n" + 
-					"			},\n"+
-					"			{\n" + 
-					"				\"type\": \"UDP_SRC\",\n" + 
-					"				\"udpPort\": \""+clientPort+"\"\n" + 
-					"			}"+
-					"		]\r\n" + 
-					"	}\r\n" + 
-					"}";
+					"				\"protocol\": 11\n" + 
+					"			},\n";
+			if(srcPort != null) {
+				body += "			{\n" + 
+						"				\"type\": \"UDP_SRC\",\n" + 
+						"				\"udpPort\": \""+srcPort+"\"\n" + 
+						"			}"+
+						"		]\r\n" + 
+						"	}\r\n" + 
+						"}";
+			}
 		}
 		try {
 			//System.out.println("JSON FLUJO QOS: \n"+body+"\n"+switchId+"\n"+outPort+"\n"+meterId+"\n"+ip);
@@ -720,7 +766,7 @@ public class EntornoTools {
 		LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
 		LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
 		Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
-		
+
 		auxMap = new LinkedHashMap<String, Object>();
 		auxList = new LinkedList<LinkedHashMap<String,Object>>();
 		auxMap.put("type", "ETH_TYPE");
@@ -762,6 +808,18 @@ public class EntornoTools {
 		return selector;
 	}
 
+	public static List<Meter> compareMeters(List<Meter> oldMetersState, List<Meter> newMetersState) {
+		List<Meter> meters = new ArrayList<Meter>();
+		for(Meter newMeter : newMetersState) {
+			for(Meter oldMeter : oldMetersState) {
+				if(newMeter.getDeviceId().equals(oldMeter.getDeviceId()) && newMeter.getId().equals(oldMeter.getId())) {
+					meters.add(newMeter);
+				}
+			}
+		}
+		return meters;
+	}
+
 	//	public static String deleteVpls(String vplsName) throws IOException{
 	//		String json = "";
 	//		String response = "";
@@ -779,4 +837,29 @@ public class EntornoTools {
 	//		}
 	//		return response;
 	//	}
+	public static String getOutputPort(String srcHost, String dstHost) {
+		Gson gson = new Gson();
+		String port="";
+		OnosResponse response = null;
+		
+		//GET INGRESS
+		Switch ingress = EntornoTools.getIngressSwitchByHost(srcHost);
+		//GET EGRESS
+		Switch egress = EntornoTools.getIngressSwitchByHost(dstHost);
+		try {
+			// TODO:
+			response = HttpTools.doJSONGet(new URL(EntornoTools.endpoint+"/paths/"+ingress.getId()+"/"+egress.getId()));
+			String json = response.getMessage();
+			
+			//PARSE JSON TO GET PORT
+			return JsonManager.getPortFromPathJson(ingress.getId(), json);
+
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return port;
+	}
 }

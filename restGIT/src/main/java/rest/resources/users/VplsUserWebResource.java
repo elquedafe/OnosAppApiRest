@@ -280,7 +280,8 @@ public class VplsUserWebResource {
 
 
 				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-
+				
+				
 				if(vplsReq.getVplsName().equals(vplsName))
 					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
 

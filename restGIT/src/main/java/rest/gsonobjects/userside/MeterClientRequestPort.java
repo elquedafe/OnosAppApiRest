@@ -1,16 +1,22 @@
 package rest.gsonobjects.userside;
 
 public class MeterClientRequestPort {
-	private String host;
-	private int port;
+	private String ipVersion;
+	private String srcHost;
+	private String srcPort;
+	private String dstHost;
+	private String dstPort;
 	private String portType;
 	private int rate;
 	private int burst;
 	
-	public MeterClientRequestPort(String host, int port, String portType, int rate, int burst) {
+	public MeterClientRequestPort(String ipVersion, String srcHost, String srcPort, String dstHost, String dstPort, String portType, int rate, int burst) {
 		super();
-		this.host = host;
-		this.port = port;
+		this.ipVersion = ipVersion;
+		this.srcHost = srcHost;
+		this.srcPort = srcPort;
+		this.dstHost = dstHost;
+		this.dstPort = dstPort;
 		this.portType = portType; 
 		this.rate = rate;
 		this.burst = burst;
@@ -19,15 +25,15 @@ public class MeterClientRequestPort {
 	/**
 	 * @return the host
 	 */
-	public String getHost() {
-		return host;
+	public String getSrcHost() {
+		return srcHost;
 	}
 
 	/**
 	 * @param host the host to set
 	 */
-	public void setHost(String host) {
-		this.host = host;
+	public void setSrcHost(String host) {
+		this.srcHost = srcHost;
 	}
 
 	/**
@@ -62,11 +68,13 @@ public class MeterClientRequestPort {
 	public boolean equals(Object o) {
 		if(o instanceof MeterClientRequest) {
 			
-			return (this.host.equals(((MeterClientRequestPort)o).host) && 
-					(this.port == ((MeterClientRequestPort)o).port) &&
-					(this.portType == ((MeterClientRequestPort)o).portType) &&
+			return ((this.srcHost.equals(((MeterClientRequestPort)o).srcHost)) && 
+					(this.srcPort.equals(((MeterClientRequestPort)o).srcPort)) &&
+					(this.dstHost.equals(((MeterClientRequestPort)o).dstHost)) && 
+					(this.dstPort.equals(((MeterClientRequestPort)o).dstPort)) &&
+					(this.portType.equals(((MeterClientRequestPort)o).portType)) &&
 					(this.rate == ((MeterClientRequestPort)o).rate) &&
-					(this.burst == ((MeterClientRequestPort)o).burst) );
+					(this.burst == ((MeterClientRequestPort)o).burst));
 		}
 		else return false;
 	}
@@ -74,15 +82,15 @@ public class MeterClientRequestPort {
 	/**
 	 * @return the port
 	 */
-	public int getPort() {
-		return port;
+	public String getSrcPort() {
+		return srcPort;
 	}
 
 	/**
 	 * @param port the port to set
 	 */
-	public void setPort(int port) {
-		this.port = port;
+	public void setPort(String srcPort) {
+		this.srcPort = srcPort;
 	}
 
 	/**
@@ -97,6 +105,55 @@ public class MeterClientRequestPort {
 	 */
 	public void setPortType(String portType) {
 		this.portType = portType;
+	}
+
+	/**
+	 * @return the dstHost
+	 */
+	public String getDstHost() {
+		return dstHost;
+	}
+
+	/**
+	 * @param dstHost the dstHost to set
+	 */
+	public void setDstHost(String dstHost) {
+		this.dstHost = dstHost;
+	}
+
+	/**
+	 * @return the dstPort
+	 */
+	public String getDstPort() {
+		return dstPort;
+	}
+
+	/**
+	 * @param dstPort the dstPort to set
+	 */
+	public void setDstPort(String dstPort) {
+		this.dstPort = dstPort;
+	}
+
+	/**
+	 * @param srcPort the srcPort to set
+	 */
+	public void setSrcPort(String srcPort) {
+		this.srcPort = srcPort;
+	}
+
+	/**
+	 * @return the ipVersion
+	 */
+	public String getIpVersion() {
+		return ipVersion;
+	}
+
+	/**
+	 * @param ipVersion the ipVersion to set
+	 */
+	public void setIpVersion(String ipVersion) {
+		this.ipVersion = ipVersion;
 	}
 	
 

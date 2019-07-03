@@ -252,7 +252,7 @@ public class FlowsUserWebResource {
 			FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
 			IntentOnosRequest intentOnos = new IntentOnosRequest();
 			IntentOnosRequest intentOnosInversed = new IntentOnosRequest();
-			
+
 			//CREATE INTENT SELECTOR
 			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = EntornoTools.createSelector(flowReq);
 			//INGRESS POINT
@@ -263,7 +263,7 @@ public class FlowsUserWebResource {
 			intentOnos.setIngressPoint(ingressPoint);
 			intentOnos.setEgressPoint(egressPoint);
 			intentOnos.setSelector(selector);
-			
+
 			//CREATE INTENT SELECTOR INVERSE
 			String auxSrcHost = flowReq.getSrcHost();
 			String auxSrcPort = flowReq.getSrcPort();
@@ -278,7 +278,7 @@ public class FlowsUserWebResource {
 			intentOnosInversed.setIngressPoint(egressPoint);
 			intentOnosInversed.setEgressPoint(ingressPoint);
 			intentOnosInversed.setSelector(selectorInversed);
-			
+
 			//Generate JSON to ONOS
 			String jsonOut = gson.toJson(intentOnos);
 			String jsonOutInversed = gson.toJson(intentOnosInversed);
@@ -286,15 +286,16 @@ public class FlowsUserWebResource {
 			LogTools.info("setFlowSocket", "json to create intent INVERSED: "+jsonOutInversed);
 			String url = EntornoTools.endpoint+"/intents";
 			try {
-				
+
 				//GET OLD STATE
 				EntornoTools.getEnvironment();
 				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
 				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
 					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
-						oldFlowsState.put(flow.getKey(), flow.getValue());
+						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+							oldFlowsState.put(flow.getKey(), flow.getValue());
 				}
-				
+
 				// CREATE FLOWS
 				HttpTools.doJSONPost(new URL(url), jsonOut);
 				HttpTools.doJSONPost(new URL(url), jsonOutInversed);
@@ -310,14 +311,16 @@ public class FlowsUserWebResource {
 				//GET NEW STATE
 				EntornoTools.getEnvironment();
 				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
-					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
-						newFlowsState.put(flow.getKey(), flow.getValue());
-				}
-				List<Flow> flowsNews;
+				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
+					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
+						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+							newFlowsState.put(flow.getKey(), flow.getValue());
+
+
 				System.out.println(".");
-				
+
 				// GET FLOWS CHANGED
+				List<Flow> flowsNews;
 				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
 				if(flowsNews.size()>0) {
 					for(Flow flow : flowsNews) {
