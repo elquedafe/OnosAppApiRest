@@ -32,6 +32,7 @@ import architecture.Meter;
 import architecture.Switch;
 import architecture.Vpls;
 import rest.database.objects.FlowDBResponse;
+import rest.database.objects.MeterDBResponse;
 import rest.gsonobjects.onosside.FlowOnosRequest;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.userside.AuthorizationClientRequest;
@@ -62,138 +63,293 @@ public class Testmain {
 		//			e.printStackTrace();
 		//		}
 		Gson gson = new Gson();
-
-		/********POST FLOW (new json) user admin***********/
+		
+		/***** GET METERS user alvaro**********/
+		String authString = "Basic YWx2YXJvOmFsdmFybw==";
+		LogTools.rest("GET", "getAllMeters");
 		Response resRest;
-		String messageToClient = "";
-		String authString = "Basic YWRtaW46YWRtaW4=";
-		String jsonIn = "{\n" + 
-				"	\"ipVersion\": 4,\n" + 
-				"	\"srcHost\": \"10.0.0.2\",\n" + 
-				"	\"srcPort\": \"35666\",\n" + 
-				"	\"dstHost\": \"10.0.0.3\",\n" + 
-				"	\"dstPort\": \"80\"\n" + 
-				"}";
+		List<Meter> meters = null;
+		List<Meter> userMeters = new ArrayList<Meter>();
+		List<MeterDBResponse> metersDB = null;
+		String json = "";
+		String onosResponse = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
-			FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
-			FlowOnosRequest flowOnos = new FlowOnosRequest();
-			LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
-			LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
-			Map<String, LinkedList<LinkedHashMap<String, Object>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
-			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
-
-			//Get ingress switch + output ports
-			List<Switch> ingress = EntornoTools.getIngressSwitchesByHost(flowReq.getSrcHost());
-			List<String> ports = EntornoTools.getOutputPorts(ingress.get(0).getId());
-
-			flowOnos.setDeviceId(ingress.get(0).getId());
-
-			//TREATMENT
-			auxMap.put("type", "OUTPUT");
-			auxMap.put("port", ports.get(0));
-			auxList.add(auxMap);
-			treatement.put("instructions", auxList);
-			flowOnos.setTreatment(treatement);
-
-			//SELECTOR
-			//criteria 1
-			auxMap = new LinkedHashMap<String, Object>();
-			auxList = new LinkedList<LinkedHashMap<String,Object>>();
-			if(flowReq.getIpVersion() == 4) {
-				auxMap.put("type", "ETH_TYPE");
-				auxMap.put("ethType", "0x800");
-				auxList.add(auxMap);
-				
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "IPV4_SRC");
-				auxMap.put("ip", (flowReq.getSrcHost()+"/32"));
-				auxList.add(auxMap);
-				
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "IPV4_DST");
-				auxMap.put("ip", (flowReq.getDstHost()+"/32"));
-				auxList.add(auxMap);
-			}
-			else if (flowReq.getIpVersion() == 6) {
-				auxMap.put("type", "ETH_TYPE");
-				auxMap.put("ethType", "0x86DD");
-				auxList.add(auxMap);
-				
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "IPV6_SRC");
-				auxMap.put("ip", (flowReq.getSrcHost()+"/32"));
-				auxList.add(auxMap);
-				
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "IPV6_DST");
-				auxMap.put("ip", (flowReq.getDstHost()+"/32"));
-				auxList.add(auxMap);
-			}
-			//criteria 2
-			auxMap = new LinkedHashMap<String, Object>();
-			auxMap.put("type", "IP_PROTO");
-			auxMap.put("protocol", "6");
-			auxList.add(auxMap);
-			//criteria 3
-			auxMap = new LinkedHashMap<String, Object>();
-			auxMap.put("type", "TCP_SRC");
-			auxMap.put("tcpPort", flowReq.getSrcPort());
-			auxList.add(auxMap);
-			//criteria 4
-			auxMap = new LinkedHashMap<String, Object>();
-			auxMap.put("type", "TCP_DST");
-			auxMap.put("tcpPort", flowReq.getDstPort());
-			auxList.add(auxMap);
-
-			selector.put("criteria", auxList);
-			flowOnos.setSelector(selector);
-
-			//Generate JSON to ONOS
-			String jsonOut = gson.toJson(flowOnos);
-
-			String url = EntornoTools.endpoint+"/flows/"+ingress.get(0).getId();
 			try {
-				EntornoTools.getEnvironment();
+				LogTools.info("getAllMeters", "Getting meters");
+				meters = EntornoTools.getAllMeters();
+				metersDB = DatabaseTools.getMetersByUser(authString);
 
-				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Flow> flow: EntornoTools.entorno.getMapSwitches().get(ingress.get(0).getId()).getFlows().entrySet()){
-					oldFlowsState.put(flow.getKey(), flow.getValue());
-				}
-
-				HttpTools.doJSONPost(new URL(url), jsonOut);
-
-				EntornoTools.getEnvironment();
-
-				Map<String, Flow>  newFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Flow> flow: EntornoTools.entorno.getMapSwitches().get(ingress.get(0).getId()).getFlows().entrySet()){
-					newFlowsState.put(flow.getKey(), flow.getValue());
-				}
-				List<Flow> flowsNews;
-				System.out.println(".");
-				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
-				if(flowsNews.size()>0) {
-					for(Flow flow : flowsNews) {
-						try {
-							DatabaseTools.addFlowByUserId(flow, authString);
-						} catch (ClassNotFoundException | SQLException e) {
-							e.printStackTrace();
-							//TODO: Delete flow from onos and send error to client
-
+				for(Meter meter : meters) {
+					for(MeterDBResponse meterDB : metersDB) {
+						if(meter.getId().equals(meterDB.getIdMeter()) && meter.getDeviceId().equals(meterDB.getIdSwitch())) {
+							userMeters.add(meter);
 						}
 					}
 				}
-			} catch (MalformedURLException e) {
-				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				//return resRest;
+
+				LogTools.info("getAllMeters", userMeters.toArray().toString());
+				json = gson.toJson(userMeters);
+				LogTools.info("getAllMeters", "response to client: " + json);
 			} catch (IOException e) {
-				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-				resRest = Response.serverError().build();
-				//return resRest;
+				LogTools.error("getAllMeters", "Error while getting all meters");
+				e.printStackTrace();
+				resRest = Response.ok("{\"response\":\"No meters recieved from ONOS\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				
 			}
-			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
-			//return resRest;
+
+			resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
+			
 		}
+		
+		/*******POST METER user alvaro**********/
+//		String jsonIn = "{\n" + 
+//				"   \"ipVersion\":\"4\",\n" + 
+//				"   \"srcHost\":\"10.0.0.1\",\n" + 
+//				"   \"srcPort\":\"80\",\n" + 
+//				"   \"dstHost\":\"10.0.0.4\",\n" + 
+//				"   \"dstPort\":\"5000\",\n" + 
+//				"   \"portType\":\"tcp\",\n" + 
+//				"   \"rate\":10000,\n" + 
+//				"   \"burst\":10000\n" + 
+//				"}";
+//		String srcHost = "10.0.0.1";
+//		String dstHost = "10.0.0.4";
+//		String authString = "Basic YWx2YXJvOmFsdmFybw==";
+//		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
+//		Response resRest = null;
+//		OnosResponse response = null;
+//		String url = "";
+//		String portAux = "";
+//		int meterIdAux = -1;
+//		//String hostMeterAux = "";
+//
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			//DESCUBRIR ENTORNO
+//			try {
+//				EntornoTools.getEnvironment();
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+//
+//			//Get user meter request
+//			MeterClientRequestPort meterReq = gson.fromJson(jsonIn, MeterClientRequestPort.class);
+//
+//			if(srcHost.equals(meterReq.getSrcHost()) && dstHost.equals(meterReq.getDstHost())) {
+//				//GET HOST
+//				Host h = EntornoTools.getHostByIp(meterReq.getSrcHost());
+//
+//				//System.out.println("HOST: "+meterReq.getHost());
+//				//System.out.println("GET HOST: "+h.getId()+" "+h.getIpList().get(0).toString());
+//
+//
+//				//GET switches connected to host
+//				List<Switch> ingressSwitches = EntornoTools.getIngressSwitchesByHost(meterReq.getSrcHost());
+//
+//
+//				//ADD METERS TO SWITCHES
+//				if(h != null && (ingressSwitches.size() > 0)){
+//					for(Switch ingress : ingressSwitches) {
+//						try {
+//							// Get meters before
+//							List<Meter> oldMetersState = EntornoTools.getMeters(ingress.getId());
+//
+//							//Add meter to onos
+//							response = EntornoTools.addMeter(ingress.getId(), meterReq.getRate(), meterReq.getBurst());
+//
+//							// Get meter after
+//							List<Meter> newMetersState = EntornoTools.getMeters(ingress.getId());
+//
+//							//Compare old and new
+//							List<Meter> metersToAdd = EntornoTools.compareMeters(oldMetersState, newMetersState);
+//
+//							//Add meter to DDBB
+//							for(Meter meter : metersToAdd) {
+//								try {
+//									DatabaseTools.addMeterByUser(meter, authString);
+//								} catch (ClassNotFoundException | SQLException e) {
+//									// TODO Auto-generated catch block
+//									e.printStackTrace();
+//								}
+//							}
+//							// GET METER ID ALREADY INSTALLED
+//
+//							//							List<Meter> meter = EntornoTools.getMeters(ingress.getId());
+//							//							int meterId = meter.size();
+//							//							//System.out.println("Meter ID: "+ meterId);
+//
+//							//TODO do it with consulting /path/srcHost/dstHost
+//							//GET EGRESS PORTS FROM SWITCH
+//							String outputSwitchPort = EntornoTools.getOutputPort(meterReq.getSrcHost(), meterReq.getDstHost());
+//							//							List<String> outputSwitchPorts = EntornoTools.getOutputPort(meterReq.getSrcHost(), meterReq.getDstHost());
+//
+//							//Install flows for each new meter
+//							if(outputSwitchPort != null && !outputSwitchPort.isEmpty()) {
+//								for(Meter meter : metersToAdd) {
+//									if(ingress.getId().equals(meter.getDeviceId())){
+//										//										portAux = port;
+//										meterIdAux = Integer.parseInt(meter.getId());
+//										//										hostMeterAux = meterReq.getSrcHost();
+//
+//										EntornoTools.addQosFlowWithPort(meterReq.getIpVersion(), ingress.getId(), outputSwitchPort, meter.getId(), meterReq.getSrcHost(), meterReq.getSrcPort(), meterReq.getDstHost(), meterReq.getDstPort(), meterReq.getPortType());
+//									}
+//								}
+//							}
+//
+//						} catch (MalformedURLException e) {
+//							resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+response.getMessage()+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//							
+//						} catch (IOException e) {
+//							resRest = Response.ok("IO: "+e.getMessage()+"\n"+response.getMessage()+
+//									"\n"+"\nHOST:"+h.getId()+
+//									"\ningress: "+ingress.getId()+
+//									"\nport: "+portAux+
+//									"\nmeter id: "+meterIdAux+
+//									"\nmeter Host from request: "+meterReq.getSrcHost(), MediaType.TEXT_PLAIN).build();
+//							//resRest = Response.serverError().build();
+//						}
+//						String p = "{\"response\":\"succesful\"";
+//
+//					}
+//				}
+//				else {
+//					String s = "{\"response\":\"error host or switches = 0\"}";
+//				}
+//			}
+//		}
+			
+		
+		
+		/********POST FLOW (new json) user admin***********/
+//		Response resRest;
+//		String messageToClient = "";
+//		String authString = "Basic YWRtaW46YWRtaW4=";
+//		String jsonIn = "{\n" + 
+//				"	\"ipVersion\": 4,\n" + 
+//				"	\"srcHost\": \"10.0.0.2\",\n" + 
+//				"	\"srcPort\": \"35666\",\n" + 
+//				"	\"dstHost\": \"10.0.0.3\",\n" + 
+//				"	\"dstPort\": \"80\"\n" + 
+//				"}";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
+//			FlowOnosRequest flowOnos = new FlowOnosRequest();
+//			LinkedList<LinkedHashMap<String,Object>> auxList = new LinkedList<LinkedHashMap<String,Object>>();
+//			LinkedHashMap<String, Object> auxMap = new LinkedHashMap<String,Object>();
+//			Map<String, LinkedList<LinkedHashMap<String, Object>>> treatement = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+//			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
+//
+//			//Get ingress switch + output ports
+//			List<Switch> ingress = EntornoTools.getIngressSwitchesByHost(flowReq.getSrcHost());
+//			List<String> ports = EntornoTools.getOutputPorts(ingress.get(0).getId());
+//
+//			flowOnos.setDeviceId(ingress.get(0).getId());
+//
+//			//TREATMENT
+//			auxMap.put("type", "OUTPUT");
+//			auxMap.put("port", ports.get(0));
+//			auxList.add(auxMap);
+//			treatement.put("instructions", auxList);
+//			flowOnos.setTreatment(treatement);
+//
+//			//SELECTOR
+//			//criteria 1
+//			auxMap = new LinkedHashMap<String, Object>();
+//			auxList = new LinkedList<LinkedHashMap<String,Object>>();
+//			if(flowReq.getIpVersion() == 4) {
+//				auxMap.put("type", "ETH_TYPE");
+//				auxMap.put("ethType", "0x800");
+//				auxList.add(auxMap);
+//				
+//				auxMap = new LinkedHashMap<String, Object>();
+//				auxMap.put("type", "IPV4_SRC");
+//				auxMap.put("ip", (flowReq.getSrcHost()+"/32"));
+//				auxList.add(auxMap);
+//				
+//				auxMap = new LinkedHashMap<String, Object>();
+//				auxMap.put("type", "IPV4_DST");
+//				auxMap.put("ip", (flowReq.getDstHost()+"/32"));
+//				auxList.add(auxMap);
+//			}
+//			else if (flowReq.getIpVersion() == 6) {
+//				auxMap.put("type", "ETH_TYPE");
+//				auxMap.put("ethType", "0x86DD");
+//				auxList.add(auxMap);
+//				
+//				auxMap = new LinkedHashMap<String, Object>();
+//				auxMap.put("type", "IPV6_SRC");
+//				auxMap.put("ip", (flowReq.getSrcHost()+"/32"));
+//				auxList.add(auxMap);
+//				
+//				auxMap = new LinkedHashMap<String, Object>();
+//				auxMap.put("type", "IPV6_DST");
+//				auxMap.put("ip", (flowReq.getDstHost()+"/32"));
+//				auxList.add(auxMap);
+//			}
+//			//criteria 2
+//			auxMap = new LinkedHashMap<String, Object>();
+//			auxMap.put("type", "IP_PROTO");
+//			auxMap.put("protocol", "6");
+//			auxList.add(auxMap);
+//			//criteria 3
+//			auxMap = new LinkedHashMap<String, Object>();
+//			auxMap.put("type", "TCP_SRC");
+//			auxMap.put("tcpPort", flowReq.getSrcPort());
+//			auxList.add(auxMap);
+//			//criteria 4
+//			auxMap = new LinkedHashMap<String, Object>();
+//			auxMap.put("type", "TCP_DST");
+//			auxMap.put("tcpPort", flowReq.getDstPort());
+//			auxList.add(auxMap);
+//
+//			selector.put("criteria", auxList);
+//			flowOnos.setSelector(selector);
+//
+//			//Generate JSON to ONOS
+//			String jsonOut = gson.toJson(flowOnos);
+//
+//			String url = EntornoTools.endpoint+"/flows/"+ingress.get(0).getId();
+//			try {
+//				EntornoTools.getEnvironment();
+//
+//				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+//				for(Map.Entry<String, Flow> flow: EntornoTools.entorno.getMapSwitches().get(ingress.get(0).getId()).getFlows().entrySet()){
+//					oldFlowsState.put(flow.getKey(), flow.getValue());
+//				}
+//
+//				HttpTools.doJSONPost(new URL(url), jsonOut);
+//
+//				EntornoTools.getEnvironment();
+//
+//				Map<String, Flow>  newFlowsState = new HashMap<String, Flow>();
+//				for(Map.Entry<String, Flow> flow: EntornoTools.entorno.getMapSwitches().get(ingress.get(0).getId()).getFlows().entrySet()){
+//					newFlowsState.put(flow.getKey(), flow.getValue());
+//				}
+//				List<Flow> flowsNews;
+//				System.out.println(".");
+//				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+//				if(flowsNews.size()>0) {
+//					for(Flow flow : flowsNews) {
+//						try {
+//							DatabaseTools.addFlowByUserId(flow, authString);
+//						} catch (ClassNotFoundException | SQLException e) {
+//							e.printStackTrace();
+//							//TODO: Delete flow from onos and send error to client
+//
+//						}
+//					}
+//				}
+//			} catch (MalformedURLException e) {
+//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				//return resRest;
+//			} catch (IOException e) {
+//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+//				resRest = Response.serverError().build();
+//				//return resRest;
+//			}
+//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//			//return resRest;
+//		}
 
 		/*********POST FLOW User admin**************/
 		//		Response resRest;

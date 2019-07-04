@@ -14,6 +14,7 @@ import java.util.Map;
 import architecture.Flow;
 import architecture.Meter;
 import rest.database.objects.FlowDBResponse;
+import rest.database.objects.MeterDBResponse;
 import sun.misc.BASE64Decoder;
 
 public class DatabaseTools {
@@ -138,6 +139,37 @@ public class DatabaseTools {
 		}
 
 		return flows;
+
+	}
+	
+	
+	public static List<MeterDBResponse> getMetersByUser(String authString) {
+		List<MeterDBResponse> meters = new ArrayList<MeterDBResponse>();
+		String idMeter = "";
+		String idSwitch = "";
+		String idUser = "";
+
+		String user = getUserPassFromCoded(authString)[0];
+		try {
+			ResultSet rs = executeStatement("SELECT * FROM Meter WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')");
+			while (rs.next()){
+				idMeter = rs.getString("IdMeter");
+				idSwitch = rs.getString("IdSwitch");
+				idUser = rs.getString("IdUser");
+
+				meters.add(new MeterDBResponse(idMeter, idSwitch, idUser));
+				// print the results
+				System.out.format("%s, %s, %s\n", idMeter, idSwitch, idUser);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return meters;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return meters;
+		}
+
+		return meters;
 
 	}
 

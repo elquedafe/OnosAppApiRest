@@ -636,7 +636,7 @@ public class EntornoTools {
 					"			},\r\n"+ 
 					"			{\r\n" + 
 					"				\"type\": \"IPV4_DST\",\r\n" + 
-					"				\"ip\": \""+dstIp+"\"/32\"\r\n" + 
+					"				\"ip\": \""+dstIp+"/32\"\r\n" + 
 					"			},\r\n";
 		}
 		else if(ipVersion.equalsIgnoreCase("6")) {
@@ -810,10 +810,16 @@ public class EntornoTools {
 
 	public static List<Meter> compareMeters(List<Meter> oldMetersState, List<Meter> newMetersState) {
 		List<Meter> meters = new ArrayList<Meter>();
-		for(Meter newMeter : newMetersState) {
-			for(Meter oldMeter : oldMetersState) {
-				if(newMeter.getDeviceId().equals(oldMeter.getDeviceId()) && newMeter.getId().equals(oldMeter.getId())) {
-					meters.add(newMeter);
+		if(oldMetersState.isEmpty() && !newMetersState.isEmpty()) {
+			for(Meter m : newMetersState)
+				meters.add(m);
+		}
+		else {
+			for(Meter newMeter : newMetersState) {
+				for(Meter oldMeter : oldMetersState) {
+					if(newMeter.getDeviceId().equals(oldMeter.getDeviceId()) && newMeter.getId().equals(oldMeter.getId())) {
+						meters.add(newMeter);
+					}
 				}
 			}
 		}
@@ -841,7 +847,7 @@ public class EntornoTools {
 		Gson gson = new Gson();
 		String port="";
 		OnosResponse response = null;
-		
+
 		//GET INGRESS
 		Switch ingress = EntornoTools.getIngressSwitchByHost(srcHost);
 		//GET EGRESS
@@ -850,11 +856,11 @@ public class EntornoTools {
 			// TODO:
 			response = HttpTools.doJSONGet(new URL(EntornoTools.endpoint+"/paths/"+ingress.getId()+"/"+egress.getId()));
 			String json = response.getMessage();
-			
+
 			//PARSE JSON TO GET PORT
 			return JsonManager.getPortFromPathJson(ingress.getId(), json);
 
-			
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

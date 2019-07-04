@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,6 +26,7 @@ import com.google.gson.Gson;
 
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.userside.AuthorizationClientRequest;
+import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.LogTools;
 
@@ -87,6 +90,16 @@ public class AuthorizationWebResource {
 		return resRest;
 	}
 
+	@GET
+	@Produces (MediaType.APPLICATION_JSON)	
+	public Response isAdmin(@HeaderParam("authorization") String authString, String jsonIn) {
+		LogTools.rest("POST", "setAuth", jsonIn);
+
+		boolean isAdmin = DatabaseTools.isAdministrator(authString);
+		
+		return Response.ok("{\"isAdmin\":"+isAdmin+"}", MediaType.APPLICATION_JSON_TYPE).build();
+	}
+	
 	/**
 	 * Checks weather or not a host is available
 	 * @param ip ip address or hostname of the destination

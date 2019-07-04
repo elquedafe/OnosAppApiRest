@@ -43,6 +43,7 @@ rest/gsonobjects/onosside/FlowSocketOnosRequest.class
 rest/gsonobjects/administratorside/FlowAdministratorRequest.class
 rest/resources/AuthorizationWebResource.class
 architecture/Meter.class
+rest/database/objects/MeterDBResponse.class
 rest/resources/administration/EnvironmentAdministratorWebResource.class
 rest/gsonobjects/userside/UserCredentials.class
 architecture/Cluster.class

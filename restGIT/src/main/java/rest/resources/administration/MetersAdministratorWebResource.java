@@ -4,6 +4,7 @@ package rest.resources.administration;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -206,59 +207,83 @@ public class MetersAdministratorWebResource {
 	 * @param jsonIn JSON retrieved from client
 	 * @return
 	 */
-	@Path("{hostIp}/{hostPort}")
+	@Path("{srcHost}/{dstHost}")
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces (MediaType.APPLICATION_JSON)	
-	public Response setMeter(@PathParam("hostIp") String hostIp, @PathParam("hostPort") String hostPort,  String jsonIn, @HeaderParam("authorization") String authString) {
+	public Response setMeter(@PathParam("srcHost") String srcHost, @PathParam("dstHost") String dstHost,  String jsonIn, @HeaderParam("authorization") String authString) {
 		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
 		Response resRest = null;
 		OnosResponse response = null;
 		String url = "";
 		String portAux = "";
 		int meterIdAux = -1;
-		String hostMeterAux = "";
+		//String hostMeterAux = "";
 
-		if(DatabaseTools.isAdministrator(authString)) {
+		if(DatabaseTools.isAuthenticated(authString)) {
 			//DESCUBRIR ENTORNO
-			MeterClientRequestPort meterReq = gson.fromJson(jsonIn, MeterClientRequestPort.class);
-			//System.out.println("HOST: "+meterReq.getHost());
+			try {
+				EntornoTools.getEnvironment();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 
-			if(hostIp.equals(meterReq.getHost())) {
+			//Get user meter request
+			MeterClientRequestPort meterReq = gson.fromJson(jsonIn, MeterClientRequestPort.class);
+
+			if(srcHost.equals(meterReq.getSrcHost()) && dstHost.equals(meterReq.getDstHost())) {
 				//GET HOST
-				Host h = EntornoTools.getHostByIp(meterReq.getHost());
+				Host h = EntornoTools.getHostByIp(meterReq.getSrcHost());
 
 				//System.out.println("HOST: "+meterReq.getHost());
 				//System.out.println("GET HOST: "+h.getId()+" "+h.getIpList().get(0).toString());
 
 
 				//GET switches connected to host
-				List<Switch> ingressSwitches = EntornoTools.getIngressSwitchesByHost(meterReq.getHost());
+				List<Switch> ingressSwitches = EntornoTools.getIngressSwitchesByHost(meterReq.getSrcHost());
+
 
 				//ADD METERS TO SWITCHES
-				if(h != null){
+				if(h != null && (ingressSwitches.size() > 0)){
 					for(Switch ingress : ingressSwitches) {
 						try {
-							//System.out.println("Ingress sw "+ingress.getId()+" para "+ meterReq.getHost());
-							response = EntornoTools.addMeter(ingress.getId(), meterReq.getRate(), meterReq.getBurst());
-							//System.out.println("Meter añadido? respuesta de onos: "+onosResponse);
+							// Get meters before
+							List<Meter> oldMetersState = EntornoTools.getMeters(ingress.getId());
 
-							// GET METER ID ALREADY INSTALLED
-							List<Meter> meter = EntornoTools.getMeters(ingress.getId());
-							int meterId = meter.size();
-							//System.out.println("Meter ID: "+ meterId);
+							//Add meter to onos
+							response = EntornoTools.addMeter(ingress.getId(), meterReq.getRate(), meterReq.getBurst());
+
+							// Get meter after
+							List<Meter> newMetersState = EntornoTools.getMeters(ingress.getId());
+
+							//Compare old and new
+							List<Meter> metersToAdd = EntornoTools.compareMeters(oldMetersState, newMetersState);
+
+							//Add meter to DDBB
+							for(Meter meter : metersToAdd) {
+								try {
+									DatabaseTools.addMeterByUser(meter, authString);
+								} catch (ClassNotFoundException | SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
 
 							//GET EGRESS PORTS FROM SWITCH
-							List<String> outputSwitchPorts = EntornoTools.getOutputPorts(ingress.getId());
+							String outputSwitchPort = EntornoTools.getOutputPort(meterReq.getSrcHost(), meterReq.getDstHost());
+							
 
-							//Install flows
-							for(String port : outputSwitchPorts) {
-								portAux = port;
-								meterIdAux = meterId;
-								hostMeterAux = meterReq.getHost();
+							//Install flows for each new meter
+							if(outputSwitchPort != null && !outputSwitchPort.isEmpty()) {
+								for(Meter meter : metersToAdd) {
+									if(ingress.getId().equals(meter.getDeviceId())){
+										//										portAux = port;
+										meterIdAux = Integer.parseInt(meter.getId());
+										//										hostMeterAux = meterReq.getSrcHost();
 
-								EntornoTools.addQosFlowWithPort(ingress.getId(), port, meterId, meterReq.getHost(), meterReq.getPort(), meterReq.getPortType());
-
+										EntornoTools.addQosFlowWithPort(meterReq.getIpVersion(), ingress.getId(), outputSwitchPort, meter.getId(), meterReq.getSrcHost(), meterReq.getSrcPort(), meterReq.getDstHost(), meterReq.getDstPort(), meterReq.getPortType());
+									}
+								}
 							}
 
 						} catch (MalformedURLException e) {
@@ -270,7 +295,7 @@ public class MetersAdministratorWebResource {
 									"\ningress: "+ingress.getId()+
 									"\nport: "+portAux+
 									"\nmeter id: "+meterIdAux+
-									"\nmeter Host from request: "+meterReq.getHost(), MediaType.TEXT_PLAIN).build();
+									"\nmeter Host from request: "+meterReq.getSrcHost(), MediaType.TEXT_PLAIN).build();
 							//resRest = Response.serverError().build();
 							return resRest;
 						}
