@@ -54,7 +54,7 @@ public class MetersUserWebResource {
 	 */
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
-	public Response getAllMeters(@HeaderParam("authorization") String authString) {
+	public Response getMeters(@HeaderParam("authorization") String authString) {
 		LogTools.rest("GET", "getAllMeters");
 		Response resRest;
 		List<Meter> meters = null;

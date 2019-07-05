@@ -3,6 +3,9 @@ package rest.resources.users;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
@@ -19,6 +22,10 @@ import javax.ws.rs.core.Response;
 import com.google.gson.Gson;
 
 import architecture.Host;
+import architecture.Meter;
+import architecture.Vpls;
+import rest.database.objects.MeterDBResponse;
+import rest.database.objects.VplsDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.userside.VplsClientRequest;
 import tools.DatabaseTools;
@@ -47,6 +54,9 @@ public class VplsUserWebResource {
 	public Response getVpls(@HeaderParam("authorization") String authString) {
 		LogTools.rest("GET", "getVpls");
 		Response resRest;
+		List<Vpls> vplss = null;
+		List<Vpls> userVplss = new ArrayList<Vpls>();
+		List<VplsDBResponse> vplssDB = null;
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
 				LogTools.info("getVpls", "Discovering environment");
@@ -54,8 +64,20 @@ public class VplsUserWebResource {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
-			String json = EntornoTools.getVpls();
+			
+			vplssDB = DatabaseTools.getVplsByUser(authString);
+			vplss = EntornoTools.getVplsList();
+			
+			for(Vpls vpls : vplss) {
+				for(VplsDBResponse vplsDB : vplssDB) {
+					if(vpls.getName().equals(vplsDB.getVplsName())) {
+						userVplss.add(vpls);
+					}
+				}
+			}
+			
+			String json = gson.toJson(userVplss);
+//			String json = EntornoTools.getVpls();
 
 			//String json = gson.toJson(map);
 			LogTools.info("getVpls", "response to client: " + json);
@@ -171,10 +193,10 @@ public class VplsUserWebResource {
 		//FOR EACH HOST REQUESTED IN VPLS GENERATE JSON STRING SEGMENTS
 		jsonOut = "{\r\n\"" +
 				"ports\": {\r\n";
-		for(int i = 0; i < vplsReq.getListHosts().size(); i++) {
-			String hostVplsId = vplsReq.getListHosts().get(i);
+		for(int i = 0; i < vplsReq.getHosts().size(); i++) {
+			String hostVplsId = vplsReq.getHosts().get(i);
 			Host h = EntornoTools.entorno.getMapHosts().get(hostVplsId);
-			vplsReq.getListHosts().set(i, "\""+hostVplsId+"\"");
+			vplsReq.getHosts().set(i, "\""+hostVplsId+"\"");
 
 			//GENERATE JSON FOR SWITCH CONNECTED TO HOST
 			for(Map.Entry<String, String> entry: h.getMapLocations().entrySet()) {
@@ -201,7 +223,7 @@ public class VplsUserWebResource {
 				"        \"vplsList\" : [\r\n" + 
 				"          {\r\n" + 
 				"            \"name\" : \""+vplsReq.getVplsName()+"\",\r\n" + 
-				"            \"interfaces\" : "+vplsReq.getListHosts().toString()+"\r\n" + 
+				"            \"interfaces\" : "+vplsReq.getHosts().toString()+"\r\n" + 
 				"        ]\r\n" + 
 				"      }\r\n" + 
 				"    }\r\n" + 
@@ -279,14 +301,34 @@ public class VplsUserWebResource {
 				EntornoTools.getEnvironment();
 
 
+
 				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-				
-				
+
+				List<Vpls> vplsBefore = EntornoTools.getVplsState();
+
 				if(vplsReq.getVplsName().equals(vplsName))
-					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
 
 				//HttpTools.doDelete(new URL(url));
 				HttpTools.doJSONPost(new URL(url), jsonOut);
+
+				List<Vpls> vplsAfter = EntornoTools.getVplsState();
+
+				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
+
+				//ADD new vpls to DDBB
+				for(Vpls v : vplsNews)
+					try {
+						DatabaseTools.addVplsByUser(v.getName(), authString);
+					} catch (ClassNotFoundException | SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				if(vplsReq.getRate() != -1 && vplsReq.getBurst() != -1) {
+					
+				}
+				//ADD METER IF
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;

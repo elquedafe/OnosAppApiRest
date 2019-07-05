@@ -169,10 +169,10 @@ public class VplsAdministratorWebResource {
 		//FOR EACH HOST REQUESTED IN VPLS GENERATE JSON STRING SEGMENTS
 		jsonOut = "{\r\n\"" +
 				"ports\": {\r\n";
-		for(int i = 0; i < vplsReq.getListHosts().size(); i++) {
-			String hostVplsId = vplsReq.getListHosts().get(i);
+		for(int i = 0; i < vplsReq.getHosts().size(); i++) {
+			String hostVplsId = vplsReq.getHosts().get(i);
 			Host h = EntornoTools.entorno.getMapHosts().get(hostVplsId);
-			vplsReq.getListHosts().set(i, "\""+hostVplsId+"\"");
+			vplsReq.getHosts().set(i, "\""+hostVplsId+"\"");
 
 			//GENERATE JSON FOR SWITCH CONNECTED TO HOST
 			for(Map.Entry<String, String> entry: h.getMapLocations().entrySet()) {
@@ -199,7 +199,7 @@ public class VplsAdministratorWebResource {
 				"        \"vplsList\" : [\r\n" + 
 				"          {\r\n" + 
 				"            \"name\" : \""+vplsReq.getVplsName()+"\",\r\n" + 
-				"            \"interfaces\" : "+vplsReq.getListHosts().toString()+"\r\n" + 
+				"            \"interfaces\" : "+vplsReq.getHosts().toString()+"\r\n" + 
 				"        ]\r\n" + 
 				"      }\r\n" + 
 				"    }\r\n" + 
@@ -279,7 +279,7 @@ public class VplsAdministratorWebResource {
 				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
 
 				if(vplsReq.getVplsName().equals(vplsName))
-					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getListHosts());
+					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
 
 				//HttpTools.doDelete(new URL(url));
 				HttpTools.doJSONPost(new URL(url), jsonOut);

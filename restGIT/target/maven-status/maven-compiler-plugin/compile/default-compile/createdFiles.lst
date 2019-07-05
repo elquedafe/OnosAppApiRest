@@ -49,6 +49,7 @@ rest/gsonobjects/userside/UserCredentials.class
 architecture/Cluster.class
 rest/gsonobjects/onosside/Constraint.class
 architecture/Vpls.class
+rest/database/objects/VplsDBResponse.class
 rest/gsonobjects/administratorside/VplsAdministratorRequest.class
 architecture/Switch.class
 rest/resources/users/EnvironmentUserWebResource.class

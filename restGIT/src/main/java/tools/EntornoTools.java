@@ -552,6 +552,26 @@ public class EntornoTools {
 		}
 		return gson.toJson(vplsList);
 	}
+	
+	public static List<Vpls> getVplsList() {
+		Gson gson = new Gson();
+		String json = "";
+		List<Vpls> vplsList = null;
+		try {
+
+			OnosResponse response = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+			LogTools.info("getVpls", "Json from ONOS: "+response.getMessage());
+			vplsList = JsonManager.parseVpls(response.getMessage());
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return vplsList;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return vplsList;
+		}
+		return vplsList;
+	}
 
 	public static OnosResponse deleteVpls(String vplsName) throws IOException{
 		Gson gson = new Gson();
@@ -867,5 +887,76 @@ public class EntornoTools {
 		}
 
 		return port;
+	}
+
+	public static List<Vpls> getVplsState() {
+		Gson gson = new Gson();
+		List<Vpls> vplss = new ArrayList<Vpls>();
+		try {
+			OnosResponse response = HttpTools.doJSONGet(new URL(EntornoTools.endpointNetConf));
+
+			LinkedTreeMap jsonObject = gson.fromJson(response.getMessage(), LinkedTreeMap.class);
+			LinkedTreeMap apps =  (LinkedTreeMap)jsonObject.get("apps");
+			LinkedTreeMap org =  (LinkedTreeMap)apps.get("org.onosproject.vpls");
+			if(org != null) {
+				LinkedTreeMap vpls =  (LinkedTreeMap)org.get("vpls");
+				ArrayList vplsList = (ArrayList)vpls.get("vplsList");
+				for(Object o : vplsList) {
+					LinkedTreeMap mapVpls = (LinkedTreeMap)o;
+
+					String name = (String)mapVpls.get("name");
+					List<String> listInterfaces = new ArrayList<String>();
+					ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
+					for(Object ob : interfaces) {
+						String interf = (String)ob;
+						listInterfaces.add(interf);
+					}
+
+					//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
+//					if(reqVplsName.equals(name)) {
+//						sameName = true;
+//						listInterfaces.clear();
+//						listInterfaces.addAll(reqListInterfaces);
+//					}
+					vplss.add(new Vpls(name, listInterfaces));
+
+					//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
+					//genJson += "\"interfaces\": ";
+					//genJson += listInterfaces.toString();
+					//genJson += "},";
+
+				}
+//				if(!sameName)
+//					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		//DELETE LAST COMMA
+		/*if(genJson.endsWith(",")) {
+			genJson = genJson.substring(0, genJson.length()-1);
+		}*/
+
+		//System.out.println("JSON to generate VPLS: \n"+genJson);
+		return vplss;
+	}
+
+	public static List<Vpls> compareVpls(List<Vpls> vplsBefore, List<Vpls> vplsAfter) {
+		List<Vpls> vplss = new ArrayList<Vpls>();
+		if(vplsBefore.isEmpty() && !vplsAfter.isEmpty()) {
+			for(Vpls v : vplsAfter)
+				vplss.add(v);
+		}
+		else {
+			for(Vpls newVpls : vplsAfter) {
+				for(Vpls oldVpls : vplsBefore) {
+					if(!newVpls.getName().equals(oldVpls))
+						vplss.add(newVpls);
+				}
+			}
+		}
+		return vplss;
 	}
 }

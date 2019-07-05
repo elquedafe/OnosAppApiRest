@@ -8,6 +8,16 @@ public class Vpls {
 	private String encapsulation;
 	
 	
+	
+	/**
+	 * @param name
+	 * @param interfaces
+	 */
+	public Vpls(String name, List<String> interfaces) {
+		super();
+		this.name = name;
+		this.interfaces = interfaces;
+	}
 	/**
 	 * @return the name
 	 */

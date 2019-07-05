@@ -15,6 +15,7 @@ import architecture.Flow;
 import architecture.Meter;
 import rest.database.objects.FlowDBResponse;
 import rest.database.objects.MeterDBResponse;
+import rest.database.objects.VplsDBResponse;
 import sun.misc.BASE64Decoder;
 
 public class DatabaseTools {
@@ -198,6 +199,36 @@ public class DatabaseTools {
 		}
 		return decoded;
 	}
+	
+	public static List<VplsDBResponse> getVplsByUser(String authString) {
+		List<VplsDBResponse> vpls = new ArrayList<VplsDBResponse>();
+		String idVpls = "";
+		String vplsName = "";
+		String idUser = "";
+
+		String user = getUserPassFromCoded(authString)[0];
+		try {
+			ResultSet rs = executeStatement("SELECT * FROM Vpls WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')");
+			while (rs.next()){
+				idVpls = rs.getString("IdVpls");
+				vplsName = rs.getString("VplsName");
+				idUser = rs.getString("IdUser");
+
+				vpls.add(new VplsDBResponse(idVpls, vplsName, idUser));
+				// print the results
+				System.out.format("%s, %s, %s\n", idVpls, vplsName, idUser);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return vpls;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return vpls;
+		}
+
+		return vpls;
+		
+	}
 
 	public static void addFlowByUserId(Flow flow, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
@@ -265,7 +296,7 @@ public class DatabaseTools {
 	public static void addVplsByUser(String vplsName, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
-		String sql = "INSERT INTO Meter "
+		String sql = "INSERT INTO Vpls "
 				+ "(VplsName, IdUser) "
 				+ "VALUES ('"+vplsName+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
 		executeStatement(sql);

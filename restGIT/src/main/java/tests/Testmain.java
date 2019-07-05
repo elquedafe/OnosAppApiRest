@@ -64,42 +64,97 @@ public class Testmain {
 		//		}
 		Gson gson = new Gson();
 		
-		/***** GET METERS user alvaro**********/
+		/********ADD VPLS user alvaro*************/
 		String authString = "Basic YWx2YXJvOmFsdmFybw==";
-		LogTools.rest("GET", "getAllMeters");
+		String vplsName = "VPLS3";
+		String jsonIn = "{\n" + 
+				"   \"vplsName\":\"VPLS3\",\n" + 
+				"   \"hosts\":[\n" + 
+				"      \"10.0.0.1\",\n" + 
+				"      \"10.0.0.3\"\n" + 
+				"   ]\n" + 
+				"}";
+		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
 		Response resRest;
-		List<Meter> meters = null;
-		List<Meter> userMeters = new ArrayList<Meter>();
-		List<MeterDBResponse> metersDB = null;
-		String json = "";
-		String onosResponse = "";
+		String jsonOut = "";
+		String url = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
+			url = EntornoTools.endpointNetConf;
 			try {
-				LogTools.info("getAllMeters", "Getting meters");
-				meters = EntornoTools.getAllMeters();
-				metersDB = DatabaseTools.getMetersByUser(authString);
+				LogTools.info("setVpls", "Discovering environment");
+				EntornoTools.getEnvironment();
 
-				for(Meter meter : meters) {
-					for(MeterDBResponse meterDB : metersDB) {
-						if(meter.getId().equals(meterDB.getIdMeter()) && meter.getDeviceId().equals(meterDB.getIdSwitch())) {
-							userMeters.add(meter);
-						}
+				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+
+				List<Vpls> vplsBefore = EntornoTools.getVplsState();
+
+				if(vplsReq.getVplsName().equals(vplsName))
+					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
+
+				//HttpTools.doDelete(new URL(url));
+				HttpTools.doJSONPost(new URL(url), jsonOut);
+
+				List<Vpls> vplsAfter = EntornoTools.getVplsState();
+
+				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
+
+				//ADD new vpls to DDBB
+				for(Vpls v : vplsNews)
+					try {
+						DatabaseTools.addVplsByUser(v.getName(), authString);
+					} catch (ClassNotFoundException | SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-				}
 
-				LogTools.info("getAllMeters", userMeters.toArray().toString());
-				json = gson.toJson(userMeters);
-				LogTools.info("getAllMeters", "response to client: " + json);
+			} catch (MalformedURLException e) {
+				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				return resRest;
 			} catch (IOException e) {
-				LogTools.error("getAllMeters", "Error while getting all meters");
-				e.printStackTrace();
-				resRest = Response.ok("{\"response\":\"No meters recieved from ONOS\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				
+				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+				resRest = Response.serverError().build();
+//				return resRest;
 			}
-
-			resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
-			
+//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//			return resRest;
 		}
+		/***** GET METERS user alvaro**********/
+//		String authString = "Basic YWx2YXJvOmFsdmFybw==";
+//		LogTools.rest("GET", "getAllMeters");
+//		Response resRest;
+//		List<Meter> meters = null;
+//		List<Meter> userMeters = new ArrayList<Meter>();
+//		List<MeterDBResponse> metersDB = null;
+//		String json = "";
+//		String onosResponse = "";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				LogTools.info("getAllMeters", "Getting meters");
+//				meters = EntornoTools.getAllMeters();
+//				metersDB = DatabaseTools.getMetersByUser(authString);
+//
+//				for(Meter meter : meters) {
+//					for(MeterDBResponse meterDB : metersDB) {
+//						if(meter.getId().equals(meterDB.getIdMeter()) && meter.getDeviceId().equals(meterDB.getIdSwitch())) {
+//							userMeters.add(meter);
+//						}
+//					}
+//				}
+//
+//				LogTools.info("getAllMeters", userMeters.toArray().toString());
+//				json = gson.toJson(userMeters);
+//				LogTools.info("getAllMeters", "response to client: " + json);
+//			} catch (IOException e) {
+//				LogTools.error("getAllMeters", "Error while getting all meters");
+//				e.printStackTrace();
+//				resRest = Response.ok("{\"response\":\"No meters recieved from ONOS\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				
+//			}
+//
+//			resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
+//			
+//		}
 		
 		/*******POST METER user alvaro**********/
 //		String jsonIn = "{\n" + 
