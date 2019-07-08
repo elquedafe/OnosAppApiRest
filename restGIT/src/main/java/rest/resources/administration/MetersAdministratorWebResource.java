@@ -65,7 +65,7 @@ public class MetersAdministratorWebResource {
 			} catch (IOException e) {
 				LogTools.error("getAllMeters", "Error while getting all meters");
 				e.printStackTrace();
-				resRest = Response.ok("{\"response\":\"No meters recieved from ONOS\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				resRest = Response.ok("No meters recieved from ONOS", MediaType.TEXT_PLAIN).build();
 				return resRest;
 			}
 

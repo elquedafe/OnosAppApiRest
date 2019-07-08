@@ -6,6 +6,7 @@ public class FlowSocketClientRequest {
 	private String srcPort;
 	private String dstHost;
 	private String dstPort;
+	private String portType;
 	
 	
 	/**
@@ -15,13 +16,14 @@ public class FlowSocketClientRequest {
 	 * @param dstHost
 	 * @param dstPort
 	 */
-	public FlowSocketClientRequest(int ipVersion, String srcHost, String srcPort, String dstHost, String dstPort) {
+	public FlowSocketClientRequest(int ipVersion, String srcHost, String srcPort, String dstHost, String dstPort, String portType) {
 		super();
 		this.ipVersion = ipVersion;
 		this.srcHost = srcHost;
 		this.srcPort = srcPort;
 		this.dstHost = dstHost;
 		this.dstPort = dstPort;
+		this.portType = portType;
 	}
 	/**
 	 * @return the srcPort
@@ -82,6 +84,18 @@ public class FlowSocketClientRequest {
 	 */
 	public void setIpVersion(int ipVersion) {
 		this.ipVersion = ipVersion;
+	}
+	/**
+	 * @return the portType
+	 */
+	public String getPortType() {
+		return portType;
+	}
+	/**
+	 * @param portType the portType to set
+	 */
+	public void setPortType(String portType) {
+		this.portType = portType;
 	}
 	
 	

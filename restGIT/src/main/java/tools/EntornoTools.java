@@ -552,7 +552,7 @@ public class EntornoTools {
 		}
 		return gson.toJson(vplsList);
 	}
-	
+
 	public static List<Vpls> getVplsList() {
 		Gson gson = new Gson();
 		String json = "";
@@ -649,15 +649,19 @@ public class EntornoTools {
 			body += "			{\r\n" + 
 					"				\"type\": \"ETH_TYPE\",\r\n" + 
 					"				\"ethType\": \"0x800\"\r\n" + 
-					"			},\r\n" + 
-					"			{\r\n" + 
-					"				\"type\": \"IPV4_SRC\",\r\n" + 
-					"				\"ip\": \""+srcIp+"/32\"\r\n" + 
-					"			},\r\n"+ 
-					"			{\r\n" + 
-					"				\"type\": \"IPV4_DST\",\r\n" + 
-					"				\"ip\": \""+dstIp+"/32\"\r\n" + 
-					"			},\r\n";
+					"			},\n"; 
+			if(srcIp != null && !srcIp.isEmpty()) {
+				body += "			{\r\n" + 
+						"				\"type\": \"IPV4_SRC\",\r\n" + 
+						"				\"ip\": \""+srcIp+"/32\"\r\n" + 
+						"			},\n";
+			}
+			if(dstIp != null && !dstIp.isEmpty()) {
+				body += "			{\r\n" + 
+						"				\"type\": \"IPV4_DST\",\r\n" + 
+						"				\"ip\": \""+dstIp+"/32\"\r\n" + 
+						"			},\n";
+			}
 		}
 		else if(ipVersion.equalsIgnoreCase("6")) {
 			body += "			{\r\n" + 
@@ -671,38 +675,51 @@ public class EntornoTools {
 					"			{\r\n" + 
 					"				\"type\": \"IPV6_DST\",\r\n" + 
 					"				\"ip\": \""+dstIp+"\"/128\"\r\n" + 
-					"			},\r\n";
+					"			},\n";
 		}
-		if(portType.equalsIgnoreCase("tcp")){
+		if(portType != null && !portType.isEmpty() && portType.equalsIgnoreCase("tcp")){
 			body += "			{\n" + 
 					"				\"type\": \"IP_PROTO\",\n" + 
 					"				\"protocol\": 6\n" + 
-					"			},\n"+
-					"			{\n" + 
-					"				\"type\": \"TCP_SRC\",\n" + 
-					"				\"tcpPort\": \""+srcPort+"\"\n" + 
-					"			}"+
-					"		]\r\n" + 
-					"	}\r\n" + 
-					"}";
-		}
-		else if(portType.equalsIgnoreCase("udp")){
-			body += "			{\n" + 
-					"				\"type\": \"IP_PROTO\",\n" + 
-					"				\"protocol\": 11\n" + 
 					"			},\n";
-			if(srcPort != null) {
-				body += "			{\n" + 
-						"				\"type\": \"UDP_SRC\",\n" + 
-						"				\"udpPort\": \""+srcPort+"\"\n" + 
-						"			}"+
-						"		]\r\n" + 
-						"	}\r\n" + 
-						"}";
+			if(srcPort != null && !srcPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"TCP_SRC\",\n" + 
+						"			\"tcpPort\": \""+srcPort+"\"\n" + 
+						"		},\n";
+			}
+			if(dstPort != null && !dstPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"TCP_DST\",\n" + 
+						"			\"tcpPort\": \""+dstPort+"\"\n" + 
+						"		},\n";
 			}
 		}
+		else if(portType != null && !portType.isEmpty() && portType.equalsIgnoreCase("udp")){
+			body += "			{\n" + 
+					"				\"type\": \"IP_PROTO\",\n" + 
+					"				\"protocol\": 17\n" + 
+					"			},\n";
+			if(srcPort != null && !srcPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"UDP_SRC\",\n" + 
+						"			\"udpPort\": \""+srcPort+"\"\n" + 
+						"		},\n";
+			}
+			if(dstPort != null && !dstPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"UDP_DST\",\n" + 
+						"			\"udpPort\": \""+dstPort+"\"\n" + 
+						"		},\n";
+			}
+		}
+		//Delete last comma
+		body = body.substring(0, body.length() - 2);
+		body += "		]\r\n" + 
+				"	}\r\n" + 
+				"}";
 		try {
-			//System.out.println("JSON FLUJO QOS: \n"+body+"\n"+switchId+"\n"+outPort+"\n"+meterId+"\n"+ip);
+			System.out.println("JSON FLUJO para meter hacia ONOS: \n"+body);
 			response = HttpTools.doJSONPost(new URL(url), body);
 		} catch (MalformedURLException e) {
 			response = new OnosResponse("URL error", 404);
@@ -807,22 +824,46 @@ public class EntornoTools {
 		}
 		auxList.add(auxMap);
 		//criteria 3
-		auxMap = new LinkedHashMap<String, Object>();
-		auxMap.put("type", "IP_PROTO");
-		auxMap.put("protocol", 6);
-		auxList.add(auxMap);
-		//criteria 4
-		if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+		if(flowReq.getPortType().equalsIgnoreCase("tcp")) {
 			auxMap = new LinkedHashMap<String, Object>();
-			auxMap.put("type", "TCP_SRC");
-			auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+			auxMap.put("type", "IP_PROTO");
+			auxMap.put("protocol", 6);
 			auxList.add(auxMap);
+			//criteria 4
+			if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+				auxMap = new LinkedHashMap<String, Object>();
+				auxMap.put("type", "TCP_SRC");
+				auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+				auxList.add(auxMap);
+			}
+			//criteria 5
+			if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+				auxMap = new LinkedHashMap<String, Object>();
+				auxMap.put("type", "TCP_DST");
+				auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
+				auxList.add(auxMap);
+			}
 		}
-		//criteria 5
-		auxMap = new LinkedHashMap<String, Object>();
-		auxMap.put("type", "TCP_DST");
-		auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
-		auxList.add(auxMap);
+		else if(flowReq.getPortType().equalsIgnoreCase("udp")) {
+			auxMap = new LinkedHashMap<String, Object>();
+			auxMap.put("type", "IP_PROTO");
+			auxMap.put("protocol", 17);
+			auxList.add(auxMap);
+			//criteria 4
+			if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+				auxMap = new LinkedHashMap<String, Object>();
+				auxMap.put("type", "UDP_SRC");
+				auxMap.put("udpPort", Integer.parseInt(flowReq.getSrcPort()));
+				auxList.add(auxMap);
+			}
+			//criteria 5
+			if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+				auxMap = new LinkedHashMap<String, Object>();
+				auxMap.put("type", "UDP_DST");
+				auxMap.put("udpPort", Integer.parseInt(flowReq.getDstPort()));
+				auxList.add(auxMap);
+			}
+		}
 
 		selector.put("criteria", auxList);
 		return selector;
@@ -913,11 +954,11 @@ public class EntornoTools {
 					}
 
 					//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
-//					if(reqVplsName.equals(name)) {
-//						sameName = true;
-//						listInterfaces.clear();
-//						listInterfaces.addAll(reqListInterfaces);
-//					}
+					//					if(reqVplsName.equals(name)) {
+					//						sameName = true;
+					//						listInterfaces.clear();
+					//						listInterfaces.addAll(reqListInterfaces);
+					//					}
 					vplss.add(new Vpls(name, listInterfaces));
 
 					//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
@@ -926,8 +967,8 @@ public class EntornoTools {
 					//genJson += "},";
 
 				}
-//				if(!sameName)
-//					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
+				//				if(!sameName)
+				//					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();

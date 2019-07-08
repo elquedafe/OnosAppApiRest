@@ -34,10 +34,5 @@ public class FlowTreatment {
 
     public void setListInstructions(List<FlowInstruction> listInstructions) {
         this.flowInstructions = listInstructions;
-    }
-    
-    
-    
-    
-    
+    }  
 }
