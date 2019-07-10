@@ -92,8 +92,8 @@ public class AuthorizationWebResource {
 
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
-	public Response isAdmin(@HeaderParam("authorization") String authString, String jsonIn) {
-		LogTools.rest("POST", "setAuth", jsonIn);
+	public Response isAdmin(@HeaderParam("authorization") String authString) {
+		LogTools.rest("GET", "isAdmin", authString);
 
 		boolean isAdmin = DatabaseTools.isAdministrator(authString);
 		

@@ -39,9 +39,8 @@ public class RegisterWebResources {
 	}
 
 	/**
-	 * Create a meter for the given switch
-	 * @param switchId Switch ID where meter is installed
-	 * @param jsonIn JSON retrieved from client
+	 * Register user in the OSRA system
+	 * @param jsonIn
 	 * @return
 	 */
 	@POST

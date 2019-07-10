@@ -49,6 +49,7 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/SwitchUserWebResource.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/OnosResponse.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/Point.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/FlowSocketWithSwitchClientRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/security/AuthenticationFilter.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/administratorside/MeterAdministratorRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/database/objects/MeterDBResponse.java

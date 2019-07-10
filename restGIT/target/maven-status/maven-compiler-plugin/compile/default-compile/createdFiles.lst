@@ -40,6 +40,7 @@ rest/gsonobjects/onosside/VplsOnosRequestAux.class
 architecture/Environment.class
 tools/EntornoTools.class
 rest/gsonobjects/onosside/FlowSocketOnosRequest.class
+rest/gsonobjects/userside/FlowSocketWithSwitchClientRequest.class
 rest/gsonobjects/administratorside/FlowAdministratorRequest.class
 rest/resources/AuthorizationWebResource.class
 architecture/Meter.class

@@ -674,7 +674,7 @@ public class EntornoTools {
 					"			},\r\n"+ 
 					"			{\r\n" + 
 					"				\"type\": \"IPV6_DST\",\r\n" + 
-					"				\"ip\": \""+dstIp+"\"/128\"\r\n" + 
+					"				\"ip\": \""+dstIp+"/128\"\r\n" + 
 					"			},\n";
 		}
 		if(portType != null && !portType.isEmpty() && portType.equalsIgnoreCase("tcp")){
@@ -791,6 +791,7 @@ public class EntornoTools {
 		Point point = null;
 		Host h = EntornoTools.getHostByIp(srcHost);
 		if (h != null) {
+			LogTools.info("getIngressPoint", "host not null");
 			for(Map.Entry<String, String> location : h.getMapLocations().entrySet()) {
 				point = new Point(location.getValue(), location.getKey());
 			}
@@ -813,16 +814,26 @@ public class EntornoTools {
 			auxMap.put("ethType", "0x86DD");
 		auxList.add(auxMap);
 		//criteria 2
-		auxMap = new LinkedHashMap<String, Object>();
 		if(flowReq.getIpVersion() == 4) {
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "IPV4_SRC");
 			auxMap.put("ip", flowReq.getSrcHost()+"/32");
+			auxList.add(auxMap);
+			auxMap = new LinkedHashMap<String, Object>();
+			auxMap.put("type", "IPV4_DST");
+			auxMap.put("ip", flowReq.getDstHost()+"/32");
+			auxList.add(auxMap);
 		}
 		else if(flowReq.getIpVersion() == 6) {
+			auxMap = new LinkedHashMap<String, Object>();
 			auxMap.put("type", "IPV6_SRC");
+			auxMap.put("ip", flowReq.getSrcHost()+"/128");
+			auxList.add(auxMap);
+			auxMap = new LinkedHashMap<String, Object>();
+			auxMap.put("type", "IPV6_DST");
 			auxMap.put("ip", flowReq.getDstHost()+"/128");
+			auxList.add(auxMap);
 		}
-		auxList.add(auxMap);
 		//criteria 3
 		if(flowReq.getPortType().equalsIgnoreCase("tcp")) {
 			auxMap = new LinkedHashMap<String, Object>();

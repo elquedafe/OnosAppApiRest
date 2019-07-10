@@ -98,5 +98,16 @@ public class FlowSocketClientRequest {
 		this.portType = portType;
 	}
 	
+	@Override
+	public String toString() {
+		String str = "ipVersion:"+this.ipVersion+"\n"+
+				"srcHost:"+this.srcHost+"\n" +
+				"srcPort:"+this.srcPort+"\n" +
+				"dstHost:"+this.dstHost+"\n" +
+				"dstPort:"+this.dstPort+"\n" +
+				"portType:"+this.portType+"\n";
+		return str;
+	}
+	
 	
 }
