@@ -19,7 +19,7 @@ import rest.database.objects.VplsDBResponse;
 import sun.misc.BASE64Decoder;
 
 public class DatabaseTools {
-	private static final String IP_MARIADB = "10.0.0.2";
+	private static final String IP_MARIADB = "localhost";
 	private static final String PORT = "3306";
 	private static final String DATABASE = "osra";
 	private static final String USER = "alvaro";

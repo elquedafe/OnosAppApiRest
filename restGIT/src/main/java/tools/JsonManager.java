@@ -291,6 +291,7 @@ public class JsonManager {
 				String portJson = (String)src.get("port");
 				String deviceJson = (String)src.get("device");
 				if(deviceJson.equals(id)) {
+					System.out.println("Puerto parseado: "+portJson);
 					return portJson;
 				}
 			}

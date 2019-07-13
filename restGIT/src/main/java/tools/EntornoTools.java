@@ -144,13 +144,15 @@ public class EntornoTools {
 	public static Switch getIngressSwitchByHost(String hostIp) {
 		Host host = null;
 		Switch s = null;
+		LogTools.info("getIngressSwitchByHost", "host ip "+ hostIp);
 		List<Switch> listSwitches = new ArrayList<Switch>();
+		boolean found = false;
 		try {
 			EntornoTools.getEnvironment();
 			for(Host h : EntornoTools.entorno.getMapHosts().values()) {
-				if(h.getIpList().contains(hostIp)) {
+				if(h.getIpList().contains(hostIp) && !found) {
 					host = h;
-					break;
+					found = true;
 				}
 			}
 			for(Map.Entry<String, String> location : host.getMapLocations().entrySet()) {
@@ -162,7 +164,7 @@ public class EntornoTools {
 			e.printStackTrace();
 			return null;
 		}
-
+		System.out.format("Switch ingress de la ip %s es %s", hostIp, listSwitches.get(0).getId());
 		return listSwitches.get(0);
 	}
 
@@ -835,44 +837,46 @@ public class EntornoTools {
 			auxList.add(auxMap);
 		}
 		//criteria 3
-		if(flowReq.getPortType().equalsIgnoreCase("tcp")) {
-			auxMap = new LinkedHashMap<String, Object>();
-			auxMap.put("type", "IP_PROTO");
-			auxMap.put("protocol", 6);
-			auxList.add(auxMap);
-			//criteria 4
-			if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+		if(!((flowReq.getSrcPort()==null || flowReq.getSrcPort().isEmpty()) && (flowReq.getDstPort()==null || flowReq.getDstPort().isEmpty()))) {
+			if(flowReq.getPortType().equalsIgnoreCase("tcp")) {
 				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "TCP_SRC");
-				auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+				auxMap.put("type", "IP_PROTO");
+				auxMap.put("protocol", 6);
 				auxList.add(auxMap);
+				//criteria 4
+				if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+					auxMap = new LinkedHashMap<String, Object>();
+					auxMap.put("type", "TCP_SRC");
+					auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+					auxList.add(auxMap);
+				}
+				//criteria 5
+				if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+					auxMap = new LinkedHashMap<String, Object>();
+					auxMap.put("type", "TCP_DST");
+					auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
+					auxList.add(auxMap);
+				}
 			}
-			//criteria 5
-			if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+			else if(flowReq.getPortType().equalsIgnoreCase("udp")) {
 				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "TCP_DST");
-				auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
+				auxMap.put("type", "IP_PROTO");
+				auxMap.put("protocol", 17);
 				auxList.add(auxMap);
-			}
-		}
-		else if(flowReq.getPortType().equalsIgnoreCase("udp")) {
-			auxMap = new LinkedHashMap<String, Object>();
-			auxMap.put("type", "IP_PROTO");
-			auxMap.put("protocol", 17);
-			auxList.add(auxMap);
-			//criteria 4
-			if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "UDP_SRC");
-				auxMap.put("udpPort", Integer.parseInt(flowReq.getSrcPort()));
-				auxList.add(auxMap);
-			}
-			//criteria 5
-			if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "UDP_DST");
-				auxMap.put("udpPort", Integer.parseInt(flowReq.getDstPort()));
-				auxList.add(auxMap);
+				//criteria 4
+				if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+					auxMap = new LinkedHashMap<String, Object>();
+					auxMap.put("type", "UDP_SRC");
+					auxMap.put("udpPort", Integer.parseInt(flowReq.getSrcPort()));
+					auxList.add(auxMap);
+				}
+				//criteria 5
+				if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+					auxMap = new LinkedHashMap<String, Object>();
+					auxMap.put("type", "UDP_DST");
+					auxMap.put("udpPort", Integer.parseInt(flowReq.getDstPort()));
+					auxList.add(auxMap);
+				}
 			}
 		}
 
@@ -928,17 +932,20 @@ public class EntornoTools {
 			// TODO:
 			response = HttpTools.doJSONGet(new URL(EntornoTools.endpoint+"/paths/"+ingress.getId()+"/"+egress.getId()));
 			String json = response.getMessage();
-
+			System.out.format("Path realizado para ingress %s y egress %s, json obtenido: %s \n", ingress.getId(), egress.getId(), json);
 			//PARSE JSON TO GET PORT
-			return JsonManager.getPortFromPathJson(ingress.getId(), json);
+			port = JsonManager.getPortFromPathJson(ingress.getId(), json);
+			System.out.format("Puerto a devolver al main: "+port);
+			return port;
 
 
-		} catch (IOException e) {
+		} catch (Exception e) {
+			System.out.println("Excepcion pillada en getOutputPort");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
 
-		return port;
 	}
 
 	public static List<Vpls> getVplsState() {
@@ -1010,5 +1017,31 @@ public class EntornoTools {
 			}
 		}
 		return vplss;
+	}
+
+	public static String getOutputPortFromSwitches(String ingressSw, String egressSw) {
+		Gson gson = new Gson();
+		String port="";
+		OnosResponse response = null;
+
+		//GET INGRESS
+		Switch ingress = EntornoTools.entorno.getMapSwitches().get(ingressSw);
+		//GET EGRESS
+		Switch egress = EntornoTools.entorno.getMapSwitches().get(egressSw);
+		try {
+			// TODO:
+			response = HttpTools.doJSONGet(new URL(EntornoTools.endpoint+"/paths/"+ingress.getId()+"/"+egress.getId()));
+			String json = response.getMessage();
+			System.out.format("Path realizado para ingress %s y egress %s, json obtenido: %s \n", ingress.getId(), egress.getId(), json);
+			//PARSE JSON TO GET PORT
+			port = JsonManager.getPortFromPathJson(ingress.getId(), json);
+			System.out.format("Puerto a devolver al main: "+port);
+			return port;
+		} catch (Exception e) {
+			System.out.println("Excepcion pillada en getOutputPort");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

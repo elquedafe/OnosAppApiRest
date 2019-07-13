@@ -18,6 +18,7 @@ tools/DatabaseTools.class
 rest/resources/RegisterWebResources.class
 architecture/FlowInstruction.class
 rest/gsonobjects/onosside/Point.class
+rest/gsonobjects/userside/MeterClientRequestPortWithSwitch.class
 rest/gsonobjects/userside/FlowClientRequest.class
 rest/gsonobjects/userside/FlowSocketClientRequest.class
 rest/gsonobjects/userside/AuthorizationClientRequest.class

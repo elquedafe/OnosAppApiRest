@@ -157,4 +157,16 @@ public class MeterClientRequestPort {
 	}
 	
 
+	@Override
+	public String toString() {
+		String ret = "ipVersion: "+this.ipVersion+"\n"+
+					 "srcHost: "+this.srcHost+"\n"+
+					 "srcPort: "+this.srcPort+"\n"+
+					 "dstHost: "+this.dstHost+"\n"+
+					 "dstPort: "+this.dstPort+"\n"+
+					 "portType: "+this.portType+"\n"+
+					 "rate: "+this.rate+"\n"+
+					 "burst: "+this.burst+"\n";
+		return ret;
+	}
 }
