@@ -430,38 +430,41 @@ public class EntornoTools {
 			LinkedTreeMap org =  (LinkedTreeMap)apps.get("org.onosproject.vpls");
 			if(org != null) {
 				LinkedTreeMap vpls =  (LinkedTreeMap)org.get("vpls");
-				ArrayList vplsList = (ArrayList)vpls.get("vplsList");
-				for(Object o : vplsList) {
-					LinkedTreeMap mapVpls = (LinkedTreeMap)o;
+				if(vpls != null && vpls.containsKey("vplsList")) {
+					ArrayList vplsList = (ArrayList)vpls.get("vplsList");
+					for(Object o : vplsList) {
+						LinkedTreeMap mapVpls = (LinkedTreeMap)o;
 
-					String name = (String)mapVpls.get("name");
-					List<String> listInterfaces = new ArrayList<String>();
-					ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
-					for(Object ob : interfaces) {
-						String interf = (String)ob;
-						listInterfaces.add(interf);
+						String name = (String)mapVpls.get("name");
+						List<String> listInterfaces = new ArrayList<String>();
+						ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
+						for(Object ob : interfaces) {
+							String interf = (String)ob;
+							listInterfaces.add(interf);
+						}
+
+						//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
+						if(reqVplsName.equals(name)) {
+							sameName = true;
+							listInterfaces.clear();
+							listInterfaces.addAll(reqListInterfaces);
+						}
+						vplss.add(new VplsOnosRequestAux(name, listInterfaces));
+
+						//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
+						//genJson += "\"interfaces\": ";
+						//genJson += listInterfaces.toString();
+						//genJson += "},";
+
 					}
-
-					//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
-					if(reqVplsName.equals(name)) {
-						sameName = true;
-						listInterfaces.clear();
-						listInterfaces.addAll(reqListInterfaces);
-					}
-					vplss.add(new VplsOnosRequestAux(name, listInterfaces));
-
-					//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
-					//genJson += "\"interfaces\": ";
-					//genJson += listInterfaces.toString();
-					//genJson += "},";
-
+					if(!sameName)
+						vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
 				}
-				if(!sameName)
+				else {
 					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
+				}
 			}
-			else {
-				vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
-			}
+			
 
 
 			genJson += gson.toJson(vplss);
@@ -837,45 +840,47 @@ public class EntornoTools {
 			auxList.add(auxMap);
 		}
 		//criteria 3
-		if(!((flowReq.getSrcPort()==null || flowReq.getSrcPort().isEmpty()) && (flowReq.getDstPort()==null || flowReq.getDstPort().isEmpty()))) {
-			if(flowReq.getPortType().equalsIgnoreCase("tcp")) {
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "IP_PROTO");
-				auxMap.put("protocol", 6);
-				auxList.add(auxMap);
-				//criteria 4
-				if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+		if(!flowReq.getPortType().isEmpty()) {
+			if(!((flowReq.getSrcPort()==null || flowReq.getSrcPort().isEmpty()) && (flowReq.getDstPort()==null || flowReq.getDstPort().isEmpty()))) {
+				if(flowReq.getPortType().equalsIgnoreCase("tcp")) {
 					auxMap = new LinkedHashMap<String, Object>();
-					auxMap.put("type", "TCP_SRC");
-					auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+					auxMap.put("type", "IP_PROTO");
+					auxMap.put("protocol", 6);
 					auxList.add(auxMap);
+					//criteria 4
+					if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+						auxMap = new LinkedHashMap<String, Object>();
+						auxMap.put("type", "TCP_SRC");
+						auxMap.put("tcpPort", Integer.parseInt(flowReq.getSrcPort()));
+						auxList.add(auxMap);
+					}
+					//criteria 5
+					if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+						auxMap = new LinkedHashMap<String, Object>();
+						auxMap.put("type", "TCP_DST");
+						auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
+						auxList.add(auxMap);
+					}
 				}
-				//criteria 5
-				if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+				else if(flowReq.getPortType().equalsIgnoreCase("udp")) {
 					auxMap = new LinkedHashMap<String, Object>();
-					auxMap.put("type", "TCP_DST");
-					auxMap.put("tcpPort", Integer.parseInt(flowReq.getDstPort()));
+					auxMap.put("type", "IP_PROTO");
+					auxMap.put("protocol", 17);
 					auxList.add(auxMap);
-				}
-			}
-			else if(flowReq.getPortType().equalsIgnoreCase("udp")) {
-				auxMap = new LinkedHashMap<String, Object>();
-				auxMap.put("type", "IP_PROTO");
-				auxMap.put("protocol", 17);
-				auxList.add(auxMap);
-				//criteria 4
-				if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
-					auxMap = new LinkedHashMap<String, Object>();
-					auxMap.put("type", "UDP_SRC");
-					auxMap.put("udpPort", Integer.parseInt(flowReq.getSrcPort()));
-					auxList.add(auxMap);
-				}
-				//criteria 5
-				if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
-					auxMap = new LinkedHashMap<String, Object>();
-					auxMap.put("type", "UDP_DST");
-					auxMap.put("udpPort", Integer.parseInt(flowReq.getDstPort()));
-					auxList.add(auxMap);
+					//criteria 4
+					if(flowReq.getSrcPort()!=null && !flowReq.getSrcPort().isEmpty()) {
+						auxMap = new LinkedHashMap<String, Object>();
+						auxMap.put("type", "UDP_SRC");
+						auxMap.put("udpPort", Integer.parseInt(flowReq.getSrcPort()));
+						auxList.add(auxMap);
+					}
+					//criteria 5
+					if(flowReq.getDstPort()!=null && !flowReq.getDstPort().isEmpty()) {
+						auxMap = new LinkedHashMap<String, Object>();
+						auxMap.put("type", "UDP_DST");
+						auxMap.put("udpPort", Integer.parseInt(flowReq.getDstPort()));
+						auxList.add(auxMap);
+					}
 				}
 			}
 		}
@@ -959,34 +964,36 @@ public class EntornoTools {
 			LinkedTreeMap org =  (LinkedTreeMap)apps.get("org.onosproject.vpls");
 			if(org != null) {
 				LinkedTreeMap vpls =  (LinkedTreeMap)org.get("vpls");
-				ArrayList vplsList = (ArrayList)vpls.get("vplsList");
-				for(Object o : vplsList) {
-					LinkedTreeMap mapVpls = (LinkedTreeMap)o;
+				if(vpls != null && vpls.containsKey("vplsList")) {
+					ArrayList vplsList = (ArrayList)vpls.get("vplsList");
+					for(Object o : vplsList) {
+						LinkedTreeMap mapVpls = (LinkedTreeMap)o;
 
-					String name = (String)mapVpls.get("name");
-					List<String> listInterfaces = new ArrayList<String>();
-					ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
-					for(Object ob : interfaces) {
-						String interf = (String)ob;
-						listInterfaces.add(interf);
+						String name = (String)mapVpls.get("name");
+						List<String> listInterfaces = new ArrayList<String>();
+						ArrayList interfaces = (ArrayList)mapVpls.get("interfaces");
+						for(Object ob : interfaces) {
+							String interf = (String)ob;
+							listInterfaces.add(interf);
+						}
+
+						//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
+						//					if(reqVplsName.equals(name)) {
+						//						sameName = true;
+						//						listInterfaces.clear();
+						//						listInterfaces.addAll(reqListInterfaces);
+						//					}
+						vplss.add(new Vpls(name, listInterfaces));
+
+						//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
+						//genJson += "\"interfaces\": ";
+						//genJson += listInterfaces.toString();
+						//genJson += "},";
+
 					}
-
-					//NEW VPLS. If requested vpls name exists in onos, then replace interfaces for the new ones.
-					//					if(reqVplsName.equals(name)) {
-					//						sameName = true;
-					//						listInterfaces.clear();
-					//						listInterfaces.addAll(reqListInterfaces);
-					//					}
-					vplss.add(new Vpls(name, listInterfaces));
-
-					//vplss.add(new VplsOnosRequestAux(name, listInterfaces));
-					//genJson += "\"interfaces\": ";
-					//genJson += listInterfaces.toString();
-					//genJson += "},";
-
+					//				if(!sameName)
+					//					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
 				}
-				//				if(!sameName)
-				//					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();

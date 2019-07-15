@@ -182,14 +182,14 @@ public class JsonManager {
 
 			LinkedTreeMap treatment = (LinkedTreeMap)mapFlows.get("treatment");
 			ArrayList instructions = (ArrayList)treatment.get("instructions");
-			Map<String,String> hashMapInstructions = new HashMap<String,String>();
+			Map<String,Object> hashMapInstructions = new HashMap<String,Object>();
 			for(Object ob : instructions){
 				LinkedTreeMap mapInstructions = (LinkedTreeMap)ob;
 				Set keys = mapInstructions.keySet();
 				for(Object key : keys){
 					String k = (String)key;
 					if(!k.equals("type")){
-						hashMapInstructions.put(k,(String)mapInstructions.get(k));
+						hashMapInstructions.put(k,(Object)mapInstructions.get(k));
 					}
 					else
 						type = (String)mapInstructions.get(k);

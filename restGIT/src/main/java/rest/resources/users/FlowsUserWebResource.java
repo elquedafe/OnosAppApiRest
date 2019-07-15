@@ -592,10 +592,18 @@ public class FlowsUserWebResource {
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
 				response = HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+switchId+"/"+flowId));
+				DatabaseTools.deleteFlow(flowId, authString);
 			} 
 			catch (IOException e) {
 				e.printStackTrace();
-				return Response.ok(gson.toJson(new OnosResponse(e.getMessage(),404)), MediaType.APPLICATION_JSON_TYPE).build();
+				return Response.status(400).entity("Error al eliminar flujo en ONOS").build();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block				
+				e.printStackTrace();
+				return Response.status(400).entity("Error al eliminar flujo de la BBDD").build();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				return Response.status(400).entity("Error al eliminar flujo de la BBDD").build(); 
 			}
 			resRest = Response.ok(gson.toJson(response), MediaType.APPLICATION_JSON_TYPE).build();
 			return resRest;

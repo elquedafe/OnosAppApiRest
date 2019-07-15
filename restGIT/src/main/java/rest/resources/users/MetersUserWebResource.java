@@ -104,13 +104,14 @@ public class MetersUserWebResource {
 		LogTools.rest("DELETE", "deleteMeter", "Switch Name: " + switchId + " - MeterID: " + meterId);
 
 		Response resRest;
-		OnosResponse response;
+		OnosResponse response = null;
 		String url = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
 			url = EntornoTools.endpoint + "/meters/"+switchId+"/"+meterId;
 
 			try {
 				response = HttpTools.doDelete(new URL(url));
+				DatabaseTools.deleteMeter(meterId, switchId);
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;
@@ -118,6 +119,19 @@ public class MetersUserWebResource {
 				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
 				//resRest = Response.serverError().build();
+				return resRest;
+			} catch (ClassNotFoundException e) {
+				resRest = Response.ok("ClassNotFoundException: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+				e.printStackTrace();
+				return resRest;
+			} catch (SQLException e) {
+				resRest = Response.status(400).entity("SQLException"+e.getMessage()).build();
+				e.printStackTrace();
+				return resRest;
+			}
+			catch(Exception e) {
+				resRest = Response.ok("Exception: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+				e.printStackTrace();
 				return resRest;
 			}
 
@@ -418,7 +432,7 @@ public class MetersUserWebResource {
 							onosResponse = HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+s.getId()+"/"+f.getId()));
 							for(FlowInstruction instruction : f.getFlowTreatment().getListInstructions()) {
 								if(instruction.getInstructions().containsKey("meterId")) {
-									meterId = instruction.getInstructions().get("meterId");
+									meterId = (String)instruction.getInstructions().get("meterId");
 									HttpTools.doDelete(new URL(EntornoTools.endpoint+"/meters/"+s.getId()+"/"+meterId));
 								}
 							}

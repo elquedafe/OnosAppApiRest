@@ -53,10 +53,10 @@ public class RegisterWebResources {
 			DatabaseTools.register(credentials.getUser(), credentials.getPassword(), false);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-			Response.ok(new OnosResponse("Error registering",400)).build();
+			return Response.status(400).entity(new OnosResponse("Error registering",400)).build();
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return Response.ok(new OnosResponse("Error registering",400)).build();
+			return Response.status(400).entity(new OnosResponse("Error registering",400)).build();
 		}
 		return Response.ok(new OnosResponse("User registered successfuly",200)).build();
 	}

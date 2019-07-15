@@ -15,16 +15,16 @@ import java.util.Map;
  */
 public class FlowInstruction {
     private String type;
-    private Map<String,String> instructions;
+    private Map<String,Object> instructions;
 
-    public FlowInstruction(String type, Map<String, String> instructions) {
+    public FlowInstruction(String type, Map<String, Object> instructions) {
         this.type = type;
         this.instructions = instructions;
     }
 
     public FlowInstruction() {
         this.type = "";
-        this.instructions = new HashMap<String,String>();
+        this.instructions = new HashMap<String,Object>();
     }
     
     
@@ -37,11 +37,11 @@ public class FlowInstruction {
         this.type = type;
     }
 
-    public Map<String, String> getInstructions() {
+    public Map<String, Object> getInstructions() {
         return instructions;
     }
 
-    public void setInstructions(Map<String, String> instructions) {
+    public void setInstructions(Map<String, Object> instructions) {
         this.instructions = instructions;
     }
 }

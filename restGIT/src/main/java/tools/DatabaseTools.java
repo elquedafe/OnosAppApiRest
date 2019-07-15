@@ -19,7 +19,7 @@ import rest.database.objects.VplsDBResponse;
 import sun.misc.BASE64Decoder;
 
 public class DatabaseTools {
-	private static final String IP_MARIADB = "localhost";
+	private static final String IP_MARIADB = "10.0.1.3";
 	private static final String PORT = "3306";
 	private static final String DATABASE = "osra";
 	private static final String USER = "alvaro";
@@ -142,8 +142,8 @@ public class DatabaseTools {
 		return flows;
 
 	}
-	
-	
+
+
 	public static List<MeterDBResponse> getMetersByUser(String authString) {
 		List<MeterDBResponse> meters = new ArrayList<MeterDBResponse>();
 		String idMeter = "";
@@ -199,7 +199,7 @@ public class DatabaseTools {
 		}
 		return decoded;
 	}
-	
+
 	public static List<VplsDBResponse> getVplsByUser(String authString) {
 		List<VplsDBResponse> vpls = new ArrayList<VplsDBResponse>();
 		String idVpls = "";
@@ -227,7 +227,7 @@ public class DatabaseTools {
 		}
 
 		return vpls;
-		
+
 	}
 
 	public static void addFlowByUserId(Flow flow, String authString) throws ClassNotFoundException, SQLException {
@@ -238,7 +238,7 @@ public class DatabaseTools {
 				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
 		executeStatement(sql);
 	}
-	
+
 	public static void deleteFlow(String idFlow, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -247,19 +247,40 @@ public class DatabaseTools {
 				+ "WHERE IdFlow='"+idFlow+"'";
 		executeStatement(sql);
 	}
-	
-	private static ResultSet executeStatement(String query) throws ClassNotFoundException, SQLException {
-		Class.forName("org.mariadb.jdbc.Driver");
-		Connection connection = DriverManager.getConnection("jdbc:mariadb://"+IP_MARIADB+":"+PORT+"/"+DATABASE+"?user="+USER+"&password="+PASS);
-		Statement statement = connection.createStatement();
-		ResultSet rs = statement.executeQuery(query);
 
-		statement.close();
-		connection.close();
+	private static ResultSet executeStatement(String query) throws SQLException, ClassNotFoundException {
+
+		ResultSet rs = null;
+		Connection connection = null;
+		Statement statement = null;
+
+		try {
+			Class.forName("org.mariadb.jdbc.Driver");
+			connection = DriverManager.getConnection("jdbc:mariadb://"+IP_MARIADB+":"+PORT+"/"+DATABASE+"?user="+USER+"&password="+PASS);
+
+			statement = connection.createStatement();
+			rs = statement.executeQuery(query);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw e;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw e;
+		}
+		finally {
+			if(statement != null)
+				statement.close();
+			if(connection != null)
+				connection.close();
+		}
+
+
 
 		return rs;
 	}
-	
+
 	public static void register(String user, String password, boolean isAdmin) throws ClassNotFoundException, SQLException {
 		String sql = "INSERT INTO User "
 				+ "(UserName, Password, IsAdmin) "
@@ -275,7 +296,7 @@ public class DatabaseTools {
 				+ "WHERE UserName='"+user+"'";
 		executeStatement(sql);
 	}
-	
+
 	public static void addMeterByUser(Meter meter, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -283,16 +304,16 @@ public class DatabaseTools {
 				+ "(IdMeter, IdSwitch, IdUser) "
 				+ "VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
 		executeStatement(sql);
-		
+
 	}
-	
+
 	public static void deleteMeter(String meterId, String switchId) throws ClassNotFoundException, SQLException {
 		String sql = "DELETE "
 				+ "FROM Meter "
 				+ "WHERE IdMeter='"+meterId+"' AND IdSwitch='"+switchId+"'";
 		executeStatement(sql);
 	}
-	
+
 	public static void addVplsByUser(String vplsName, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -300,9 +321,9 @@ public class DatabaseTools {
 				+ "(VplsName, IdUser) "
 				+ "VALUES ('"+vplsName+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
 		executeStatement(sql);
-		
+
 	}
-	
+
 	public static void deleteVpls(String vplsName, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
