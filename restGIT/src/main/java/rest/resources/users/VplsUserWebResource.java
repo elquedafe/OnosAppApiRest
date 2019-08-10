@@ -27,6 +27,7 @@ import architecture.Vpls;
 import rest.database.objects.MeterDBResponse;
 import rest.database.objects.VplsDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.userside.MeterClientRequestPort;
 import rest.gsonobjects.userside.VplsClientRequest;
 import tools.DatabaseTools;
 import tools.EntornoTools;
@@ -64,10 +65,10 @@ public class VplsUserWebResource {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 			vplssDB = DatabaseTools.getVplsByUser(authString);
 			vplss = EntornoTools.getVplsList();
-			
+
 			for(Vpls vpls : vplss) {
 				for(VplsDBResponse vplsDB : vplssDB) {
 					if(vpls.getName().equals(vplsDB.getVplsName())) {
@@ -75,9 +76,9 @@ public class VplsUserWebResource {
 					}
 				}
 			}
-			
+
 			String json = gson.toJson(userVplss);
-//			String json = EntornoTools.getVpls();
+			//			String json = EntornoTools.getVpls();
 
 			//String json = gson.toJson(map);
 			LogTools.info("getVpls", "response to client: " + json);
@@ -300,8 +301,6 @@ public class VplsUserWebResource {
 				LogTools.info("setVpls", "Discovering environment");
 				EntornoTools.getEnvironment();
 
-
-
 				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
 
 				List<Vpls> vplsBefore = EntornoTools.getVplsState();
@@ -325,10 +324,23 @@ public class VplsUserWebResource {
 						e.printStackTrace();
 					}
 
-				if(vplsReq.getRate() != -1 && vplsReq.getBurst() != -1) {
-					
+				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
+					MeterClientRequestPort meterReq;
+					for(String srcHost : vplsReq.getHosts()) {
+						for(String dstHost : vplsReq.getHosts()) {
+							if(!srcHost.equals(dstHost)) {
+								meterReq = new MeterClientRequestPort();
+								meterReq.setSrcHost(srcHost);
+								meterReq.setDstHost(dstHost);
+								meterReq.setRate(vplsReq.getRate());
+								meterReq.setBurst(vplsReq.getBurst());
+								EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
+							}
+						}
+					}
 				}
-				//ADD METER IF
+
+
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;

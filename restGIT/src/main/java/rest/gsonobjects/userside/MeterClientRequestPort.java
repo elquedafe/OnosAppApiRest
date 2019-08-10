@@ -21,6 +21,18 @@ public class MeterClientRequestPort {
 		this.rate = rate;
 		this.burst = burst;
 	}
+	
+	public MeterClientRequestPort() {
+		super();
+		this.ipVersion = "4";
+		this.srcHost = "";
+		this.srcPort = "";
+		this.dstHost = "";
+		this.dstPort = "";
+		this.portType = ""; 
+		this.rate = 0;
+		this.burst = 0;
+	}
 
 	/**
 	 * @return the host
@@ -32,7 +44,7 @@ public class MeterClientRequestPort {
 	/**
 	 * @param host the host to set
 	 */
-	public void setSrcHost(String host) {
+	public void setSrcHost(String srcHost) {
 		this.srcHost = srcHost;
 	}
 
