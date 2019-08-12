@@ -390,11 +390,13 @@ public class EntornoTools {
 		for(Host h : entorno.getMapHosts().values()) {
 			int i = 0;
 			for(Map.Entry<String, String> entry : h.getMapLocations().entrySet()) {
-				String point = entry.getKey()+"/"+entry.getValue();
-				genJson += "\""+point+"\":{"
-						+ "\"interfaces\":["
-						+ "{\"name\":\""+h.getIpList().get(i)+"\"}]},";
-				i++;
+				if(!h.getIpList().isEmpty()) {
+					String point = entry.getKey()+"/"+entry.getValue();
+					genJson += "\""+point+"\":{"
+							+ "\"interfaces\":["
+							+ "{\"name\":\""+h.getIpList().get(i)+"\"}]},";
+					i++;
+				}
 			}
 		}
 		//DELETE LAST COMMA
@@ -468,7 +470,12 @@ public class EntornoTools {
 					vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
 				}
 			}
+			else {
+				//ELSE when org.onosproject.vpls does not exists
+				vplss.add(new VplsOnosRequestAux(reqVplsName, reqListInterfaces));
+			}
 			
+
 
 
 			genJson += gson.toJson(vplss);
@@ -739,7 +746,6 @@ public class EntornoTools {
 
 	public static List<Flow> compareFlows(Map<String, Flow> oldFlowsState, Map<String, Flow> newFlowsState) {
 		List<Flow> flows = new ArrayList<Flow>();
-
 		for(Flow flow : newFlowsState.values()) {
 			if(!oldFlowsState.containsKey(flow.getId())) {
 				flows.add(flow);
@@ -1060,6 +1066,7 @@ public class EntornoTools {
 		Response resRest;
 		OnosResponse response = null;
 		String portAux = "";
+		String meterId = "";
 		if(srcHost.equals(meterReq.getSrcHost()) && dstHost.equals(meterReq.getDstHost())) {
 			//GET HOST
 			Host h = EntornoTools.getHostByIp(meterReq.getSrcHost());
@@ -1068,7 +1075,7 @@ public class EntornoTools {
 			//System.out.println("GET HOST: "+h.getId()+" "+h.getIpList().get(0).toString());
 
 
-			
+
 			//GET switches connected to host
 			List<Switch> ingressSwitches = EntornoTools.getIngressSwitchesByHost(meterReq.getSrcHost());
 			for(Switch s : ingressSwitches)
@@ -1080,7 +1087,7 @@ public class EntornoTools {
 					try {
 						// Get meters before
 						List<Meter> oldMetersState = EntornoTools.getMeters(ingress.getId());
-						
+
 						//Add meter to onos
 						response = EntornoTools.addMeter(ingress.getId(), meterReq.getRate(), meterReq.getBurst());
 
@@ -1089,21 +1096,23 @@ public class EntornoTools {
 
 						//Compare old and new
 						List<Meter> metersToAdd = EntornoTools.compareMeters(oldMetersState, newMetersState);
-
+						
 						//Add meter to DDBB
 						for(Meter meter : metersToAdd) {
 							try {
 								System.out.println("Añadiendo meter a la bbdd: "+ meter.getDeviceId() + ":"+meter.getId());
 								DatabaseTools.addMeterByUser(meter, authString);
+								meterId = meter.getId();
 							} catch (ClassNotFoundException | SQLException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 						}
+						
 
 						//GET EGRESS PORTS FROM SWITCH
 						String outputSwitchPort = EntornoTools.getOutputPort(meterReq.getSrcHost(), meterReq.getDstHost());
-						
+
 						//Install flows for each new meter
 						if(outputSwitchPort != null && !outputSwitchPort.isEmpty()) {
 							EntornoTools.getEnvironment();
@@ -1140,9 +1149,9 @@ public class EntornoTools {
 									if(flowsNews.size()>0) {
 										for(Flow flow : flowsNews) {
 											try {
-//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
+												//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 												System.out.format("Añadiend flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-												DatabaseTools.addFlowByUserId(flow, authString);
+												DatabaseTools.addFlowByUserIdQoS(meterId, flow, authString);
 											} catch (ClassNotFoundException | SQLException e) {
 												e.printStackTrace();
 												//TODO: Delete flow from onos and send error to client
@@ -1176,5 +1185,55 @@ public class EntornoTools {
 			}
 		}
 		return null;
+	}
+
+	public static Response deleteMeterWithFlows(String switchId, String meterId, String authString) {
+		Response resRest;
+		OnosResponse response = null;
+		String url = url = EntornoTools.endpoint + "/meters/"+switchId+"/"+meterId;
+		try {
+			//DELETE METER
+			response = HttpTools.doDelete(new URL(url));
+			DatabaseTools.deleteMeter(meterId, switchId);
+
+			//DELETE FLOW ASSOCIATED
+			Map<String, Flow> flows = EntornoTools.entorno.getMapSwitches().get(switchId).getFlows();
+			//BBDD query to get flows related to the meterId
+			Map<String, FlowDBResponse> dbFlows = DatabaseTools.getFlowsByMeterId(switchId, meterId, authString);
+			for(FlowDBResponse dbFlow : dbFlows.values()) {
+				String idFlow = dbFlow.getIdFlow();
+				//ONOS DELETE
+				HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+switchId+"/"+idFlow));
+				//DDBB Delete
+				DatabaseTools.deleteFlow(idFlow, authString);
+			}
+
+		} catch (MalformedURLException e) {
+			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			return resRest;
+		} catch (IOException e) {
+			//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+			//resRest = Response.serverError().build();
+			return resRest;
+		} catch (ClassNotFoundException e) {
+			resRest = Response.ok("ClassNotFoundException: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+			e.printStackTrace();
+			return resRest;
+		} catch (SQLException e) {
+			resRest = Response.status(400).entity("SQLException"+e.getMessage()).build();
+			e.printStackTrace();
+			return resRest;
+		}
+		catch(Exception e) {
+			resRest = Response.ok("Exception: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+			e.printStackTrace();
+			return resRest;
+		}
+
+
+		resRest = Response.ok("{\"response\":\"succesful_"+ response.getMessage() +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+
+		return resRest;
 	}
 }

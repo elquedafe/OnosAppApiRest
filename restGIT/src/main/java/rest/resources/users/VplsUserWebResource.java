@@ -165,6 +165,10 @@ public class VplsUserWebResource {
 			try {
 				response = EntornoTools.deleteVpls(vplsName);
 				//onosResponse = HttpTools.doDelete(new URL(url));
+				List<MeterDBResponse> dbMeters = DatabaseTools.getMetersByVpls(vplsName, authString);
+				for(MeterDBResponse dbMeter : dbMeters) {
+					EntornoTools.deleteMeterWithFlows(dbMeter.getIdSwitch(), dbMeter.getIdMeter(), authString);
+				}
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;
@@ -316,13 +320,14 @@ public class VplsUserWebResource {
 				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
 
 				//ADD new vpls to DDBB
-				for(Vpls v : vplsNews)
+				for(Vpls v : vplsNews) {
 					try {
 						DatabaseTools.addVplsByUser(v.getName(), authString);
 					} catch (ClassNotFoundException | SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+				}
 
 				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
 					MeterClientRequestPort meterReq;

@@ -29,6 +29,7 @@ import architecture.FlowInstruction;
 import architecture.Host;
 import architecture.Meter;
 import architecture.Switch;
+import rest.database.objects.FlowDBResponse;
 import rest.database.objects.MeterDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.userside.MeterClientRequestPort;
@@ -104,40 +105,8 @@ public class MetersUserWebResource {
 		LogTools.rest("DELETE", "deleteMeter", "Switch Name: " + switchId + " - MeterID: " + meterId);
 
 		Response resRest;
-		OnosResponse response = null;
-		String url = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
-			url = EntornoTools.endpoint + "/meters/"+switchId+"/"+meterId;
-
-			try {
-				response = HttpTools.doDelete(new URL(url));
-				DatabaseTools.deleteMeter(meterId, switchId);
-			} catch (MalformedURLException e) {
-				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				return resRest;
-			} catch (IOException e) {
-				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
-				//resRest = Response.serverError().build();
-				return resRest;
-			} catch (ClassNotFoundException e) {
-				resRest = Response.ok("ClassNotFoundException: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
-				e.printStackTrace();
-				return resRest;
-			} catch (SQLException e) {
-				resRest = Response.status(400).entity("SQLException"+e.getMessage()).build();
-				e.printStackTrace();
-				return resRest;
-			}
-			catch(Exception e) {
-				resRest = Response.ok("Exception: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
-				e.printStackTrace();
-				return resRest;
-			}
-
-
-			resRest = Response.ok("{\"response\":\"succesful_"+ response.getMessage() +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-
+			resRest = EntornoTools.deleteMeterWithFlows(switchId, meterId, authString);
 			return resRest;
 		}
 		else
@@ -401,7 +370,8 @@ public class MetersUserWebResource {
 	@Path("{hostIp}/port/{hostPort}")
 	@DELETE
 	@Produces (MediaType.APPLICATION_JSON)	
-	public Response deleteMeterBySocket(@PathParam("hostIp") String hostIp, @PathParam("hostPort") String hostPort, @HeaderParam("authorization") String authString) {
+	@Consumes (MediaType.APPLICATION_JSON)
+	public Response deleteMeterBySocket(@PathParam("hostIp") String hostIp, @PathParam("hostPort") String hostPort, @HeaderParam("authorization") String authString, String jsonIn) {
 		// TODO change path parameters
 		Response resRest = null;
 		OnosResponse onosResponse = null;

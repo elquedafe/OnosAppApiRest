@@ -79,77 +79,104 @@ public class Testmain {
 		String authString = "Basic YWRtaW46YWRtaW4="; //admin:admin
 		authString = "Basic YWx2YXJvOmE="; //alvaro:a
 
-		/**SET QoS VPLS***/
-		String vplsName = "VplsA";
-		String jsonIn = "{\n" + 
-				"			\"vplsName\":\"VplsA\",\n" + 
-				"			\"hosts\" : [\"10.0.3.2\",\"10.0.3.5\",\"10.0.3.3\"]\n" + 
-				"		,\n" + 
-				"		\"rate\":1000,\n" + 
-				"		\"burst\":1000}";
-		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
-		Response resRest;
-		String jsonOut = "";
-		String url = "";
+		/***SET METER****/
+		String srcHost = "10.0.3.5";
+		String dstHost = "10.0.3.3";
+		String jsonIn = "{\"ipVersion\": \"4\",\"srcHost\": \"10.0.3.5\",\"srcPort\": \"\",\"dstHost\": \"10.0.3.3\",\"dstPort\": \"\",\"portType\": \"\",\"rate\": 1000,\"burst\": 1000}\n" + 
+				"";
+		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
+		Response resRest = null;
+//		OnosResponse response = null;
+//		String url = "";
+//		String portAux = "";
+
 		if(DatabaseTools.isAuthenticated(authString)) {
-			url = EntornoTools.endpointNetConf;
+			//DESCUBRIR ENTORNO
 			try {
-				LogTools.info("setVpls", "Discovering environment");
 				EntornoTools.getEnvironment();
-
-				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-
-				List<Vpls> vplsBefore = EntornoTools.getVplsState();
-
-				if(vplsReq.getVplsName().equals(vplsName))
-					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
-
-				//HttpTools.doDelete(new URL(url));
-				HttpTools.doJSONPost(new URL(url), jsonOut);
-
-				List<Vpls> vplsAfter = EntornoTools.getVplsState();
-
-				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
-
-				//ADD new vpls to DDBB
-				for(Vpls v : vplsNews) {
-					try {
-						DatabaseTools.addVplsByUser(v.getName(), authString);
-					} catch (ClassNotFoundException | SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-
-				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
-					MeterClientRequestPort meterReq;
-					for(String srcHost : vplsReq.getHosts()) {
-						for(String dstHost : vplsReq.getHosts()) {
-							if(!srcHost.equals(dstHost)) {
-								meterReq = new MeterClientRequestPort();
-								meterReq.setSrcHost(srcHost);
-								meterReq.setDstHost(dstHost);
-								meterReq.setRate(vplsReq.getRate());
-								meterReq.setBurst(vplsReq.getBurst());
-								EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
-							}
-						}
-					}
-				}
-
-
-			} catch (MalformedURLException e) {
-				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				//				return resRest;
-
-			} catch (IOException e) {
-				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-				resRest = Response.serverError().build();
-				
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
+
+			//Get user meter request
+			MeterClientRequestPort meterReq = gson.fromJson(jsonIn, MeterClientRequestPort.class);
+			System.out.println("MeterClientRequestPort object: "+ meterReq.toString());
+			
+			resRest = EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
 		}
-		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		
+		
+		/**SET QoS VPLS***/
+//		String vplsName = "VplsB";
+//		String jsonIn = "{\n" + 
+//				"			\"vplsName\":\"VplsB\",\n" + 
+//				"			\"hosts\" : [\"10.0.3.2\",\"10.0.3.5\",\"10.0.3.3\"]\n" + 
+//				"		,\n" + 
+//				"		\"rate\":1000,\n" + 
+//				"		\"burst\":1000}";
+//		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
+//		Response resRest;
+//		String jsonOut = "";
+//		String url = "";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			url = EntornoTools.endpointNetConf;
+//			try {
+//				LogTools.info("setVpls", "Discovering environment");
+//				EntornoTools.getEnvironment();
+//
+//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+//
+//				List<Vpls> vplsBefore = EntornoTools.getVplsState();
+//
+//				if(vplsReq.getVplsName().equals(vplsName))
+//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
+//
+//				//HttpTools.doDelete(new URL(url));
+//				HttpTools.doJSONPost(new URL(url), jsonOut);
+//
+//				List<Vpls> vplsAfter = EntornoTools.getVplsState();
+//
+//				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
+//
+//				//ADD new vpls to DDBB
+//				for(Vpls v : vplsNews) {
+//					try {
+//						DatabaseTools.addVplsByUser(v.getName(), authString);
+//					} catch (ClassNotFoundException | SQLException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//				}
+//
+//				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
+//					MeterClientRequestPort meterReq;
+//					for(String srcHost : vplsReq.getHosts()) {
+//						for(String dstHost : vplsReq.getHosts()) {
+//							if(!srcHost.equals(dstHost)) {
+//								meterReq = new MeterClientRequestPort();
+//								meterReq.setSrcHost(srcHost);
+//								meterReq.setDstHost(dstHost);
+//								meterReq.setRate(vplsReq.getRate());
+//								meterReq.setBurst(vplsReq.getBurst());
+//								EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
+//							}
+//						}
+//					}
+//				}
+//
+//
+//			} catch (MalformedURLException e) {
+//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				//				return resRest;
+//
+//			} catch (IOException e) {
+//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+//				resRest = Response.serverError().build();
+//				
+//			}
+//		}
+//		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
 		
 
 

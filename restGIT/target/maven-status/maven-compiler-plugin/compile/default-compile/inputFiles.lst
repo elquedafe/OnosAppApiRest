@@ -29,6 +29,7 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowInstruction.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterClientRequestPortWithSwitch.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterClientRequestPort.java
+/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterSocketDelete.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/IntentOnosRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/tools/DatabaseTools.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowTreatment.java

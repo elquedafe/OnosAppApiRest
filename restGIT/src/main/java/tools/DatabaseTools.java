@@ -332,4 +332,78 @@ public class DatabaseTools {
 				+ "WHERE VplsName='"+vplsName+"' AND IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
 		executeStatement(sql);
 	}
+
+	public static Map<String, FlowDBResponse> getFlowsByMeterId(String switchId, String meterId, String authString) {
+		String idFlow = "";
+		String idSwitch = "";
+		String idUser = "";
+		String[] decoded = getUserPassFromCoded(authString);
+		String user = decoded[0];
+		String sql = "SELECT IdFlow FROM Flow" + 
+				"WHERE IdMeter = '"+ meterId +"'" + 
+				"AND IdSwitch = '"+ switchId +"'" + 
+				"AND IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"'";
+		Map<String, FlowDBResponse> flows = new HashMap<String, FlowDBResponse>();
+
+		ResultSet rs;
+		try {
+			rs = executeStatement(sql);
+			while (rs.next()){
+				idFlow = rs.getString("IdFlow");
+				idSwitch = rs.getString("IdSwitch");
+				idUser = rs.getString("IdUser");
+
+				flows.put(idFlow, new FlowDBResponse(idFlow, idSwitch, idUser));
+				// print the results
+				System.out.format("%s, %s, %s\n", idFlow, idSwitch, idUser);
+			}
+		} catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return flows;
+		}
+
+		return flows;
+	}
+
+	public static List<MeterDBResponse> getMetersByVpls(String vplsName, String authString) {
+		List<MeterDBResponse> meters = new ArrayList<MeterDBResponse>();
+		String idMeter = "";
+		String idSwitch = "";
+		String idUser = "";
+		String[] decoded = getUserPassFromCoded(authString);
+		String user = decoded[0];
+		String sql= "Select IdMeter FROM Meter "
+				+ "WHERE IdVpls='"+vplsName+"'"
+				+ "AND IdUser=(SELECT IdUser FROM User WHERE UserName='" + user + "'";
+		ResultSet rs;
+		try {
+			rs = executeStatement(sql);
+			while (rs.next()){
+				idMeter = rs.getString("IdMeter");
+				idSwitch = rs.getString("IdSwitch");
+				idUser = rs.getString("IdUser");
+
+				meters.add(new MeterDBResponse(idMeter, idSwitch, idUser));
+				// print the results
+				System.out.format("%s, %s, %s\n", idMeter, idSwitch, idUser);
+			}
+		}
+		catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return meters;
+		}
+		return null;
+	}
+
+	public static void addFlowByUserIdQoS(String meterId, Flow flow, String authString)  throws ClassNotFoundException, SQLException {
+		String[] decoded = getUserPassFromCoded(authString);
+		String user = decoded[0];
+		String sql = "INSERT INTO Flow "
+				+ "(IdFlow, IdSwitch, IdUser, IdMeter) "
+				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+meterId+"')";
+		executeStatement(sql);
+		
+	}
 }
