@@ -339,10 +339,10 @@ public class DatabaseTools {
 		String idUser = "";
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
-		String sql = "SELECT IdFlow FROM Flow" + 
-				"WHERE IdMeter = '"+ meterId +"'" + 
-				"AND IdSwitch = '"+ switchId +"'" + 
-				"AND IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"'";
+		String sql = "SELECT IdFlow FROM Flow " + 
+				"WHERE IdMeter = '"+ meterId +"' " + 
+				"AND IdSwitch = '"+ switchId +"' " + 
+				"AND IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
 		Map<String, FlowDBResponse> flows = new HashMap<String, FlowDBResponse>();
 
 		ResultSet rs;
@@ -373,9 +373,9 @@ public class DatabaseTools {
 		String idUser = "";
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
-		String sql= "Select IdMeter FROM Meter "
-				+ "WHERE IdVpls='"+vplsName+"'"
-				+ "AND IdUser=(SELECT IdUser FROM User WHERE UserName='" + user + "'";
+		String sql= "Select * FROM Meter "
+				+ "WHERE IdVpls=(SELECT IdVpls FROM Vpls WHERE VplsName='" + vplsName + "') "
+				+ "AND IdUser=(SELECT IdUser FROM User WHERE UserName='" + user + "')";
 		ResultSet rs;
 		try {
 			rs = executeStatement(sql);
@@ -394,7 +394,7 @@ public class DatabaseTools {
 			e.printStackTrace();
 			return meters;
 		}
-		return null;
+		return meters;
 	}
 
 	public static void addFlowByUserIdQoS(String meterId, Flow flow, String authString)  throws ClassNotFoundException, SQLException {
@@ -403,6 +403,16 @@ public class DatabaseTools {
 		String sql = "INSERT INTO Flow "
 				+ "(IdFlow, IdSwitch, IdUser, IdMeter) "
 				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+meterId+"')";
+		executeStatement(sql);
+		
+	}
+
+	public static void addMeterByUserWithVpls(String vplsName, Meter meter, String authString) throws ClassNotFoundException, SQLException {
+		String[] decoded = getUserPassFromCoded(authString);
+		String user = decoded[0];
+		String sql = "INSERT INTO Meter "
+				+ "(IdMeter, IdSwitch, IdUser, IdVpls) "
+				+ "VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"'))";
 		executeStatement(sql);
 		
 	}

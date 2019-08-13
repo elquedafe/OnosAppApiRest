@@ -170,7 +170,7 @@ public class VplsAdministratorWebResource {
 		LogTools.rest("DELETE", "deteleVpls", "VPLS Name: " + vplsName);
 
 		Response resRest;
-		OnosResponse response;
+		OnosResponse response = null;
 		String url = "";
 		if(DatabaseTools.isAdministrator(authString)) {
 			//1. DELETE QoS flows in ingress Switches of the vplsName hosts
@@ -187,7 +187,7 @@ public class VplsAdministratorWebResource {
 
 
 			try {
-				response = EntornoTools.deleteVpls(vplsName);
+				response = EntornoTools.deleteVpls(vplsName, authString);
 				//onosResponse = HttpTools.doDelete(new URL(url));
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
@@ -197,6 +197,12 @@ public class VplsAdministratorWebResource {
 				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
 				//resRest = Response.serverError().build();
 				return resRest;
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 

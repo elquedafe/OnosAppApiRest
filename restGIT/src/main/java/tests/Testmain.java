@@ -79,105 +79,142 @@ public class Testmain {
 		String authString = "Basic YWRtaW46YWRtaW4="; //admin:admin
 		authString = "Basic YWx2YXJvOmE="; //alvaro:a
 
-		/***SET METER****/
-		String srcHost = "10.0.3.5";
-		String dstHost = "10.0.3.3";
-		String jsonIn = "{\"ipVersion\": \"4\",\"srcHost\": \"10.0.3.5\",\"srcPort\": \"\",\"dstHost\": \"10.0.3.3\",\"dstPort\": \"\",\"portType\": \"\",\"rate\": 1000,\"burst\": 1000}\n" + 
-				"";
-		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
-		Response resRest = null;
-//		OnosResponse response = null;
-//		String url = "";
-//		String portAux = "";
+		/**********DELETE VPLS******/
+		String vplsName = "vpls1";
+		LogTools.rest("DELETE", "deteleVpls", "VPLS Name: " + vplsName);
 
+		Response resRest;
+		OnosResponse response;
+		String url = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
-			//DESCUBRIR ENTORNO
+
 			try {
-				EntornoTools.getEnvironment();
-			} catch (IOException e1) {
-				e1.printStackTrace();
+				List<MeterDBResponse> dbMeters = DatabaseTools.getMetersByVpls(vplsName, authString);
+				response = EntornoTools.deleteVpls(vplsName, authString);
+				//onosResponse = HttpTools.doDelete(new URL(url));
+				for(MeterDBResponse dbMeter : dbMeters) {
+					EntornoTools.deleteMeterWithFlows(dbMeter.getIdSwitch(), dbMeter.getIdMeter(), authString);
+				}
+			} catch (MalformedURLException e) {
+				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				return resRest;
+			} catch (IOException e) {
+				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+				//resRest = Response.serverError().build();
+//				return resRest;
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
-			//Get user meter request
-			MeterClientRequestPort meterReq = gson.fromJson(jsonIn, MeterClientRequestPort.class);
-			System.out.println("MeterClientRequestPort object: "+ meterReq.toString());
-			
-			resRest = EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
+
+//			resRest = Response.ok("{\"response\":\"succesful"+ response.getMessage() +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 		}
-		
-		
+
+
+		/***SET METER****/
+		//		String srcHost = "10.0.3.5";
+		//		String dstHost = "10.0.3.3";
+		//		String jsonIn = "{\"ipVersion\": \"4\",\"srcHost\": \"10.0.3.5\",\"srcPort\": \"\",\"dstHost\": \"10.0.3.3\",\"dstPort\": \"\",\"portType\": \"\",\"rate\": 1000,\"burst\": 1000}\n" + 
+		//				"";
+		//		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
+		//		Response resRest = null;
+		////		OnosResponse response = null;
+		////		String url = "";
+		////		String portAux = "";
+		//
+		//		if(DatabaseTools.isAuthenticated(authString)) {
+		//			//DESCUBRIR ENTORNO
+		//			try {
+		//				EntornoTools.getEnvironment();
+		//			} catch (IOException e1) {
+		//				e1.printStackTrace();
+		//			}
+		//
+		//			//Get user meter request
+		//			MeterClientRequestPort meterReq = gson.fromJson(jsonIn, MeterClientRequestPort.class);
+		//			System.out.println("MeterClientRequestPort object: "+ meterReq.toString());
+		//			
+		//			resRest = EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
+		//		}
+
+
 		/**SET QoS VPLS***/
-//		String vplsName = "VplsB";
-//		String jsonIn = "{\n" + 
-//				"			\"vplsName\":\"VplsB\",\n" + 
-//				"			\"hosts\" : [\"10.0.3.2\",\"10.0.3.5\",\"10.0.3.3\"]\n" + 
-//				"		,\n" + 
-//				"		\"rate\":1000,\n" + 
-//				"		\"burst\":1000}";
-//		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
-//		Response resRest;
-//		String jsonOut = "";
-//		String url = "";
-//		if(DatabaseTools.isAuthenticated(authString)) {
-//			url = EntornoTools.endpointNetConf;
-//			try {
-//				LogTools.info("setVpls", "Discovering environment");
-//				EntornoTools.getEnvironment();
-//
-//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-//
-//				List<Vpls> vplsBefore = EntornoTools.getVplsState();
-//
-//				if(vplsReq.getVplsName().equals(vplsName))
-//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
-//
-//				//HttpTools.doDelete(new URL(url));
-//				HttpTools.doJSONPost(new URL(url), jsonOut);
-//
-//				List<Vpls> vplsAfter = EntornoTools.getVplsState();
-//
-//				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
-//
-//				//ADD new vpls to DDBB
-//				for(Vpls v : vplsNews) {
-//					try {
-//						DatabaseTools.addVplsByUser(v.getName(), authString);
-//					} catch (ClassNotFoundException | SQLException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//				}
-//
-//				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
-//					MeterClientRequestPort meterReq;
-//					for(String srcHost : vplsReq.getHosts()) {
-//						for(String dstHost : vplsReq.getHosts()) {
-//							if(!srcHost.equals(dstHost)) {
-//								meterReq = new MeterClientRequestPort();
-//								meterReq.setSrcHost(srcHost);
-//								meterReq.setDstHost(dstHost);
-//								meterReq.setRate(vplsReq.getRate());
-//								meterReq.setBurst(vplsReq.getBurst());
-//								EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
-//							}
-//						}
-//					}
-//				}
-//
-//
-//			} catch (MalformedURLException e) {
-//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				//				return resRest;
-//
-//			} catch (IOException e) {
-//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-//				resRest = Response.serverError().build();
-//				
-//			}
-//		}
-//		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
-		
+		//		String vplsName = "VplsB";
+		//		String jsonIn = "{\n" + 
+		//				"			\"vplsName\":\"VplsB\",\n" + 
+		//				"			\"hosts\" : [\"10.0.3.2\",\"10.0.3.5\",\"10.0.3.3\"]\n" + 
+		//				"		,\n" + 
+		//				"		\"rate\":1000,\n" + 
+		//				"		\"burst\":1000}";
+		//		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
+		//		Response resRest;
+		//		String jsonOut = "";
+		//		String url = "";
+		//		if(DatabaseTools.isAuthenticated(authString)) {
+		//			url = EntornoTools.endpointNetConf;
+		//			try {
+		//				LogTools.info("setVpls", "Discovering environment");
+		//				EntornoTools.getEnvironment();
+		//
+		//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+		//
+		//				List<Vpls> vplsBefore = EntornoTools.getVplsState();
+		//
+		//				if(vplsReq.getVplsName().equals(vplsName))
+		//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
+		//
+		//				//HttpTools.doDelete(new URL(url));
+		//				HttpTools.doJSONPost(new URL(url), jsonOut);
+		//
+		//				List<Vpls> vplsAfter = EntornoTools.getVplsState();
+		//
+		//				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
+		//
+		//				//ADD new vpls to DDBB
+		//				for(Vpls v : vplsNews) {
+		//					try {
+		//						DatabaseTools.addVplsByUser(v.getName(), authString);
+		//					} catch (ClassNotFoundException | SQLException e) {
+		//						// TODO Auto-generated catch block
+		//						e.printStackTrace();
+		//					}
+		//				}
+		//
+		//				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
+		//					MeterClientRequestPort meterReq;
+		//					for(String srcHost : vplsReq.getHosts()) {
+		//						for(String dstHost : vplsReq.getHosts()) {
+		//							if(!srcHost.equals(dstHost)) {
+		//								meterReq = new MeterClientRequestPort();
+		//								meterReq.setSrcHost(srcHost);
+		//								meterReq.setDstHost(dstHost);
+		//								meterReq.setRate(vplsReq.getRate());
+		//								meterReq.setBurst(vplsReq.getBurst());
+		//								EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
+		//							}
+		//						}
+		//					}
+		//				}
+		//
+		//
+		//			} catch (MalformedURLException e) {
+		//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		//				//				return resRest;
+		//
+		//			} catch (IOException e) {
+		//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+		//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+		//				resRest = Response.serverError().build();
+		//				
+		//			}
+		//		}
+		//		resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+
 
 
 
@@ -1894,36 +1931,36 @@ public class Testmain {
 
 	}
 
-		/**
-		 * Checks weather or not a host is available
-		 * @param ip ip address or hostname of the destination
-		 * @return true if is reachable or false if not
-		 * @throws IOException
-		 */
-		private static boolean ping(String ip) throws IOException{
-			try {
-				boolean ret = false;
-				Socket t = new Socket();
-				t.connect(new InetSocketAddress(ip, 8181), 2000);
-				DataInputStream dis = new DataInputStream(t.getInputStream());
-				PrintStream ps = new PrintStream(t.getOutputStream());
-				ps.println("Hello");
-				String str = dis.readLine();
-				if (str.equals("Hello")){
-					LogTools.info("ping", "Alive connection checked");
-				}
-				else{
-					LogTools.info("ping", "Not dead connection checked");
-				}
-				ret = true;
-				t.close();
-				return ret;
-			} catch (IOException ex) {
-				throw new IOException("Socket error");
+	/**
+	 * Checks weather or not a host is available
+	 * @param ip ip address or hostname of the destination
+	 * @return true if is reachable or false if not
+	 * @throws IOException
+	 */
+	private static boolean ping(String ip) throws IOException{
+		try {
+			boolean ret = false;
+			Socket t = new Socket();
+			t.connect(new InetSocketAddress(ip, 8181), 2000);
+			DataInputStream dis = new DataInputStream(t.getInputStream());
+			PrintStream ps = new PrintStream(t.getOutputStream());
+			ps.println("Hello");
+			String str = dis.readLine();
+			if (str.equals("Hello")){
+				LogTools.info("ping", "Alive connection checked");
 			}
-
+			else{
+				LogTools.info("ping", "Not dead connection checked");
+			}
+			ret = true;
+			t.close();
+			return ret;
+		} catch (IOException ex) {
+			throw new IOException("Socket error");
 		}
 
-
-
 	}
+
+
+
+}

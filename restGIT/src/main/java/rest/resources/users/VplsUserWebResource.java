@@ -163,9 +163,9 @@ public class VplsUserWebResource {
 		if(DatabaseTools.isAuthenticated(authString)) {
 
 			try {
-				response = EntornoTools.deleteVpls(vplsName);
-				//onosResponse = HttpTools.doDelete(new URL(url));
 				List<MeterDBResponse> dbMeters = DatabaseTools.getMetersByVpls(vplsName, authString);
+				response = EntornoTools.deleteVpls(vplsName, authString);
+				//onosResponse = HttpTools.doDelete(new URL(url));
 				for(MeterDBResponse dbMeter : dbMeters) {
 					EntornoTools.deleteMeterWithFlows(dbMeter.getIdSwitch(), dbMeter.getIdMeter(), authString);
 				}
@@ -174,9 +174,17 @@ public class VplsUserWebResource {
 				return resRest;
 			} catch (IOException e) {
 				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+//				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
 				//resRest = Response.serverError().build();
-				return resRest;
+				return Response.status(400).entity("IO: "+e.getMessage()).build();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return Response.status(400).entity("ClassNotFoundException ERROR").build();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return Response.status(400).entity("SQL ERROR").build();
 			}
 
 
@@ -339,7 +347,7 @@ public class VplsUserWebResource {
 								meterReq.setDstHost(dstHost);
 								meterReq.setRate(vplsReq.getRate());
 								meterReq.setBurst(vplsReq.getBurst());
-								EntornoTools.addMeterAndFlow(srcHost, dstHost, authString, meterReq);
+								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
 							}
 						}
 					}
