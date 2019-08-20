@@ -230,14 +230,14 @@ public class DatabaseTools {
 
 	}
 
-	public static void addFlowByUserId(Flow flow, String authString) throws ClassNotFoundException, SQLException {
-		String[] decoded = getUserPassFromCoded(authString);
-		String user = decoded[0];
-		String sql = "INSERT INTO Flow "
-				+ "(IdFlow, IdSwitch, IdUser) "
-				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
-		executeStatement(sql);
-	}
+//	public static void addFlowByUserId(Flow flow, String authString) throws ClassNotFoundException, SQLException {
+//		String[] decoded = getUserPassFromCoded(authString);
+//		String user = decoded[0];
+//		String sql = "INSERT INTO Flow "
+//				+ "(IdFlow, IdSwitch, IdUser) "
+//				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
+//		executeStatement(sql);
+//	}
 
 	public static void deleteFlow(String idFlow, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
@@ -297,15 +297,15 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
-	public static void addMeterByUser(Meter meter, String authString) throws ClassNotFoundException, SQLException {
-		String[] decoded = getUserPassFromCoded(authString);
-		String user = decoded[0];
-		String sql = "INSERT INTO Meter "
-				+ "(IdMeter, IdSwitch, IdUser) "
-				+ "VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
-		executeStatement(sql);
-
-	}
+//	public static void addMeterByUser(Meter meter, String authString) throws ClassNotFoundException, SQLException {
+//		String[] decoded = getUserPassFromCoded(authString);
+//		String user = decoded[0];
+//		String sql = "INSERT INTO Meter "
+//				+ "(IdMeter, IdSwitch, IdUser) "
+//				+ "VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
+//		executeStatement(sql);
+//
+//	}
 
 	public static void deleteMeter(String meterId, String switchId) throws ClassNotFoundException, SQLException {
 		String sql = "DELETE "
@@ -339,7 +339,7 @@ public class DatabaseTools {
 		String idUser = "";
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
-		String sql = "SELECT IdFlow FROM Flow " + 
+		String sql = "SELECT * FROM Flow " + 
 				"WHERE IdMeter = '"+ meterId +"' " + 
 				"AND IdSwitch = '"+ switchId +"' " + 
 				"AND IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
@@ -396,24 +396,94 @@ public class DatabaseTools {
 		}
 		return meters;
 	}
-
-	public static void addFlowByUserIdQoS(String meterId, Flow flow, String authString)  throws ClassNotFoundException, SQLException {
+	
+	public static void addFlow(Flow flow, String authString, String idMeter, String vplsName) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
 		String sql = "INSERT INTO Flow "
-				+ "(IdFlow, IdSwitch, IdUser, IdMeter) "
-				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+meterId+"')";
+				+ "(IdFlow, IdSwitch, IdUser";
+		if(idMeter != null && !idMeter.isEmpty()) 
+			sql += ", IdMeter";
+		
+		if(vplsName != null && !vplsName.isEmpty())
+			sql += ", IdVpls";
+		sql += ") "
+			+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"')";
+		
+		if(idMeter != null && !idMeter.isEmpty()) 
+			sql += ", '" + idMeter + "'";
+		
+		if(vplsName != null && !vplsName.isEmpty())
+			sql += ", (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')";
+		sql += ")";
+		executeStatement(sql);
+	}
+
+//	public static void addFlowByUserIdQoS(String meterId, Flow flow, String authString)  throws ClassNotFoundException, SQLException {
+//		String[] decoded = getUserPassFromCoded(authString);
+//		String user = decoded[0];
+//		String sql = "INSERT INTO Flow "
+//				+ "(IdFlow, IdSwitch, IdUser, IdMeter, IdVpls) "
+//				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+meterId+"', (SELECT IdVpls FROM Meter WHERE IdMeter='"+meterId+"' AND IdSwitch='"+flow.getDeviceId()+"'))";
+//		executeStatement(sql);
+//		
+//	}
+
+	public static void addMeter(Meter meter, String authString, String vplsName) throws ClassNotFoundException, SQLException {
+		String[] decoded = getUserPassFromCoded(authString);
+		String user = decoded[0];
+		String sql = "INSERT INTO Meter "
+				+ "(IdMeter, IdSwitch, IdUser";
+		if(vplsName != null && !vplsName.isEmpty())
+			sql += ", IdVpls";
+		sql += ") VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"')";
+		
+		if(vplsName != null && !vplsName.isEmpty())
+			sql += ", (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')";
+		
+		sql += ")";
 		executeStatement(sql);
 		
 	}
 
-	public static void addMeterByUserWithVpls(String vplsName, Meter meter, String authString) throws ClassNotFoundException, SQLException {
-		String[] decoded = getUserPassFromCoded(authString);
-		String user = decoded[0];
-		String sql = "INSERT INTO Meter "
-				+ "(IdMeter, IdSwitch, IdUser, IdVpls) "
-				+ "VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"'))";
-		executeStatement(sql);
-		
+	public static Map<String, FlowDBResponse> getFlowsByVplsNoMeter(String vplsName, String authString) {
+		Map<String, FlowDBResponse> flows = new HashMap<String, FlowDBResponse>();
+		String idFlow = "";
+		String idSwitch = "";
+		String idUser = "";
+
+		String user = getUserPassFromCoded(authString)[0];
+		try {
+			ResultSet rs = executeStatement("SELECT * FROM Flow WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"') "
+					+ "AND IdVpls=(SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')"
+							+ "AND IdMeter IS NULL)");
+			while (rs.next()){
+				idFlow = rs.getString("IdFlow");
+				idSwitch = rs.getString("IdSwitch");
+				idUser = rs.getString("IdUser");
+
+				flows.put(idFlow, new FlowDBResponse(idFlow, idSwitch, idUser));
+				// print the results
+				System.out.format("%s, %s, %s\n", idFlow, idSwitch, idUser);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return flows;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return flows;
+		}
+
+		return flows;
 	}
+
+//	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {
+//		String[] decoded = getUserPassFromCoded(authString);
+//		String user = decoded[0];
+//		String sql = "INSERT INTO Flow "
+//				+ "(IdFlow, IdSwitch, IdUser, IdVpls) "
+//				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"'))";
+//		executeStatement(sql);
+//		
+//	}
 }

@@ -42,6 +42,7 @@ public class JsonManager {
 
 	public static void parseJsonDevicesGson(String json) {
 		Gson gson = new Gson();
+		EntornoTools.entorno.getMapSwitches().clear();
 
 		LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
 		ArrayList node = (ArrayList)jsonObject.get("devices");
@@ -226,6 +227,9 @@ public class JsonManager {
 
 	public static void parseJsonHostsGson(String json) {
 		Gson gson = new Gson();
+		
+		EntornoTools.entorno.getMapHosts().clear();
+		
 		LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
 		ArrayList hosts = (ArrayList)jsonObject.get("hosts");
 		for(Object o : hosts){

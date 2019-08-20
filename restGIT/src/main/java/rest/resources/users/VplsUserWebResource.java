@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +22,12 @@ import javax.ws.rs.core.Response;
 
 import com.google.gson.Gson;
 
+import architecture.Flow;
 import architecture.Host;
 import architecture.Meter;
+import architecture.Switch;
 import architecture.Vpls;
+import rest.database.objects.FlowDBResponse;
 import rest.database.objects.MeterDBResponse;
 import rest.database.objects.VplsDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
@@ -164,11 +168,22 @@ public class VplsUserWebResource {
 
 			try {
 				List<MeterDBResponse> dbMeters = DatabaseTools.getMetersByVpls(vplsName, authString);
+				Map<String, FlowDBResponse> dbFlowsIntent = DatabaseTools.getFlowsByVplsNoMeter(vplsName, authString);
 				response = EntornoTools.deleteVpls(vplsName, authString);
 				//onosResponse = HttpTools.doDelete(new URL(url));
+				
+				//DELETE INTENT FLOWS
+				for(FlowDBResponse dbFlowIntent : dbFlowsIntent.values()) {
+					DatabaseTools.deleteFlow(dbFlowIntent.getIdFlow(), authString);
+				}
+				
+				//DELETE METERS AND FLOWS ASSOCIATED TO METER
 				for(MeterDBResponse dbMeter : dbMeters) {
 					EntornoTools.deleteMeterWithFlows(dbMeter.getIdSwitch(), dbMeter.getIdMeter(), authString);
 				}
+
+				//DELETE FROM DDBB
+				DatabaseTools.deleteVpls(vplsName, authString);
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;
@@ -312,6 +327,14 @@ public class VplsUserWebResource {
 			try {
 				LogTools.info("setVpls", "Discovering environment");
 				EntornoTools.getEnvironment();
+				
+				//GET OLD FLOW STATE
+				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+							oldFlowsState.put(flow.getKey(), flow.getValue());
+				}
 
 				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
 
@@ -336,7 +359,34 @@ public class VplsUserWebResource {
 						e.printStackTrace();
 					}
 				}
+				
+				//GET NEW FLOWS STATE
+				EntornoTools.getEnvironment();
+				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
+				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
+					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
+						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+							newFlowsState.put(flow.getKey(), flow.getValue());
+				
+				List<Flow> flowsNews;
+				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+				
+				// ADD flows of intents to DDBB
+				if(flowsNews.size()>0) {
+					for(Flow flow : flowsNews) {
+						try {
+//							System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
+							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
+							DatabaseTools.addFlow(flow, authString, null, vplsName);
+						} catch (ClassNotFoundException | SQLException e) {
+							e.printStackTrace();
+							//TODO: Delete flow from onos and send error to client
 
+						}
+					}
+				}
+				
+				// ADD METERS FOR VPLS AND ITS FLOWS
 				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
 					MeterClientRequestPort meterReq;
 					for(String srcHost : vplsReq.getHosts()) {

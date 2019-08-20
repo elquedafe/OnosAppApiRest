@@ -260,7 +260,7 @@ public class MetersUserWebResource {
 				//Add meter to DDBB
 				for(Meter meter : metersToAdd) {
 					try {
-						DatabaseTools.addMeterByUser(meter, authString);
+						DatabaseTools.addMeter(meter, authString, null);
 					} catch (ClassNotFoundException | SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -320,7 +320,7 @@ public class MetersUserWebResource {
 							if(flowsNews.size()>0) {
 								for(Flow flow : flowsNews) {
 									try {
-										DatabaseTools.addFlowByUserId(flow, authString);
+										DatabaseTools.addFlow(flow, authString, null, null);
 									} catch (ClassNotFoundException | SQLException e) {
 										e.printStackTrace();
 										//TODO: Delete flow from onos and send error to client

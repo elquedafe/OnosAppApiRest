@@ -628,8 +628,6 @@ public class EntornoTools {
 			genJson += gson.toJson(vplss);
 			genJson +="}}}}";
 			
-			//DELETE FROM DDBB
-			DatabaseTools.deleteVpls(vplsName, authString);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -1104,7 +1102,7 @@ public class EntornoTools {
 						for(Meter meter : metersToAdd) {
 							try {
 								System.out.println("Añadiendo meter a la bbdd: "+ meter.getDeviceId() + ":"+meter.getId());
-								DatabaseTools.addMeterByUser(meter, authString);
+								DatabaseTools.addMeter(meter, authString, null);
 								meterId = meter.getId();
 							} catch (ClassNotFoundException | SQLException e) {
 								// TODO Auto-generated catch block
@@ -1154,7 +1152,7 @@ public class EntornoTools {
 											try {
 												//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 												System.out.format("Añadiend flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-												DatabaseTools.addFlowByUserIdQoS(meterId, flow, authString);
+												DatabaseTools.addFlow(flow, authString, meterId, null);
 											} catch (ClassNotFoundException | SQLException e) {
 												e.printStackTrace();
 												//TODO: Delete flow from onos and send error to client
@@ -1195,21 +1193,24 @@ public class EntornoTools {
 		OnosResponse response = null;
 		String url = url = EntornoTools.endpoint + "/meters/"+switchId+"/"+meterId;
 		try {
-			//DELETE METER
-			response = HttpTools.doDelete(new URL(url));
-			DatabaseTools.deleteMeter(meterId, switchId);
-
 			//DELETE FLOW ASSOCIATED
-			Map<String, Flow> flows = EntornoTools.entorno.getMapSwitches().get(switchId).getFlows();
-			//BBDD query to get flows related to the meterId
 			Map<String, FlowDBResponse> dbFlows = DatabaseTools.getFlowsByMeterId(switchId, meterId, authString);
+			Map<String, Flow> flows = EntornoTools.entorno.getMapSwitches().get(switchId).getFlows();
+			
+			//BBDD query to get flows related to the meterId
 			for(FlowDBResponse dbFlow : dbFlows.values()) {
+				
 				String idFlow = dbFlow.getIdFlow();
 				//ONOS DELETE
 				HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+switchId+"/"+idFlow));
 				//DDBB Delete
 				DatabaseTools.deleteFlow(idFlow, authString);
+				flows.remove(idFlow);
 			}
+			
+			//DELETE METER
+			response = HttpTools.doDelete(new URL(url));
+			DatabaseTools.deleteMeter(meterId, switchId);
 
 		} catch (MalformedURLException e) {
 			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
@@ -1280,7 +1281,7 @@ public class EntornoTools {
 						for(Meter meter : metersToAdd) {
 							try {
 								System.out.println("Añadiendo meter a la bbdd: "+ meter.getDeviceId() + ":"+meter.getId());
-								DatabaseTools.addMeterByUserWithVpls(vplsName, meter, authString);
+								DatabaseTools.addMeter(meter, authString, vplsName);
 								meterId = meter.getId();
 							} catch (ClassNotFoundException | SQLException e) {
 								// TODO Auto-generated catch block
@@ -1330,7 +1331,7 @@ public class EntornoTools {
 											try {
 												//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 												System.out.format("Añadiend flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-												DatabaseTools.addFlowByUserIdQoS(meterId, flow, authString);
+												DatabaseTools.addFlow(flow, authString, meterId, null);
 											} catch (ClassNotFoundException | SQLException e) {
 												e.printStackTrace();
 												//TODO: Delete flow from onos and send error to client
