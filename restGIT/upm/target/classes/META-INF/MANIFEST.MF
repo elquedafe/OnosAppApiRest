@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1566400986309
+Build-Jdk: 10.0.2
+Built-By: alvaroluismartinez
+Bundle-ClassPath: WEB-INF/classes
+Bundle-Description: ONOS OSGi bundle archetype
+Bundle-ManifestVersion: 2
+Bundle-Name: upm
+Bundle-SymbolicName: foo.upm.upm
+Bundle-Version: 2.1.0
+Created-By: Apache Maven Bundle Plugin
+Export-Package: foo.upm.es;uses:="javax.ws.rs,javax.ws.rs.core,org.onlab
+ .rest,org.onosproject.cfg,org.onosproject.rest,org.osgi.service.compone
+ nt";version="2.1.0"
+Import-Package: com.fasterxml.jackson.databind;version="[2.9,3)",com.fas
+ terxml.jackson.databind.node;version="[2.9,3)",javax.ws.rs;version="[2.
+ 1,3)",javax.ws.rs.core;version="[2.1,3)",org.onlab.osgi;version="[2.1,3
+ )",org.onlab.rest;version="[2.1,3)",org.onlab.util;version="[2.1,3)",or
+ g.onosproject.cfg;version="[2.1,3)",org.onosproject.net;version="[2.1,3
+ )",org.onosproject.net.behaviour;version="[2.1,3)",org.onosproject.net.
+ device;version="[2.1,3)",org.onosproject.net.driver;version="[2.1,3)",o
+ rg.onosproject.rest;version="[2.1,3)",org.osgi.service.component;versio
+ n="[1.4,2)",org.slf4j;version="[1.7,2)",org.glassfish.jersey.servlet;ve
+ rsion="[2.26,3)"
+Provide-Capability: osgi.service;objectClass:List<String>="foo.upm.es.So
+ meInterface"
+Require-Capability: osgi.extender;filter:="(&(osgi.extender=osgi.compone
+ nt)(version>=1.3.0)(!(version>=2.0.0)))",osgi.service;filter:="(objectC
+ lass=org.onosproject.cfg.ComponentConfigService)";effective:=active,osg
+ i.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Service-Component: OSGI-INF/foo.upm.es.AppComponent.xml
+Tool: Bnd-3.5.0.201709291849
+Web-ContextPath: /onos/upm
