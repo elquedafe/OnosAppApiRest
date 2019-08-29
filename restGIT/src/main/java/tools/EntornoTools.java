@@ -48,11 +48,14 @@ import architecture.Flow;
 import architecture.Host;
 import architecture.Link;
 import architecture.Meter;
+import architecture.Queue;
 import architecture.Switch;
 import architecture.Vpls;
 import rest.database.objects.FlowDBResponse;
+import rest.database.objects.QueueDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.onosside.Point;
+import rest.gsonobjects.onosside.QueueOnos;
 import rest.gsonobjects.onosside.VplsOnosRequestAux;
 import rest.gsonobjects.userside.FlowSocketClientRequest;
 import rest.gsonobjects.userside.MeterClientRequestPort;
@@ -68,6 +71,7 @@ public class EntornoTools {
 	public static String password;
 	public static String onosHost;
 	public static String endpointNetConf;
+	public static String endpointQueues;
 	//private static ProxyPipe pipe;
 	public static Environment entorno = new Environment();
 
@@ -1284,7 +1288,7 @@ public class EntornoTools {
 								DatabaseTools.addMeter(meter, authString, vplsName);
 								meterId = meter.getId();
 							} catch (ClassNotFoundException | SQLException e) {
-								// TODO Auto-generated catch block
+								
 								e.printStackTrace();
 							}
 						}
@@ -1334,7 +1338,7 @@ public class EntornoTools {
 												DatabaseTools.addFlow(flow, authString, meterId, null);
 											} catch (ClassNotFoundException | SQLException e) {
 												e.printStackTrace();
-												//TODO: Delete flow from onos and send error to client
+												//
 
 											}
 										}
@@ -1366,5 +1370,33 @@ public class EntornoTools {
 		}
 		return null;
 		
+	}
+
+	public static List<Queue> getQueues(List<QueueDBResponse> queuesDb) {
+		List<Queue> queues = new ArrayList<Queue>();
+		List<QueueOnos> queuesOnos = new ArrayList<QueueOnos>();
+		Queue queue = null;
+		OnosResponse onosResponse = new OnosResponse();
+		for(QueueDBResponse queueDb : queuesDb) {
+			try {
+				onosResponse = HttpTools.doJSONGet(new URL(EntornoTools.endpointQueues+"/"+queueDb.getIdQueue()));
+				queuesOnos = JsonManager.parseQueues(onosResponse.getMessage());
+				for(QueueOnos queueOnos : queuesOnos) {
+					queue = new Queue(Long.parseLong(queueOnos.getQueueId()),
+							String.valueOf(queueOnos.getMinRate()),
+							String.valueOf(queueOnos.getMaxRate()),
+							String.valueOf(queueOnos.getBurst()),
+							Long.parseLong(queueDb.getIdQos()),
+							queueDb.getPortNumber(),
+							queueDb.getPortName());
+					queues.add(queue);
+				}
+				
+			} catch (IOException e) {
+				return queues;
+			}
+			
+		}
+		return queues;
 	}
 }

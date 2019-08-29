@@ -32,9 +32,11 @@ import architecture.FlowTreatment;
 import architecture.Host;
 import architecture.Link;
 import architecture.Port;
+import architecture.Queue;
 import architecture.Switch;
 import architecture.Vpls;
 import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.onosside.QueueOnos;
 
 public class JsonManager {
 
@@ -301,6 +303,23 @@ public class JsonManager {
 			}
 		}
 		return null;
+	}
+
+	public static List<QueueOnos> parseQueues(String json) {
+		List<QueueOnos> queuesList = new ArrayList<QueueOnos>();
+		QueueOnos q = null;
+		Gson gson = new Gson();
+		
+		
+		LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
+		ArrayList queues = (ArrayList)jsonObject.get("queues");
+		for(Object o : queues) {
+			LinkedTreeMap queue = (LinkedTreeMap)o;
+			q = gson.fromJson(gson.toJson(queue), QueueOnos.class);
+			queuesList.add(q);
+		}
+		
+		return queues;
 	}
 
 }

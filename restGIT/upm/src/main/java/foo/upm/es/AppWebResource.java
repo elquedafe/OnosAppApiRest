@@ -375,7 +375,73 @@ public class AppWebResource extends AbstractWebResource {
                         q.priority(), q.burst());
             });*/
 
-            qosConfigBehaviour.getQoses().forEach(q -> {
+            qosConfig.getQoses().forEach(q -> {
+                
+                log.info("name={}, maxRate={}, cbs={}, cir={}, " +
+                                "queues={}, type={}", q.qosId(), q.maxRate(),
+                        q.cbs(), q.cir(), q.queues(), q.type());
+
+            });
+        }
+
+        return ok(root).build();
+    }
+
+    /**
+     * Gets all flow entries. Returns array of all flow rules in the system.
+     *
+     * @return 200 OK with a collection of flows
+     * @onos.rsModel FlowEntries
+     */
+    @GET
+    @Path("{deviceId}/{queueId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getQueues(@PathParam("deviceId") String deviceId, @PathParam("queueId") String queueId) {
+
+        QueueObject queue = null;
+        log.info(deviceId);
+        
+        log.info(deviceId);
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Device device = deviceService.getDevice(DeviceId.deviceId(deviceId));
+
+        if(device ==null)
+            log.info("device null");
+        else {
+            log.info("device not null");
+        
+            QueueConfigBehaviour queueConfig = device.as(QueueConfigBehaviour.class);
+            log.info("queue config ok");
+            
+            QosConfigBehaviour qosConfig = device.as(QosConfigBehaviour.class);
+            log.info("classes qos loaded");
+
+            for(QueueDescription q : queueConfig.getQueues()){
+                if(q.queueId().name().equals(queueId)){
+                    queue = new QueueObject(q.queueId().name(), q.minRate().get().bps(), q.maxRate().get().bps(), q.burst().get());
+                    
+                    queueNode.add(mapper().valueToTree(queue));
+
+                    log.info("name={}, type={}, dscp={}, maxRate={}, " +
+                                    "minRate={}, pri={}, burst={}", q.queueId(), q.type(),
+                            q.dscp(), q.maxRate(), q.minRate(),
+                            q.priority(), q.burst());
+                    break;
+                }
+            }
+
+            /*queueConfig.getQueues().stream().forEach(q -> {
+                queue = new QueueObject(q.queueId().name(), q.minRate().get().bps(), q.maxRate().get().bps(), q.burst().get());
+                node = mapper().valueToTree(queue);
+                queueNode.add(node);
+
+                log.info("name={}, type={}, dscp={}, maxRate={}, " +
+                                "minRate={}, pri={}, burst={}", q.queueId(), q.type(),
+                        q.dscp(), q.maxRate(), q.minRate(),
+                        q.priority(), q.burst());
+            });*/
+
+            qosConfig.getQoses().forEach(q -> {
                 
                 log.info("name={}, maxRate={}, cbs={}, cir={}, " +
                                 "queues={}, type={}", q.qosId(), q.maxRate(),

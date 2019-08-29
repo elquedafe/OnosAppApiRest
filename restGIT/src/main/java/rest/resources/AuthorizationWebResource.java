@@ -55,11 +55,13 @@ public class AuthorizationWebResource {
 		Response resRest=null;
 		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
 
+		String ovsdbDevice = authReq.getOvsdbDevice();
 		EntornoTools.onosHost = authReq.getOnosHost();
 		EntornoTools.user = authReq.getUserOnos();
 		EntornoTools.password = authReq.getPasswordOnos();
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
+		EntornoTools.endpointQueues = "http://" + EntornoTools.onosHost + ":8181/onos/upm/queues/"+authReq.getOvsdbDevice();
 
 		LogTools.rest("POST", "setAuth", "usuarioOnos "+EntornoTools.user+" passOnos "+EntornoTools.password);
 		

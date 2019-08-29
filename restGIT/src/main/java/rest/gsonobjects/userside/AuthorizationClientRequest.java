@@ -4,7 +4,7 @@ public class AuthorizationClientRequest {
 	private String userOnos;
 	private String passwordOnos;
 	private String onosHost;
-	
+	private String ovsdbDevice;
 	
 	
 	/**
@@ -15,11 +15,12 @@ public class AuthorizationClientRequest {
 	 * @param onosHost
 	 */
 	public AuthorizationClientRequest(String userOnos, String passwordOnos,
-			String onosHost) {
+			String onosHost, String ovsdbDevice) {
 		super();
 		this.userOnos = userOnos;
 		this.passwordOnos = passwordOnos;
 		this.onosHost = onosHost;
+		this.ovsdbDevice = ovsdbDevice;
 	}
 	
 	/**
@@ -57,6 +58,11 @@ public class AuthorizationClientRequest {
 	 */
 	public void setOnosHost(String onosHost) {
 		this.onosHost = onosHost;
+	}
+
+	public String getOvsdbDevice() {
+		// TODO Auto-generated method stub
+		return ovsdbDevice;
 	}
 	
 	

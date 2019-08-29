@@ -1,5 +1,8 @@
 package rest.resources.users;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -11,7 +14,10 @@ import javax.ws.rs.core.Response;
 
 import com.google.gson.Gson;
 
+import architecture.Queue;
+import rest.database.objects.QueueDBResponse;
 import tools.DatabaseTools;
+import tools.EntornoTools;
 import tools.LogTools;
 
 @Path("/users/queues")
@@ -24,18 +30,22 @@ public class QueuesUserWebResource {
 	}
 	
 	/**
-	 * Get switches in the SDN network
+	 * Get queues in the SDN network
 	 * @return Switches placed in SDN network
 	 */
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
 	public Response getQueues(@HeaderParam("authorization") String authString) {
+		List<Queue> queues = new ArrayList<Queue>();
 		if(DatabaseTools.isAuthenticated(authString)) {
+			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
+			queues = EntornoTools.getQueues(queuesDb);
 			
 		}
 		else 
 			return Response.status(401).build();
-		return null;
+		
+		return Response.ok(gson.toJson(queues), MediaType.APPLICATION_JSON_TYPE).build();
 	}
 	
 	/**

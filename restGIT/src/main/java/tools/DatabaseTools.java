@@ -15,6 +15,7 @@ import architecture.Flow;
 import architecture.Meter;
 import rest.database.objects.FlowDBResponse;
 import rest.database.objects.MeterDBResponse;
+import rest.database.objects.QueueDBResponse;
 import rest.database.objects.VplsDBResponse;
 import sun.misc.BASE64Decoder;
 
@@ -475,6 +476,47 @@ public class DatabaseTools {
 		}
 
 		return flows;
+	}
+
+	public static List<QueueDBResponse> getQueues(String authString) {
+		List<QueueDBResponse> queueIds = new ArrayList<QueueDBResponse>();
+		String idQueue = "";
+		String idSwitch = "";
+		String idQos = "";
+		String portName = "";
+		String portNumber = "";
+		String idUser = "";
+
+		String user = getUserPassFromCoded(authString)[0];
+		String sql = "SELECT * FROM Queue";
+		
+		if(!DatabaseTools.isAdministrator(authString)) {
+			 sql += " WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
+		}
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				idQueue = rs.getString("IdQueue");
+				idSwitch = rs.getString("IdSwitch");
+				idQos = rs.getString("IdQos");
+				portName = rs.getString("PortName");
+				portNumber = rs.getString("PortNumber");
+				idUser = rs.getString("IdUser");
+
+				queueIds.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser));
+				// print the results
+				System.out.format("%s, %s, %s\n", idQueue, idSwitch, idUser);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return queueIds;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return queueIds;
+		}
+		
+		return queueIds;
 	}
 
 //	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {
