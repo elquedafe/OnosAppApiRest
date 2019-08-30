@@ -48,17 +48,21 @@ import architecture.Flow;
 import architecture.Host;
 import architecture.Link;
 import architecture.Meter;
+import architecture.Port;
 import architecture.Queue;
 import architecture.Switch;
 import architecture.Vpls;
 import rest.database.objects.FlowDBResponse;
 import rest.database.objects.QueueDBResponse;
+import rest.gsonobjects.onosside.IntentOnosRequest;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.onosside.Point;
 import rest.gsonobjects.onosside.QueueOnos;
+import rest.gsonobjects.onosside.QueueOnosRequest;
 import rest.gsonobjects.onosside.VplsOnosRequestAux;
 import rest.gsonobjects.userside.FlowSocketClientRequest;
 import rest.gsonobjects.userside.MeterClientRequestPort;
+import rest.gsonobjects.userside.QueueClientRequest;
 
 /**
  *
@@ -748,6 +752,113 @@ public class EntornoTools {
 		return response;
 
 	}
+	
+	public static OnosResponse addQueueFlowWithPort(String ipVersion, String switchId, String outPort, String queueId, String srcIp, String srcPort, String dstIp, String dstPort, String portType) throws IOException {
+		OnosResponse response = null;
+		String url = EntornoTools.endpoint+"/flows/"+switchId;
+		String body = "{\"priority\": 1500,\r\n" + 
+				"\"timeout\": 0,\r\n" + 
+				"\"isPermanent\": true,\r\n" + 
+				"\"deviceId\": \""+switchId+"\",\r\n" + 
+				"\"tableId\": 0,\"groupId\": 0,\"appId\": \"org.onosproject.fwd\",\r\n" + 
+				"\"treatment\": \r\n" + 
+				"	{	\r\n" + 
+				"		\"instructions\": [\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"OUTPUT\",\r\n" + 
+				"				\"port\": \""+outPort+"\"\r\n" + 
+				"			},\r\n" + 
+				"			{\r\n" + 
+				"				\"type\": \"QUEUE\",\r\n" + 
+				"				\"queueId\":"+queueId+"\r\n" + 
+				"			}\r\n" + 
+				"		]\r\n" + 
+				"	},\r\n" + 
+				"\"selector\": \r\n" + 
+				"	{\r\n" + 
+				"		\"criteria\": [\r\n";
+		if(ipVersion.equalsIgnoreCase("4")){
+			body += "			{\r\n" + 
+					"				\"type\": \"ETH_TYPE\",\r\n" + 
+					"				\"ethType\": \"0x800\"\r\n" + 
+					"			},\n"; 
+			if(srcIp != null && !srcIp.isEmpty()) {
+				body += "			{\r\n" + 
+						"				\"type\": \"IPV4_SRC\",\r\n" + 
+						"				\"ip\": \""+srcIp+"/32\"\r\n" + 
+						"			},\n";
+			}
+			if(dstIp != null && !dstIp.isEmpty()) {
+				body += "			{\r\n" + 
+						"				\"type\": \"IPV4_DST\",\r\n" + 
+						"				\"ip\": \""+dstIp+"/32\"\r\n" + 
+						"			},\n";
+			}
+		}
+		else if(ipVersion.equalsIgnoreCase("6")) {
+			body += "			{\r\n" + 
+					"				\"type\": \"ETH_TYPE\",\r\n" + 
+					"				\"ethType\": \"0x86DD\"\r\n" + 
+					"			},\r\n" + 
+					"			{\r\n" + 
+					"				\"type\": \"IPV6_SRC\",\r\n" + 
+					"				\"ip\": \""+srcIp+"/128\"\r\n" + 
+					"			},\r\n"+ 
+					"			{\r\n" + 
+					"				\"type\": \"IPV6_DST\",\r\n" + 
+					"				\"ip\": \""+dstIp+"/128\"\r\n" + 
+					"			},\n";
+		}
+		if(portType != null && !portType.isEmpty() && portType.equalsIgnoreCase("tcp")){
+			body += "			{\n" + 
+					"				\"type\": \"IP_PROTO\",\n" + 
+					"				\"protocol\": 6\n" + 
+					"			},\n";
+			if(srcPort != null && !srcPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"TCP_SRC\",\n" + 
+						"			\"tcpPort\": \""+srcPort+"\"\n" + 
+						"		},\n";
+			}
+			if(dstPort != null && !dstPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"TCP_DST\",\n" + 
+						"			\"tcpPort\": \""+dstPort+"\"\n" + 
+						"		},\n";
+			}
+		}
+		else if(portType != null && !portType.isEmpty() && portType.equalsIgnoreCase("udp")){
+			body += "			{\n" + 
+					"				\"type\": \"IP_PROTO\",\n" + 
+					"				\"protocol\": 17\n" + 
+					"			},\n";
+			if(srcPort != null && !srcPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"UDP_SRC\",\n" + 
+						"			\"udpPort\": \""+srcPort+"\"\n" + 
+						"		},\n";
+			}
+			if(dstPort != null && !dstPort.isEmpty()) {
+				body += "		{\n" + 
+						"			\"type\": \"UDP_DST\",\n" + 
+						"			\"udpPort\": \""+dstPort+"\"\n" + 
+						"		},\n";
+			}
+		}
+		//Delete last comma
+		body = body.substring(0, body.length() - 2);
+		body += "		]\r\n" + 
+				"	}\r\n" + 
+				"}";
+		try {
+			System.out.println("JSON FLUJO para queue hacia ONOS: \n"+body);
+			response = HttpTools.doJSONPost(new URL(url), body);
+		} catch (MalformedURLException e) {
+			response = new OnosResponse("URL error", 404);
+		}
+		return response;
+
+	}
 
 	public static List<Flow> compareFlows(Map<String, Flow> oldFlowsState, Map<String, Flow> newFlowsState) {
 		List<Flow> flows = new ArrayList<Flow>();
@@ -1398,5 +1509,199 @@ public class EntornoTools {
 			
 		}
 		return queues;
+	}
+
+	public static void addQueueFlow(QueueOnosRequest queueOnosRequest, int queueId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public static Response addIntent(String authString, FlowSocketClientRequest flowReq) {
+		Response resRest = null;
+		String messageToClient = "";
+		Gson gson = new Gson();
+		
+		IntentOnosRequest intentOnos = new IntentOnosRequest();
+		IntentOnosRequest intentOnosInversed = new IntentOnosRequest();
+		//CREATE INTENT SELECTOR
+		Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = EntornoTools.createSelector(flowReq);
+		//INGRESS POINT
+		Point ingressPoint = EntornoTools.getIngressPoint(flowReq.getSrcHost());
+		//EGRESS POINT
+		Point egressPoint = EntornoTools.getIngressPoint(flowReq.getDstHost());
+		//COMPLETE INTENT
+		intentOnos.setIngressPoint(ingressPoint);
+		intentOnos.setEgressPoint(egressPoint);
+		intentOnos.setSelector(selector);
+
+		//CREATE INTENT SELECTOR INVERSE
+		String auxSrcHost = flowReq.getSrcHost();
+		String auxSrcPort = flowReq.getSrcPort();
+		String auxDstHost = flowReq.getDstHost();
+		String auxDstPort = flowReq.getDstPort();
+		flowReq.setDstHost(auxSrcHost);
+		flowReq.setSrcHost(auxDstHost);
+		flowReq.setSrcPort(auxDstPort);
+		flowReq.setDstPort(auxSrcPort);
+		Map<String, LinkedList<LinkedHashMap<String,Object>>> selectorInversed = EntornoTools.createSelector(flowReq);
+		//COMPLETE INTENT
+		intentOnosInversed.setIngressPoint(egressPoint);
+		intentOnosInversed.setEgressPoint(ingressPoint);
+		intentOnosInversed.setSelector(selectorInversed);
+
+		//Generate JSON to ONOS
+		String jsonOut = gson.toJson(intentOnos);
+		String jsonOutInversed = gson.toJson(intentOnosInversed);
+		LogTools.info("setFlowSocket", "json to create intent: "+jsonOut);
+		LogTools.info("setFlowSocket", "json to create intent INVERSED: "+jsonOutInversed);
+		String url = EntornoTools.endpoint+"/intents";
+		try {
+
+			//GET OLD STATE
+			EntornoTools.getEnvironment();
+			Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+			for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+				for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+					if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+						oldFlowsState.put(flow.getKey(), flow.getValue());
+			}
+
+			// CREATE FLOWS
+			HttpTools.doJSONPost(new URL(url), jsonOut);
+			HttpTools.doJSONPost(new URL(url), jsonOutInversed);
+
+			//Wait for new state
+			//				try {
+			//					Thread.sleep(200);
+			//				} catch (InterruptedException e1) {
+			//					// TODO Auto-generated catch block
+			//					e1.printStackTrace();
+			//				}
+
+			//GET NEW STATE
+			EntornoTools.getEnvironment();
+			Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
+			for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
+				for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
+					if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+						newFlowsState.put(flow.getKey(), flow.getValue());
+
+
+			System.out.println(".");
+
+			// GET FLOWS CHANGED
+			List<Flow> flowsNews;
+			flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+			if(flowsNews.size()>0) {
+				for(Flow flow : flowsNews) {
+					try {
+						DatabaseTools.addFlow(flow, authString, null, null);
+					} catch (ClassNotFoundException | SQLException e) {
+						e.printStackTrace();
+						//TODO: Delete flow from onos and send error to client
+
+					}
+				}
+			}
+		} catch (MalformedURLException e) {
+			resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			return resRest;
+		} catch (IOException e) {
+			//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+//			resRest = Response.serverError().build();
+			return resRest;
+		}
+		String jsonToClient = "{\"ingress\":\""+ingressPoint.getDevice()+"\",\"ingressPort\":\""+ingressPoint.getPort()+"\",\"egress\":\""+egressPoint.getDevice()+"\",\"egressPort\":\""+egressPoint.getPort()+"\"}";
+		System.out.println("*****INGRESS/EGRESS: "+jsonToClient);
+		resRest = Response.ok(jsonToClient, MediaType.APPLICATION_JSON_TYPE).build();
+		return resRest;
+	}
+
+	public static OnosResponse addQueue(QueueClientRequest queueReq) throws IOException {
+		Gson gson = new Gson();
+		OnosResponse onosResponse = new OnosResponse();
+		Host srcHost = EntornoTools.getHostByIp(queueReq.getSrcHost());
+		Host dstHost = EntornoTools.getHostByIp(queueReq.getDstHost());
+		Switch s = EntornoTools.getIngressSwitchByHost(queueReq.getSrcHost());
+		String outputPort = EntornoTools.getOutputPort(queueReq.getSrcHost(), queueReq.getDstHost());
+		Port port = s.getPortByNumber(outputPort);
+		
+		int queueId = Utils.getQueueIdAvailable();
+		int qosId = DatabaseTools.getQosIdBySwitchPort(s.getId(), outputPort);
+		//If -1 -> no qosId in DDBB -> create new one
+		if(qosId == -1) {
+			qosId = Utils.getQosIdAvailable();
+		}
+		QueueOnosRequest queueOnosRequest = new QueueOnosRequest(port.getPortName(), 
+				port.getPortNumber(), 
+				String.valueOf(port.getSpeed()),
+				queueId,
+				String.valueOf(queueReq.getMinRate()),
+				String.valueOf(queueReq.getMaxRate()),
+				String.valueOf(queueReq.getBurst()),
+				qosId);
+		HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues), gson.toJson(queueOnosRequest));
+		
+		//ADD FLOW QUEUE
+		onosResponse = EntornoTools.addQueueFlowWithPort(queueReq.getIpVersion(), s.getId(), outputPort, String.valueOf(queueId),
+					queueReq.getSrcHost(),
+					queueReq.getSrcPort(),
+					queueReq.getDstHost(),
+					queueReq.getDstPort(),
+					queueReq.getPortType());
+		
+		return onosResponse;
+	}
+
+	public static Response deleteQueue(String authString, String qId) throws MalformedURLException, IOException {
+		QueueDBResponse queueDb = DatabaseTools.getQueue(authString, qId);
+		List<QueueDBResponse> queuesDb = null;
+		String portName = "";
+        String portNumber = "";
+        String portSpeed = "";
+        String queueId = qId;
+        String minRate = "";
+        String maxRate = "";
+        String burst = "";
+        String qosId = "";
+        
+		int nQueues = -1;
+		if(queueDb != null) {
+			queuesDb = DatabaseTools.getQueuesBySwitchPort(authString, queueDb.getIdSwitch(), queueDb.getPortNumber());
+			if(queuesDb != null) {
+				nQueues = queuesDb.size();
+				if(nQueues > 1) {
+					//TODO Normal delete
+					Switch s = EntornoTools.entorno.getMapSwitches().get(queueDb.getIdSwitch());
+					Port port = s.getPortByNumber(queueDb.getPortNumber());
+					
+					HttpTools.doDelete(new URL(EntornoTools.endpointQueues+"?"
+						+ "portName="+queueDb.getPortName()+"&"
+						+ "portNumber="+queueDb.getPortNumber()+"&"
+						+ "portSpeed="+String.valueOf(port.getSpeed())+"&"
+						+ "queueId="+queueDb.getIdQueue()+"&"
+						+ "minRate="+queueDb.getMinRate()+"&"
+						+ "maxRate="+queueDb.getMaxRate()+"&"
+						+ "burst="+queueDb.getBurst()+"&"
+						+ "qosId="+queueDb.getIdQos()+"&"
+						));
+				}
+				else if(nQueues == 1) {
+					// TODO Delete queue,qos and port
+				}
+				else if(nQueues == 0) {
+					return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
+				}
+				else {
+					return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
+				}
+			}
+			else 
+				return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
+		}
+		else
+			return Response.status(Response.Status.CONFLICT).entity("Queue Not Found").build();
+		return null;
 	}
 }

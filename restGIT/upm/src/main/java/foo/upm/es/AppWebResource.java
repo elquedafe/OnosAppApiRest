@@ -463,14 +463,14 @@ public class AppWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteQueue(@PathParam("deviceId") String deviceId, 
-                            @PathParam("portName    ") String portName,
-                            @PathParam("portNumber") String portNumber,
-                            @PathParam("portSpeed") String portSpeed,
-                            @PathParam("queueId") String queueId,
-                            @PathParam("minRate") String minRate,
-                            @PathParam("maxRate") String maxRate,
-                            @PathParam("burst") String burst,
-                            @PathParam("qosId") String qosId,
+                            @QueryParam("portName    ") String portName,
+                            @QueryParam("portNumber") String portNumber,
+                            @QueryParam("portSpeed") String portSpeed,
+                            @QueryParam("queueId") String queueId,
+                            @QueryParam("minRate") String minRate,
+                            @QueryParam("maxRate") String maxRate,
+                            @QueryParam("burst") String burst,
+                            @QueryParam("qosId") String qosId,
                             InputStream stream)  {
         
 

@@ -1,72 +1,35 @@
-package rest.database.objects;
+package rest.gsonobjects.onosside;
 
-public class QueueDBResponse {
-	private String idQueue;
-	private String idSwitch;
-	private String idQos;
+public class QueueOnosRequest {
 	private String portName;
 	private String portNumber;
-	private String idUser;
+	private String portSpeed;
+	private int queueId;
 	private String minRate;
 	private String maxRate;
 	private String burst;
-	
+	private int qosId;
 	/**
-	 * @param idQueue
-	 * @param idSwitch
-	 * @param idQos
 	 * @param portName
 	 * @param portNumber
-	 * @param idUser
+	 * @param portSpeed
+	 * @param queueId
+	 * @param minRate
+	 * @param maxRate
+	 * @param burst
+	 * @param qosId
 	 */
-	public QueueDBResponse(String idQueue, String idSwitch, String idQos, String portName, String portNumber,
-			String idUser, String minRate, String maxRate, String burst) {
+	public QueueOnosRequest(String portName, String portNumber, String portSpeed, int queueId, String minRate,
+			String maxRate, String burst, int qosId) {
 		super();
-		this.idQueue = idQueue;
-		this.idSwitch = idSwitch;
-		this.idQos = idQos;
 		this.portName = portName;
 		this.portNumber = portNumber;
-		this.idUser = idUser;
+		this.portSpeed = portSpeed;
+		this.queueId = queueId;
 		this.minRate = minRate;
 		this.maxRate = maxRate;
 		this.burst = burst;
-	}
-	/**
-	 * @return the idQueue
-	 */
-	public String getIdQueue() {
-		return idQueue;
-	}
-	/**
-	 * @param idQueue the idQueue to set
-	 */
-	public void setIdQueue(String idQueue) {
-		this.idQueue = idQueue;
-	}
-	/**
-	 * @return the idSwitch
-	 */
-	public String getIdSwitch() {
-		return idSwitch;
-	}
-	/**
-	 * @param idSwitch the idSwitch to set
-	 */
-	public void setIdSwitch(String idSwitch) {
-		this.idSwitch = idSwitch;
-	}
-	/**
-	 * @return the idQos
-	 */
-	public String getIdQos() {
-		return idQos;
-	}
-	/**
-	 * @param idQos the idQos to set
-	 */
-	public void setIdQos(String idQos) {
-		this.idQos = idQos;
+		this.qosId = qosId;
 	}
 	/**
 	 * @return the portName
@@ -93,16 +56,28 @@ public class QueueDBResponse {
 		this.portNumber = portNumber;
 	}
 	/**
-	 * @return the idUser
+	 * @return the portSpeed
 	 */
-	public String getIdUser() {
-		return idUser;
+	public String getPortSpeed() {
+		return portSpeed;
 	}
 	/**
-	 * @param idUser the idUser to set
+	 * @param portSpeed the portSpeed to set
 	 */
-	public void setIdUser(String idUser) {
-		this.idUser = idUser;
+	public void setPortSpeed(String portSpeed) {
+		this.portSpeed = portSpeed;
+	}
+	/**
+	 * @return the queueId
+	 */
+	public int getQueueId() {
+		return queueId;
+	}
+	/**
+	 * @param queueId the queueId to set
+	 */
+	public void setQueueId(int queueId) {
+		this.queueId = queueId;
 	}
 	/**
 	 * @return the minRate
@@ -140,7 +115,16 @@ public class QueueDBResponse {
 	public void setBurst(String burst) {
 		this.burst = burst;
 	}
-	
-	
-	
+	/**
+	 * @return the qosId
+	 */
+	public int getQosId() {
+		return qosId;
+	}
+	/**
+	 * @param qosId the qosId to set
+	 */
+	public void setQosId(int qosId) {
+		this.qosId = qosId;
+	}
 }

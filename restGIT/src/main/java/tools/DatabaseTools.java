@@ -13,6 +13,7 @@ import java.util.Map;
 
 import architecture.Flow;
 import architecture.Meter;
+import architecture.Port;
 import rest.database.objects.FlowDBResponse;
 import rest.database.objects.MeterDBResponse;
 import rest.database.objects.QueueDBResponse;
@@ -479,13 +480,16 @@ public class DatabaseTools {
 	}
 
 	public static List<QueueDBResponse> getQueues(String authString) {
-		List<QueueDBResponse> queueIds = new ArrayList<QueueDBResponse>();
+		List<QueueDBResponse> queues = new ArrayList<QueueDBResponse>();
 		String idQueue = "";
 		String idSwitch = "";
 		String idQos = "";
 		String portName = "";
 		String portNumber = "";
 		String idUser = "";
+		String minRate = "";
+		String maxRate = "";
+		String burst = "";
 
 		String user = getUserPassFromCoded(authString)[0];
 		String sql = "SELECT * FROM Queue";
@@ -503,10 +507,36 @@ public class DatabaseTools {
 				portName = rs.getString("PortName");
 				portNumber = rs.getString("PortNumber");
 				idUser = rs.getString("IdUser");
+				minRate = rs.getString("MinRate");
+				maxRate = rs.getString("MaxRate");
+				burst = rs.getString("Burst");
 
-				queueIds.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser));
+				queues.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst));
 				// print the results
 				System.out.format("%s, %s, %s\n", idQueue, idSwitch, idUser);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return queues;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return queues;
+		}
+		
+		return queues;
+	}
+
+	public static List<Integer> getAllQueuesIds() {
+		List<Integer> queueIds = new ArrayList<Integer>();
+		String idQueue = "";
+
+		String sql = "SELECT * FROM Queue";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				idQueue = rs.getString("IdQueue");
+				queueIds.add(Integer.parseInt(idQueue));
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -517,6 +547,142 @@ public class DatabaseTools {
 		}
 		
 		return queueIds;
+	}
+
+	public static int getQosIdBySwitchPort(String switchId, String port) {
+		int qosId = -1;
+		String strIdQos = "";
+
+		String sql = "SELECT IdQos FROM Queue"
+				+ " WHERE IdSwitch='"+switchId+"'"
+						+ " AND PortNumber='"+port+"'";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				strIdQos = rs.getString("IdQos");
+				qosId = Integer.parseInt(strIdQos);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return qosId;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return qosId;
+		}
+		
+		return qosId;
+	}
+
+	public static List<Integer> getAllQosIds() {
+		List<Integer> qosIds = new ArrayList<Integer>();
+		String idQos = "";
+
+		String sql = "SELECT DISTINCT IdQos FROM Queue";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				idQos = rs.getString("IdQos");
+				qosIds.add(Integer.parseInt(idQos));
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return qosIds;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return qosIds;
+		}
+		
+		return qosIds;
+	}
+
+	public static QueueDBResponse getQueue(String authString, String queueId) {
+		QueueDBResponse queue = null;
+		String idQueue = "";
+		String idSwitch = "";
+		String idQos = "";
+		String portName = "";
+		String portNumber = "";
+		String idUser = "";
+		String minRate = "";
+		String maxRate = "";
+		String burst = "";
+
+		String user = getUserPassFromCoded(authString)[0];
+		String sql = "SELECT * FROM Queue";
+		
+		if(!DatabaseTools.isAdministrator(authString)) {
+			 sql += " WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
+		}
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				idQueue = rs.getString("IdQueue");
+				idSwitch = rs.getString("IdSwitch");
+				idQos = rs.getString("IdQos");
+				portName = rs.getString("PortName");
+				portNumber = rs.getString("PortNumber");
+				idUser = rs.getString("IdUser");
+				minRate = rs.getString("MinRate");
+				maxRate = rs.getString("MaxRate");
+				burst = rs.getString("Burst");
+
+				queue = new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return queue;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return queue;
+		}
+		
+		return queue;
+	}
+
+	public static List<QueueDBResponse> getQueuesBySwitchPort(String authString, String switchId, String port) {
+		List<QueueDBResponse> queues = new ArrayList<QueueDBResponse>();
+		String idQueue = "";
+		String idSwitch = "";
+		String idQos = "";
+		String portName = "";
+		String portNumber = "";
+		String idUser = "";
+		String minRate = "";
+		String maxRate = "";
+		String burst = "";
+
+		String user = getUserPassFromCoded(authString)[0];
+		String sql = "SELECT * FROM Queue WHERE IdSwitch='"+ switchId +"' PortNumber='"+port+"'";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				idQueue = rs.getString("IdQueue");
+				idSwitch = rs.getString("IdSwitch");
+				idQos = rs.getString("IdQos");
+				portName = rs.getString("PortName");
+				portNumber = rs.getString("PortNumber");
+				idUser = rs.getString("IdUser");
+				minRate = rs.getString("MinRate");
+				maxRate = rs.getString("MaxRate");
+				burst = rs.getString("Burst");
+
+				queues.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst));
+				// print the results
+				System.out.format("%s, %s, %s\n", idQueue, idSwitch, idUser);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return queues;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return queues;
+		}
+		
+		return queues;
 	}
 
 //	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {

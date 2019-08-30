@@ -372,104 +372,18 @@ public class FlowsUserWebResource {
 		
 		IntentOnosRequest intentOnos = new IntentOnosRequest();
 		IntentOnosRequest intentOnosInversed = new IntentOnosRequest();
+		
 		if(DatabaseTools.isAuthenticated(authString)) {
 			System.out.println("***ELEMENT: "+element);
 			switch(element) {
 			case "host":
+				
 				FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
 				LogTools.info("POST FLOW", "*INTENT*" + flowReq.toString());
-				//CREATE INTENT SELECTOR
-				Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = EntornoTools.createSelector(flowReq);
-				//INGRESS POINT
-				Point ingressPoint = EntornoTools.getIngressPoint(flowReq.getSrcHost());
-				//EGRESS POINT
-				Point egressPoint = EntornoTools.getIngressPoint(flowReq.getDstHost());
-				//COMPLETE INTENT
-				intentOnos.setIngressPoint(ingressPoint);
-				intentOnos.setEgressPoint(egressPoint);
-				intentOnos.setSelector(selector);
-
-				//CREATE INTENT SELECTOR INVERSE
-				String auxSrcHost = flowReq.getSrcHost();
-				String auxSrcPort = flowReq.getSrcPort();
-				String auxDstHost = flowReq.getDstHost();
-				String auxDstPort = flowReq.getDstPort();
-				flowReq.setDstHost(auxSrcHost);
-				flowReq.setSrcHost(auxDstHost);
-				flowReq.setSrcPort(auxDstPort);
-				flowReq.setDstPort(auxSrcPort);
-				Map<String, LinkedList<LinkedHashMap<String,Object>>> selectorInversed = EntornoTools.createSelector(flowReq);
-				//COMPLETE INTENT
-				intentOnosInversed.setIngressPoint(egressPoint);
-				intentOnosInversed.setEgressPoint(ingressPoint);
-				intentOnosInversed.setSelector(selectorInversed);
-
-				//Generate JSON to ONOS
-				String jsonOut = gson.toJson(intentOnos);
-				String jsonOutInversed = gson.toJson(intentOnosInversed);
-				LogTools.info("setFlowSocket", "json to create intent: "+jsonOut);
-				LogTools.info("setFlowSocket", "json to create intent INVERSED: "+jsonOutInversed);
-				String url = EntornoTools.endpoint+"/intents";
-				try {
-
-					//GET OLD STATE
-					EntornoTools.getEnvironment();
-					Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
-					for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
-						for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
-							if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-								oldFlowsState.put(flow.getKey(), flow.getValue());
-					}
-
-					// CREATE FLOWS
-					HttpTools.doJSONPost(new URL(url), jsonOut);
-					HttpTools.doJSONPost(new URL(url), jsonOutInversed);
-
-					//Wait for new state
-					//				try {
-					//					Thread.sleep(200);
-					//				} catch (InterruptedException e1) {
-					//					// TODO Auto-generated catch block
-					//					e1.printStackTrace();
-					//				}
-
-					//GET NEW STATE
-					EntornoTools.getEnvironment();
-					Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
-					for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
-						for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
-							if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-								newFlowsState.put(flow.getKey(), flow.getValue());
-
-
-					System.out.println(".");
-
-					// GET FLOWS CHANGED
-					List<Flow> flowsNews;
-					flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
-					if(flowsNews.size()>0) {
-						for(Flow flow : flowsNews) {
-							try {
-								DatabaseTools.addFlow(flow, authString, null, null);
-							} catch (ClassNotFoundException | SQLException e) {
-								e.printStackTrace();
-								//TODO: Delete flow from onos and send error to client
-
-							}
-						}
-					}
-				} catch (MalformedURLException e) {
-					resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-					return resRest;
-				} catch (IOException e) {
-					//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-					resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-//					resRest = Response.serverError().build();
-					return resRest;
-				}
-				String jsonToClient = "{\"ingress\":\""+ingressPoint.getDevice()+"\",\"ingressPort\":\""+ingressPoint.getPort()+"\",\"egress\":\""+egressPoint.getDevice()+"\",\"egressPort\":\""+egressPoint.getPort()+"\"}";
-				System.out.println("*****INGRESS/EGRESS: "+jsonToClient);
-				resRest = Response.ok(jsonToClient, MediaType.APPLICATION_JSON_TYPE).build();
+				
+				resRest = EntornoTools.addIntent(authString, flowReq);
+				
+				
 				return resRest;
 			case "switch":
 				FlowSocketWithSwitchClientRequest flowReqSw = gson.fromJson(jsonIn, FlowSocketWithSwitchClientRequest.class);
