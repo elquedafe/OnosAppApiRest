@@ -399,7 +399,7 @@ public class DatabaseTools {
 		return meters;
 	}
 	
-	public static void addFlow(Flow flow, String authString, String idMeter, String vplsName) throws ClassNotFoundException, SQLException {
+	public static void addFlow(Flow flow, String authString, String idMeter, String vplsName, String idQueue) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
 		String sql = "INSERT INTO Flow "
@@ -409,6 +409,10 @@ public class DatabaseTools {
 		
 		if(vplsName != null && !vplsName.isEmpty())
 			sql += ", IdVpls";
+		
+		if(idQueue != null && !idQueue.isEmpty())
+			sql += ", IdQueue";
+		
 		sql += ") "
 			+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"')";
 		
@@ -417,6 +421,10 @@ public class DatabaseTools {
 		
 		if(vplsName != null && !vplsName.isEmpty())
 			sql += ", (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')";
+		
+		if(idQueue != null && !idQueue.isEmpty())
+			sql += ", '" + idQueue + "'";
+		
 		sql += ")";
 		executeStatement(sql);
 	}
@@ -683,6 +691,11 @@ public class DatabaseTools {
 		}
 		
 		return queues;
+	}
+
+	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber) {
+		// TODO Auto-generated method stub
+		
 	}
 
 //	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {

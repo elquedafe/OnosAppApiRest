@@ -1267,7 +1267,7 @@ public class EntornoTools {
 											try {
 												//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 												System.out.format("Añadiend flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-												DatabaseTools.addFlow(flow, authString, meterId, null);
+												DatabaseTools.addFlow(flow, authString, meterId, null, null);
 											} catch (ClassNotFoundException | SQLException e) {
 												e.printStackTrace();
 												//TODO: Delete flow from onos and send error to client
@@ -1446,7 +1446,7 @@ public class EntornoTools {
 											try {
 												//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 												System.out.format("Añadiend flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-												DatabaseTools.addFlow(flow, authString, meterId, null);
+												DatabaseTools.addFlow(flow, authString, meterId, null, null);
 											} catch (ClassNotFoundException | SQLException e) {
 												e.printStackTrace();
 												//
@@ -1509,11 +1509,6 @@ public class EntornoTools {
 			
 		}
 		return queues;
-	}
-
-	public static void addQueueFlow(QueueOnosRequest queueOnosRequest, int queueId) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public static Response addIntent(String authString, FlowSocketClientRequest flowReq) {
@@ -1595,7 +1590,7 @@ public class EntornoTools {
 			if(flowsNews.size()>0) {
 				for(Flow flow : flowsNews) {
 					try {
-						DatabaseTools.addFlow(flow, authString, null, null);
+						DatabaseTools.addFlow(flow, authString, null, null, null);
 					} catch (ClassNotFoundException | SQLException e) {
 						e.printStackTrace();
 						//TODO: Delete flow from onos and send error to client
@@ -1618,7 +1613,7 @@ public class EntornoTools {
 		return resRest;
 	}
 
-	public static OnosResponse addQueue(QueueClientRequest queueReq) throws IOException {
+	public static OnosResponse addQueue(String authString, QueueClientRequest queueReq) throws IOException {
 		Gson gson = new Gson();
 		OnosResponse onosResponse = new OnosResponse();
 		Host srcHost = EntornoTools.getHostByIp(queueReq.getSrcHost());
@@ -1627,6 +1622,7 @@ public class EntornoTools {
 		String outputPort = EntornoTools.getOutputPort(queueReq.getSrcHost(), queueReq.getDstHost());
 		Port port = s.getPortByNumber(outputPort);
 		
+		//QUEUE ADD
 		int queueId = Utils.getQueueIdAvailable();
 		int qosId = DatabaseTools.getQosIdBySwitchPort(s.getId(), outputPort);
 		//If -1 -> no qosId in DDBB -> create new one
@@ -1642,14 +1638,55 @@ public class EntornoTools {
 				String.valueOf(queueReq.getBurst()),
 				qosId);
 		HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues), gson.toJson(queueOnosRequest));
+		//DDBB QUEUE ADD
+		DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), port.getPortName(), port.getPortNumber());
 		
 		//ADD FLOW QUEUE
+			//get old state
+		Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+		for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+			for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+				if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+					oldFlowsState.put(flow.getKey(), flow.getValue());
+		}
+		
+			//add flow queue
 		onosResponse = EntornoTools.addQueueFlowWithPort(queueReq.getIpVersion(), s.getId(), outputPort, String.valueOf(queueId),
-					queueReq.getSrcHost(),
-					queueReq.getSrcPort(),
-					queueReq.getDstHost(),
-					queueReq.getDstPort(),
-					queueReq.getPortType());
+				queueReq.getSrcHost(),
+				queueReq.getSrcPort(),
+				queueReq.getDstHost(),
+				queueReq.getDstPort(),
+				queueReq.getPortType());
+		
+			//GET NEW STATE
+		EntornoTools.getEnvironment();
+		Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
+		for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
+			for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
+				if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+					newFlowsState.put(flow.getKey(), flow.getValue());
+
+
+		System.out.println(".");
+
+		// GET FLOWS CHANGED
+		List<Flow> flowsNews;
+		flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+
+		// ADD flows to DDBB
+		if(flowsNews.size()>0) {
+			for(Flow flow : flowsNews) {
+				try {
+					//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
+					System.out.format("Añadiend flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
+					DatabaseTools.addFlow(flow, authString, null, null, String.valueOf(queueId));
+				} catch (ClassNotFoundException | SQLException e) {
+					e.printStackTrace();
+					//TODO: Delete flow from onos and send error to client
+
+				}
+			}
+		}
 		
 		return onosResponse;
 	}
@@ -1689,9 +1726,18 @@ public class EntornoTools {
 				}
 				else if(nQueues == 1) {
 					// TODO Delete queue,qos and port
-				}
-				else if(nQueues == 0) {
-					return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
+					Switch s = EntornoTools.entorno.getMapSwitches().get(queueDb.getIdSwitch());
+					Port port = s.getPortByNumber(queueDb.getPortNumber());
+					HttpTools.doDelete(new URL(EntornoTools.endpointQueues+"/port-qos?"
+							+ "portName="+queueDb.getPortName()+"&"
+							+ "portNumber="+queueDb.getPortNumber()+"&"
+							+ "portSpeed="+String.valueOf(port.getSpeed())+"&"
+							+ "queueId="+queueDb.getIdQueue()+"&"
+							+ "minRate="+queueDb.getMinRate()+"&"
+							+ "maxRate="+queueDb.getMaxRate()+"&"
+							+ "burst="+queueDb.getBurst()+"&"
+							+ "qosId="+queueDb.getIdQos()+"&"
+							));
 				}
 				else {
 					return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
@@ -1702,6 +1748,6 @@ public class EntornoTools {
 		}
 		else
 			return Response.status(Response.Status.CONFLICT).entity("Queue Not Found").build();
-		return null;
+		return Response.status(Response.Status.NO_CONTENT).build();
 	}
 }

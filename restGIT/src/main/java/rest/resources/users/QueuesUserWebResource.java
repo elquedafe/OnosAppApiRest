@@ -49,19 +49,20 @@ public class QueuesUserWebResource {
 	@Produces (MediaType.APPLICATION_JSON)	
 	public Response getQueues(@HeaderParam("authorization") String authString) {
 		List<Queue> queues = new ArrayList<Queue>();
+		String jsonOut = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
 			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
 			queues = EntornoTools.getQueues(queuesDb);
-			
+			jsonOut = gson.toJson(queues);
 		}
 		else 
 			return Response.status(401).build();
 		
-		return Response.ok(gson.toJson(queues), MediaType.APPLICATION_JSON_TYPE).build();
+		return Response.ok(jsonOut, MediaType.APPLICATION_JSON_TYPE).build();
 	}
 	
 	/**
-	 * Get switches in the SDN network
+	 * Add queues
 	 * @return Switches placed in SDN network
 	 */
 	@POST
@@ -87,7 +88,7 @@ public class QueuesUserWebResource {
 			
 			/// QUEUE ADD
 			try {
-				onosResponse = EntornoTools.addQueue(queueReq);
+				onosResponse = EntornoTools.addQueue(authString, queueReq);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

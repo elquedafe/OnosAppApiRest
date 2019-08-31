@@ -320,7 +320,7 @@ public class MetersUserWebResource {
 							if(flowsNews.size()>0) {
 								for(Flow flow : flowsNews) {
 									try {
-										DatabaseTools.addFlow(flow, authString, null, null);
+										DatabaseTools.addFlow(flow, authString, null, null, null);
 									} catch (ClassNotFoundException | SQLException e) {
 										e.printStackTrace();
 										//TODO: Delete flow from onos and send error to client

@@ -147,7 +147,7 @@ public class Testmain {
 						try {
 							//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-							DatabaseTools.addFlow(flow, authString, null, null);
+							DatabaseTools.addFlow(flow, authString, null, null, null);
 						} catch (ClassNotFoundException | SQLException e) {
 							e.printStackTrace();
 							//TODO: Delete flow from onos and send error to client
