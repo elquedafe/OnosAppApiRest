@@ -125,6 +125,103 @@ public class AppWebResource extends AbstractWebResource {
 
         QosDescription qosDescription = null;
         QueueDescription queueDescription = null;
+
+        boolean existsQueue = false;
+        boolean existsQos = false;
+
+        //Get whether qosId exists or not
+        for(QosDescription q : qosConfig.getQoses()) {
+            if (q.qosId().name().equals(String.valueOf(qosId))) {
+                existsQos = true;
+                qosDescription = q;
+                break;
+            }
+        }
+
+        //queuesMap = qosDescription.queues().get();
+        queuesMap = new HashMap<>();
+        queuesMap.put(Long.valueOf(queueDesc.queueId().toString()), queueDesc);
+
+
+        queueConfig.addQueue(queueDesc);
+        log.info("Queue added");
+        qosConfig.insertQueues(qosDescription.qosId(), queuesMap);
+        log.info("Queue added to existing QoS");
+        
+        return Response.noContent().build();
+    }
+
+    /**
+     * Get hello world greeting.
+     *
+     * @return 200 OK
+     */
+    @POST
+    @Path("port-qos/{deviceId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addPortQosQueue(@PathParam("deviceId") String deviceId,
+                            InputStream stream)  {
+        String portName = "";
+        String portNumber = "";
+        String portSpeed = "";
+        long queueId = -1L;
+        String minRate = "";
+        String maxRate = "";
+        String burst = "";
+        long qosId = -1L;
+
+        ObjectNode jsonTree = null;
+        Map<Long,QueueDescription> queuesMap = new HashMap<>();
+
+        try {
+            jsonTree = readTreeFromStream(mapper(), stream);
+            portName = (String)jsonTree.get("portName").asText();
+            portNumber = (String)jsonTree.get("portNumber").asText();
+            portSpeed = (String)jsonTree.get("portSpeed").asText();
+            queueId = jsonTree.get("queueId").asLong();
+            minRate = (String)jsonTree.get("minRate").asText();
+            maxRate = (String)jsonTree.get("maxRate").asText();
+            burst = (String)jsonTree.get("burst").asText();
+            qosId = jsonTree.get("qosId").asLong();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.info("IOException");
+        }
+
+        log.info(portName);
+        log.info(portNumber);
+        log.info(portSpeed);
+        log.info(String.valueOf(queueId));
+        log.info(minRate);
+        log.info(maxRate);
+        log.info(burst);
+        log.info(String.valueOf(qosId));
+
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Device device = deviceService.getDevice(DeviceId.deviceId(deviceId));
+
+        QueueConfigBehaviour queueConfig = device.as(QueueConfigBehaviour.class);
+        QosConfigBehaviour qosConfig = device.as(QosConfigBehaviour.class);
+        PortConfigBehaviour portConfig = device.as(PortConfigBehaviour.class);
+
+        QueueDescription queueDesc = DefaultQueueDescription.builder()
+                .queueId(QueueId.queueId(String.valueOf(queueId)))
+                .maxRate(Bandwidth.kbps(Long.parseLong(maxRate)))
+                .minRate(Bandwidth.kbps(Long.parseLong(minRate)))
+                .burst(Long.parseLong(burst+"000"))
+                .build();
+
+        PortDescription portDesc = DefaultPortDescription.builder()
+                .withPortNumber(PortNumber.portNumber(Long.valueOf(portNumber), portName))
+                .portSpeed(Long.parseLong(portSpeed+"000"))
+                .isEnabled(true)
+                .isRemoved(false)
+                .type(Port.Type.COPPER)
+                .build();
+
+        QosDescription qosDescription = null;
+        QueueDescription queueDescription = null;
         boolean existsQueue = false;
         boolean existsQos = false;
 
@@ -353,6 +450,17 @@ public class AppWebResource extends AbstractWebResource {
             QosConfigBehaviour qosConfig = device.as(QosConfigBehaviour.class);
             log.info("classes qos loaded");
 
+            queueConfig.getQueues().stream().forEach(q -> {
+                /*queue = new QueueObject(q.queueId().name(), q.minRate().get().bps(), q.maxRate().get().bps(), q.burst().get());
+                node = mapper().valueToTree(queue);
+                queueNode.add(node);*/
+
+                log.info("name={}, type={}, dscp={}, maxRate={}, " +
+                                "minRate={}, pri={}, burst={}", q.queueId(), q.type(),
+                        q.dscp(), q.maxRate(), q.minRate(),
+                        q.priority(), q.burst());
+            });
+
             for(QueueDescription q : queueConfig.getQueues()){
                 queue = new QueueObject(q.queueId().name(), q.minRate().get().bps(), q.maxRate().get().bps(), q.burst().get());
                 
@@ -364,16 +472,7 @@ public class AppWebResource extends AbstractWebResource {
                         q.priority(), q.burst());
             }
 
-            /*queueConfig.getQueues().stream().forEach(q -> {
-                queue = new QueueObject(q.queueId().name(), q.minRate().get().bps(), q.maxRate().get().bps(), q.burst().get());
-                node = mapper().valueToTree(queue);
-                queueNode.add(node);
-
-                log.info("name={}, type={}, dscp={}, maxRate={}, " +
-                                "minRate={}, pri={}, burst={}", q.queueId(), q.type(),
-                        q.dscp(), q.maxRate(), q.minRate(),
-                        q.priority(), q.burst());
-            });*/
+            
 
             qosConfig.getQoses().forEach(q -> {
                 
@@ -459,7 +558,7 @@ public class AppWebResource extends AbstractWebResource {
      * @return 200 OK
      */
     @DELETE
-    @Path("delete/{deviceId}")
+    @Path("{deviceId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteQueue(@PathParam("deviceId") String deviceId, 
@@ -565,39 +664,143 @@ public class AppWebResource extends AbstractWebResource {
                 log.info("Deleted Port QoS");*/
 
                 //2 
-                if(qosConfig.getQoses().size() > 0){
-                    log.info("QoS > 0");
-                    Object o = qosConfig.getQoses().toArray()[0];
-                    QosDescription qosDescription = null;
-                    if(o instanceof QosDescription){
-                        log.info("Is QosDescription");
-                        qosDescription = (QosDescription)o;
+                
+                Object o = qosConfig.getQoses().toArray()[0];
+                QosDescription qosDescription = null;
+                log.info("Is QosDescription");
+                qosDescription = (QosDescription)o;
 
+                Map<Long,QueueDescription> queuesOld = qosDescription.queues().get();
+                queuesOld.remove(Long.valueOf(queueDesc.queueId().name()));
+                queueConfig.deleteQueue(queueDesc.queueId());
+            
                         
-                        //If QoS does not have queues delete QoS
-                        if(!qosDescription.queues().isPresent()){
-                            log.info("No queues in QoS");
-                            queueConfig.deleteQueue(queueDesc.queueId());
-                            qosConfig.deleteQoS(qosDesc.qosId());
-                            portConfig.removeQoS(portDesc.portNumber());
-                        }
-                        else{
-                            log.info("There are queues in QoS");
-                            Map<Long,QueueDescription> queuesOld = qosDescription.queues().get();
-                            queuesOld.remove(Long.valueOf(queueDesc.queueId().name()));
-                            queueConfig.deleteQueue(queueDesc.queueId());
-                        }
                     
-                        //2
-                        /*List<QosDescription> qoses = (ArrayList<QosDescription>)qosConfig.getQoses();
-                        QosDescription qosDescription = qoses.get(0);*/
+                
+                
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                log.info(e.getMessage());
+                log.info("ERROR");
+                return ok(e.getMessage()).build();
+            }
 
-                        
-                        
-                    }
-                }
-                else
-                    return Response.status(Response.Status.CONFLICT).build();
+        }
+
+
+        return Response.noContent().build();
+    
+    }
+
+    /**
+     * Get hello world greeting.
+     *
+     * @return 200 OK
+     */
+    @DELETE
+    @Path("port-qos/{deviceId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deletePortQosQueue(@PathParam("deviceId") String deviceId, 
+                            @QueryParam("portName    ") String portName,
+                            @QueryParam("portNumber") String portNumber,
+                            @QueryParam("portSpeed") String portSpeed,
+                            @QueryParam("queueId") String queueId,
+                            @QueryParam("minRate") String minRate,
+                            @QueryParam("maxRate") String maxRate,
+                            @QueryParam("burst") String burst,
+                            @QueryParam("qosId") String qosId,
+                            InputStream stream)  {
+        
+
+        /*String portName = "";
+        String portNumber = "";
+        String portSpeed = "";
+        String name = "";
+        String minRate = "";
+        String maxRate = "";
+        String burst = "";
+        String qosId = "";
+
+        ObjectNode jsonTree = null;
+        try {
+            jsonTree = readTreeFromStream(mapper(), stream);
+            portName = (String)jsonTree.get("portName").asText();
+            portNumber = (String)jsonTree.get("portNumber").asText();
+            portSpeed = (String)jsonTree.get("portSpeed").asText();
+            name = (String)jsonTree.get("name").asText();
+            minRate = (String)jsonTree.get("minRate").asText();
+            maxRate = (String)jsonTree.get("maxRate").asText();
+            burst = (String)jsonTree.get("burst").asText();
+            qosId = (String)jsonTree.get("qosId").asText();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.info("IOException");
+        }*/
+        
+        log.info(portName);
+        log.info(portNumber);
+        log.info(portSpeed);
+        log.info(queueId);
+        log.info(minRate);
+        log.info(maxRate);
+        log.info(burst);
+        log.info(qosId);
+
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Device device = deviceService.getDevice(DeviceId.deviceId(deviceId));
+
+        if (device == null) {
+            log.info("{} isn't support config.", deviceId);
+            return Response.ok(root).build();
+        }
+        else {
+            try{
+                log.info("{} supports config.", deviceId);
+                QueueDescription queueDesc = DefaultQueueDescription.builder()
+                        .queueId(QueueId.queueId(queueId))
+                        .maxRate(Bandwidth.kbps(Long.parseLong(maxRate)))
+                        .minRate(Bandwidth.kbps(Long.valueOf(minRate)))
+                        .burst(Long.valueOf(burst+"000"))
+                        .build();
+                log.info("queueDesc ok");
+
+                //PortDescription portDesc = new DefaultPortDescription(PortNumber.portNumber(Long.valueOf(portNumber), name), true);
+
+                PortDescription portDesc = DefaultPortDescription.builder()
+                        .withPortNumber(PortNumber.portNumber(Long.valueOf(portNumber), portName))
+                        .portSpeed(Long.valueOf(portSpeed+"000"))
+                        .isEnabled(true)
+                        .isRemoved(false)
+                        .type(Port.Type.COPPER)
+                        .build();
+
+                log.info("portDesc ok");
+                Map<Long, QueueDescription> queues = new HashMap<>();
+                queues.put(0L, queueDesc);
+
+                QosDescription qosDesc = DefaultQosDescription.builder()
+                        .qosId(QosId.qosId(qosId))
+                        .type(QosDescription.Type.HTB)
+                        .maxRate(Bandwidth.kbps(Long.valueOf(maxRate)))
+                        .queues(queues)
+                        .build();
+
+                log.info("qosDesc ok");
+                QueueConfigBehaviour queueConfig = device.as(QueueConfigBehaviour.class);
+                QosConfigBehaviour qosConfig = device.as(QosConfigBehaviour.class);
+                PortConfigBehaviour portConfig = device.as(PortConfigBehaviour.class);
+
+                log.info("configs ok");
+                
+                //DELETE
+                queueConfig.deleteQueue(queueDesc.queueId());
+                log.info("Deleted queue");
+                qosConfig.deleteQoS(qosDesc.qosId());
+                log.info("Deleted QoS");
+                portConfig.removeQoS(portDesc.portNumber());
+                log.info("Deleted Port QoS");
                 
             }
             catch(Exception e){

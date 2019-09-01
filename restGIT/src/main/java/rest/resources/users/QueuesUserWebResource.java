@@ -51,6 +51,11 @@ public class QueuesUserWebResource {
 		List<Queue> queues = new ArrayList<Queue>();
 		String jsonOut = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
+			try {
+				EntornoTools.getEnvironment();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
 			queues = EntornoTools.getQueues(queuesDb);
 			jsonOut = gson.toJson(queues);
@@ -110,6 +115,11 @@ public class QueuesUserWebResource {
 	@DELETE
 	public Response deleteQueue(@HeaderParam("authorization") String authString,
 			@PathParam("queueId") String queueId) {
+		try {
+			EntornoTools.getEnvironment();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
 				return EntornoTools.deleteQueue(authString, queueId);
