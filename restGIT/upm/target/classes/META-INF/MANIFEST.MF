@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1567294144536
+Bnd-LastModified: 1567333719332
 Build-Jdk: 10.0.2
 Built-By: alvaroluismartinez
 Bundle-ClassPath: WEB-INF/classes

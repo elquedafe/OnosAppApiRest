@@ -664,20 +664,12 @@ public class AppWebResource extends AbstractWebResource {
                 log.info("Deleted Port QoS");*/
 
                 //2 
-                
-                Object o = qosConfig.getQoses().toArray()[0];
-                QosDescription qosDescription = null;
-                log.info("Is QosDescription");
-                qosDescription = (QosDescription)o;
-
-                Map<Long,QueueDescription> queuesOld = qosDescription.queues().get();
-                queuesOld.remove(Long.valueOf(queueDesc.queueId().name()));
+                List<Long> queuesToDelete = new ArrayList<>();
+                queuesToDelete.add(Long.valueOf(queueDesc.queueId().name()));
+                qosConfig.deleteQueues(QosId.qosId(qosId), queuesToDelete);
+                log.info("Queue deleted from the qos");
                 queueConfig.deleteQueue(queueDesc.queueId());
-            
-                        
-                    
-                
-                
+                log.info("Queue deleted");
             }
             catch(Exception e){
                 e.printStackTrace();
