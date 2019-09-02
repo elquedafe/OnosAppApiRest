@@ -226,6 +226,7 @@ public class AppWebResource extends AbstractWebResource {
                 .type(Port.Type.COPPER)
                 .build();
 
+        queuesMap.put(Long.valueOf(queueDesc.queueId().toString()), queueDesc);
         QosDescription qosDesc = DefaultQosDescription.builder()
                     .qosId(QosId.qosId(String.valueOf(qosId)))
                     .type(QosDescription.Type.HTB)

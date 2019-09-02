@@ -141,18 +141,18 @@ public class Testmain {
 //		}
 		
 		/****GET QUEUES***/
-//		List<Queue> queues = new ArrayList<Queue>();
-//		String jsonOut = "";
-//		if(DatabaseTools.isAuthenticated(authString)) {
-//			try {
-//				EntornoTools.getEnvironment();
-//			} catch (IOException e1) {
-//				e1.printStackTrace();
-//			}
-//			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
-//			queues = EntornoTools.getQueues(queuesDb);
-//			jsonOut = gson.toJson(queues);
-//		}
+		List<Queue> queues = new ArrayList<Queue>();
+		String jsonOut = "";
+		if(DatabaseTools.isAuthenticated(authString)) {
+			try {
+				EntornoTools.getEnvironment();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
+			queues = EntornoTools.getQueues(queuesDb);
+			jsonOut = gson.toJson(queues);
+		}
 //		
 //		/***set auth**/
 //		String jsonIn = "{\n" + 
