@@ -668,7 +668,7 @@ public class DatabaseTools {
 		String vplsName = "";
 
 		String user = getUserPassFromCoded(authString)[0];
-		String sql = "SELECT q.*, v.VplsName FROM Queue AS q LEFT JOIN Vpls AS v ON q.IdVpls=v.IdVpls WHERE q.IdSwitch='"+ switchId +"' q.PortNumber='"+port+"'";
+		String sql = "SELECT q.*, v.VplsName FROM Queue AS q LEFT JOIN Vpls AS v ON q.IdVpls=v.IdVpls WHERE q.IdSwitch='"+ switchId +"' AND q.PortNumber='"+port+"'";
 		
 		try {
 			ResultSet rs = executeStatement(sql);
@@ -699,14 +699,14 @@ public class DatabaseTools {
 		return queues;
 	}
 
-	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber, String vplsName) throws ClassNotFoundException, SQLException {
+	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber, String minRate, String maxRate, String burst, String vplsName) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
 		String sql = "INSERT INTO Queue "
-				+ "(IdQueue, IdSwitch, IdQos, PortName, PortNumber, IdUser";
+				+ "(IdQueue, IdSwitch, IdQos, PortName, PortNumber, IdUser, MinRate, MaxRate, Burst";
 		if(vplsName != null && !vplsName.isEmpty())
 			sql += ", IdVpls";
-		sql += ") VALUES ('"+queueId+"', '"+switchId+"', '"+qosId+"', '"+portName+"', '"+portNumber+"' , (SELECT IdUser FROM User WHERE UserName='"+user+"')";
+		sql += ") VALUES ('"+queueId+"', '"+switchId+"', '"+qosId+"', '"+portName+"', '"+portNumber+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+minRate+"', '"+maxRate+"', '"+burst+"'";
 		
 		if(vplsName != null && !vplsName.isEmpty())
 			sql += ", (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')";
@@ -715,6 +715,21 @@ public class DatabaseTools {
 		executeStatement(sql);
 		
 	}
+
+	public static int getQosNumber() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public static void deleteQueue(String authString, String idQueue) throws ClassNotFoundException, SQLException {
+		String sql = "DELETE "
+				+ "FROM Queue "
+				+ "WHERE IdQueue='"+idQueue+"'";
+		executeStatement(sql);
+		
+	}
+
+	
 
 //	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {
 //		String[] decoded = getUserPassFromCoded(authString);

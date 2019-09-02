@@ -86,67 +86,121 @@ public class Testmain {
 		String authString = "Basic YWRtaW46YWRtaW4="; //admin:admin
 		authString = "Basic YWx2YXJvOmE="; //alvaro:a
 
+		
+		/****delete queue******/
+//		String queueId = "15";
+//		try {
+//			EntornoTools.getEnvironment();
+//		} catch (IOException e1) {
+//			e1.printStackTrace();
+//		}
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.deleteQueue(authString, queueId);
+//			} catch (ClassNotFoundException | SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		/*******add queues****/
+//		QueueOnosRequest queueOnosRequest = null;
+//		String jsonIn = "{\n" + 
+//				"	\"ipVersion\":\"4\",\n" + 
+//				"	\"srcHost\":\"10.0.3.2\",\n" + 
+//				"	\"srcPort\":\"80\",\n" + 
+//				"	\"dstHost\":\"10.0.3.5\",\n" + 
+//				"	\"dstPort\":\"5000\",\n" + 
+//				"	\"portType\":\"tcp\",\n" + 
+//				"	\"minRate\":11000,\n" + 
+//				"	\"maxRate\": 11000,\n" + 
+//				"	\"burst\":11000\n" + 
+//				"}";
+//		String jsonOut = "";
+//		OnosResponse onosResponse = new OnosResponse();
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.getEnvironment();
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+//			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
+//			
+//			/// QUEUE ADD
+//			int nQueues = DatabaseTools.getAllQueuesIds().size();
+//			try {
+//				if(nQueues > 0 && (queueReq != null))
+//					onosResponse = EntornoTools.addQueue(authString, queueReq);
+//				else {
+//					EntornoTools.addQueuesDefault();
+//				}
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			
+//		}
+		
 		/****GET QUEUES***/
-		List<Queue> queues = new ArrayList<Queue>();
-		String jsonOut = "";
-		if(DatabaseTools.isAuthenticated(authString)) {
-			try {
-				EntornoTools.getEnvironment();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
-			queues = EntornoTools.getQueues(queuesDb);
-			jsonOut = gson.toJson(queues);
-		}
-		
-		/***set auth**/
-		String jsonIn = "{\n" + 
-				"	\"userOnos\":\"onos\",\n" + 
-				"	\"passwordOnos\":\"rocks\",\n" + 
-				"	\"onosHost\": \"10.0.2.1\",\n" + 
-				"	\"ovsdbDevice\": \"ovsdb:10.0.2.2\"\n" + 
-				"}";
-		LogTools.rest("POST", "setAuth", jsonIn);
-		String messageToClient = "";
-
-		Response resRest=null;
-		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
-
-		String ovsdbDevice = authReq.getOvsdbDevice();
-		EntornoTools.onosHost = authReq.getOnosHost();
-		EntornoTools.user = authReq.getUserOnos();
-		EntornoTools.password = authReq.getPasswordOnos();
-		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
-		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
-		EntornoTools.endpointQueues = "http://" + EntornoTools.onosHost + ":8181/onos/upm/queues/ovsdb:10.0.2.2";
-
-		LogTools.rest("POST", "setAuth", "usuarioOnos "+EntornoTools.user+" passOnos "+EntornoTools.password);
-		
-		// Check ONOS connectivity
-		try {
-			LogTools.info("setAuth", "Cheking connectivity to ONOS");
-			if(ping(EntornoTools.onosHost)){
-				LogTools.info("setAuth", "ONOS connectivity");
-				LogTools.info("setAuth", "Discovering environment");
-
-				//Discover environment
-				EntornoTools.getEnvironment();
-				messageToClient= "Success ONOS connectivity";
-			}
-			else{
-				LogTools.error("setAuth", "No ONOS conectivity");
-				messageToClient= "No ONOS connectivity";
-			}
-
-		} catch (IOException e1) {
-			messageToClient= "No ONOS connectivity\n" + e1.getMessage();
-			LogTools.error("setAuth", "No ONOS conectivity");
-			resRest = Response.ok("{\"response\":\""+messageToClient+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-			
-		}
-		resRest = Response.ok("[{\"response\":\""+messageToClient+"\"},"+"{\"onosCode\":"+String.valueOf(200)+"}]", MediaType.APPLICATION_JSON_TYPE).build();
-		
+//		List<Queue> queues = new ArrayList<Queue>();
+//		String jsonOut = "";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.getEnvironment();
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+//			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
+//			queues = EntornoTools.getQueues(queuesDb);
+//			jsonOut = gson.toJson(queues);
+//		}
+//		
+//		/***set auth**/
+//		String jsonIn = "{\n" + 
+//				"	\"userOnos\":\"onos\",\n" + 
+//				"	\"passwordOnos\":\"rocks\",\n" + 
+//				"	\"onosHost\": \"10.0.2.1\",\n" + 
+//				"	\"ovsdbDevice\": \"ovsdb:10.0.2.2\"\n" + 
+//				"}";
+//		LogTools.rest("POST", "setAuth", jsonIn);
+//		String messageToClient = "";
+//
+//		Response resRest=null;
+//		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
+//
+//		String ovsdbDevice = authReq.getOvsdbDevice();
+//		EntornoTools.onosHost = authReq.getOnosHost();
+//		EntornoTools.user = authReq.getUserOnos();
+//		EntornoTools.password = authReq.getPasswordOnos();
+//		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
+//		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
+//		EntornoTools.endpointQueues = "http://" + EntornoTools.onosHost + ":8181/onos/upm/queues/ovsdb:10.0.2.2";
+//
+//		LogTools.rest("POST", "setAuth", "usuarioOnos "+EntornoTools.user+" passOnos "+EntornoTools.password);
+//		
+//		// Check ONOS connectivity
+//		try {
+//			LogTools.info("setAuth", "Cheking connectivity to ONOS");
+//			if(ping(EntornoTools.onosHost)){
+//				LogTools.info("setAuth", "ONOS connectivity");
+//				LogTools.info("setAuth", "Discovering environment");
+//
+//				//Discover environment
+//				EntornoTools.getEnvironment();
+//				messageToClient= "Success ONOS connectivity";
+//			}
+//			else{
+//				LogTools.error("setAuth", "No ONOS conectivity");
+//				messageToClient= "No ONOS connectivity";
+//			}
+//
+//		} catch (IOException e1) {
+//			messageToClient= "No ONOS connectivity\n" + e1.getMessage();
+//			LogTools.error("setAuth", "No ONOS conectivity");
+//			resRest = Response.ok("{\"response\":\""+messageToClient+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//			
+//		}
+//		resRest = Response.ok("[{\"response\":\""+messageToClient+"\"},"+"{\"onosCode\":"+String.valueOf(200)+"}]", MediaType.APPLICATION_JSON_TYPE).build();
+//		
 		
 		/**********ADD QUEUE ********/
 //		String jsonOut = "";

@@ -119,7 +119,16 @@ public class EntornoTools {
 		//HOSTS
 		response = HttpTools.doJSONGet(urlHosts);
 		if(response.getCode()/100 == 2)
-			JsonManager.parseJsonHostsGson(response.getMessage());      
+			JsonManager.parseJsonHostsGson(response.getMessage());    
+		
+		if(DatabaseTools.getAllQueuesIds().size() == 0) {
+			try {
+				EntornoTools.addQueuesDefault();
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				throw new IOException();
+			}
+		}
 	}
 
 	/**
@@ -1639,7 +1648,7 @@ public class EntornoTools {
 		//QUEUE ADD
 		QueueOnosRequest queueOnosRequest = new QueueOnosRequest(port.getPortName(), 
 				port.getPortNumber(), 
-				String.valueOf(port.getSpeed()),
+				String.format("%.0f", port.getSpeed()),
 				queueId,
 				String.valueOf(queueReq.getMinRate()),
 				String.valueOf(queueReq.getMaxRate()),
@@ -1647,7 +1656,7 @@ public class EntornoTools {
 				qosId);
 		HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues), gson.toJson(queueOnosRequest));
 		//DDBB QUEUE ADD
-		DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), port.getPortName(), port.getPortNumber(), null);
+		DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), port.getPortName(), port.getPortNumber(), queueOnosRequest.getMinRate(), queueOnosRequest.getMaxRate(), queueOnosRequest.getBurst(), null);
 		
 		//ADD FLOW QUEUE
 			//get old state
@@ -1699,7 +1708,7 @@ public class EntornoTools {
 		return onosResponse;
 	}
 
-	public static Response deleteQueue(String authString, String qId) throws MalformedURLException, IOException {
+	public static Response deleteQueue(String authString, String qId) throws MalformedURLException, IOException, ClassNotFoundException, SQLException {
 		QueueDBResponse queueDb = DatabaseTools.getQueue(authString, qId);
 		List<QueueDBResponse> queuesDb = null;
 		String portName = "";
@@ -1724,13 +1733,14 @@ public class EntornoTools {
 					HttpTools.doDelete(new URL(EntornoTools.endpointQueues+"?"
 						+ "portName="+queueDb.getPortName()+"&"
 						+ "portNumber="+queueDb.getPortNumber()+"&"
-						+ "portSpeed="+String.valueOf(port.getSpeed())+"&"
+						+ "portSpeed="+String.format("%.0f", port.getSpeed())+"&"
 						+ "queueId="+queueDb.getIdQueue()+"&"
 						+ "minRate="+queueDb.getMinRate()+"&"
 						+ "maxRate="+queueDb.getMaxRate()+"&"
 						+ "burst="+queueDb.getBurst()+"&"
-						+ "qosId="+queueDb.getIdQos()+"&"
+						+ "qosId="+queueDb.getIdQos()
 						));
+					DatabaseTools.deleteQueue(authString, queueDb.getIdQueue());
 				}
 				else if(nQueues == 1) {
 					// TODO Delete queue,qos and port
@@ -1757,5 +1767,36 @@ public class EntornoTools {
 		else
 			return Response.status(Response.Status.CONFLICT).entity("Queue Not Found").build();
 		return Response.status(Response.Status.NO_CONTENT).build();
+	}
+
+	public static void addQueuesDefault() throws ClassNotFoundException, SQLException, IOException {
+		int id = 0;
+		Gson gson = new Gson();
+		QueueOnosRequest queueOnosRequest = null;
+		for(Switch s : EntornoTools.entorno.getMapSwitches().values()) {
+			if(s.getDriver().equals("ovs")) {
+				for(Port p : s.getListPorts()) {
+					if(p.isEnabled()) {
+						try {
+							queueOnosRequest = new QueueOnosRequest(p.getPortName(), p.getPortNumber(), String.format("%.0f",p.getSpeed())+"000000", id, "0",
+									String.format("%.0f",p.getSpeed())+"000000", String.format("%.0f",p.getSpeed())+"000000", id);
+							HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues+"/port-qos"), gson.toJson(queueOnosRequest));
+							DatabaseTools.addQueue("Basic YWRtaW46YWRtaW4=", String.valueOf(queueOnosRequest.getQueueId()), s.getId(), String.valueOf(queueOnosRequest.getQosId()), queueOnosRequest.getPortName(), queueOnosRequest.getPortNumber(), queueOnosRequest.getMinRate(), queueOnosRequest.getMaxRate(), queueOnosRequest.getBurst(), null);
+						} catch (ClassNotFoundException | SQLException | IOException e) {
+							// TODO Auto-generated catch block
+							throw e;
+						}
+						id++;
+					}
+				}
+			}
+		}
+		
+		
+	}
+
+	public static Response deleteQueueQosPort(String authString, String queueId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

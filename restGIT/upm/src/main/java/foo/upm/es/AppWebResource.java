@@ -42,6 +42,10 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 
+//import org.onosproject.ovsdb.controller.OvsdbRowStore;
+//import org.onosproject.ovsdb.controller.OvsdbStore;
+//import org.onosproject.ovsdb.controller.OvsdbTableStore;
+
 import static org.onlab.util.Tools.readTreeFromStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -53,6 +57,8 @@ public class AppWebResource extends AbstractWebResource {
     private final Logger log = getLogger(getClass());
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode queueNode = root.putArray("queues");
+    //private OvsdbStore ovsdbStore = new OvsdbStore();
+    //public static final String DATABASENAME = "Open_vSwitch";
     
     /**
      * Get hello world greeting.
@@ -157,7 +163,7 @@ public class AppWebResource extends AbstractWebResource {
      * @return 200 OK
      */
     @POST
-    @Path("port-qos/{deviceId}")
+    @Path("{deviceId}/port-qos")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response addPortQosQueue(@PathParam("deviceId") String deviceId,
@@ -220,78 +226,23 @@ public class AppWebResource extends AbstractWebResource {
                 .type(Port.Type.COPPER)
                 .build();
 
-        QosDescription qosDescription = null;
-        QueueDescription queueDescription = null;
-        boolean existsQueue = false;
-        boolean existsQos = false;
-
-        //Get whether qosId exists or not
-        for(QosDescription q : qosConfig.getQoses()) {
-            if (q.qosId().name().equals(String.valueOf(qosId))) {
-                existsQos = true;
-                qosDescription = q;
-                break;
-            }
-        }
-        //Get whether queueId exists or not
-        for(QueueDescription q : queueConfig.getQueues()){
-            if(q.queueId().name().equals(String.valueOf(queueId))){
-                existsQueue = true;
-                break;
-            }
-        }
-
-        if(existsQueue){
-            return Response.status(Response.Status.CONFLICT).entity("Queue already exists").build();
-        }
-        else if(existsQos){
-            //if queue list of qos is empty add, else create new queue list
-            if(!qosDescription.queues().get().isEmpty()){
-                log.info("Queues are present in QoS");
-                queuesMap = qosDescription.queues().get();
-            }
-            else{
-                log.info("Queues not present in QoS");
-                queuesMap = new HashMap<>();
-            }
-            queuesMap.put(Long.valueOf(queueDesc.queueId().toString()), queueDesc);
-
-
-            queueConfig.addQueue(queueDesc);
-            log.info("Queue added");
-            qosConfig.insertQueues(qosDescription.qosId(), queuesMap);
-            log.info("Queue added to existing QoS");
-
-        }
-        //IF there is no that queue and that qos
-        else{
-            log.info("Selected qos and queue no exist");
-
-            //add queue to list
-            queuesMap = new HashMap<>();
-            queuesMap.put(Long.valueOf(queueDesc.queueId().name()), queueDesc);
-            log.info("Queue added to map: {}", queueDesc.toString());
-
-            //create new qos
-            QosDescription qosDesc = DefaultQosDescription.builder()
+        QosDescription qosDesc = DefaultQosDescription.builder()
                     .qosId(QosId.qosId(String.valueOf(qosId)))
                     .type(QosDescription.Type.HTB)
                     .maxRate(Bandwidth.kbps(Long.valueOf(maxRate)))
                     .queues(queuesMap)
                     .build();
 
-            //add queue
-            queueConfig.addQueue(queueDesc);
-            log.info("Queue added");
-            //add qos
-            qosConfig.addQoS(qosDesc);
-            log.info("QoS added: {}", qosDesc.toString());
-            //add qos to port
-            portConfig.applyQoS(portDesc, qosDesc);
-            log.info("Port added");
-        }
+        queueConfig.addQueue(queueDesc);
+        log.info("Queue added");
+        //add qos
+        qosConfig.addQoS(qosDesc);
+        log.info("QoS added: {}", qosDesc.toString());
+        //add qos to port
+        portConfig.applyQoS(portDesc, qosDesc);
+        log.info("Port added");
+        
         return Response.noContent().build();
-    
     }
 
     /**
@@ -809,7 +760,7 @@ public class AppWebResource extends AbstractWebResource {
     
     }
 
-    private QosDescription getQoSFromQueue(QosConfigBehaviour qosConfig, QueueDescription queueDes){
+    /*private QosDescription getQoSFromQueue(QosConfigBehaviour qosConfig, QueueDescription queueDes){
         QosDescription qosDescription = null;
 
         qosConfig.getQoses().forEach(q -> {
@@ -821,5 +772,27 @@ public class AppWebResource extends AbstractWebResource {
         });
         return qosDescription;
     }
+
+
+
+    private OvsdbRowStore getRowStore(String dbName, String tableName) {
+        OvsdbTableStore tableStore = getTableStore(dbName);
+        if (tableStore == null) {
+            return null;
+        }
+
+        OvsdbRowStore rowStore = tableStore.getRows(tableName);
+        if (rowStore == null) {
+            rowStore = new OvsdbRowStore();
+        }
+        return rowStore;
+    }
+
+    private OvsdbTableStore getTableStore(String dbName) {
+        if (ovsdbStore == null) {
+            return null;
+        }
+        return ovsdbStore.getOvsdbTableStore(dbName);
+    }*/
 
 }

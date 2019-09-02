@@ -88,9 +88,16 @@ public class QueuesUserWebResource {
 			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
 			
 			/// QUEUE ADD
+			int nQueues = DatabaseTools.getAllQueuesIds().size();
 			try {
-				onosResponse = EntornoTools.addQueue(authString, queueReq);
-			} catch (IOException | ClassNotFoundException | SQLException e) {
+				if(nQueues > 0 && (queueReq != null))
+					onosResponse = EntornoTools.addQueue(authString, queueReq);
+				else {
+					EntornoTools.addQueuesDefault();
+					if(queueReq != null)
+						onosResponse = EntornoTools.addQueue(authString, queueReq);
+				}
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return Response.status(400).entity("Queue flow adding fail").build();
@@ -119,7 +126,7 @@ public class QueuesUserWebResource {
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
 				return EntornoTools.deleteQueue(authString, queueId);
-			} catch (IOException e) {
+			} catch (IOException | ClassNotFoundException | SQLException e) {
 				// TODO Auto-generated catch block
 				return Response.status(Response.Status.CONFLICT).build();
 			}
