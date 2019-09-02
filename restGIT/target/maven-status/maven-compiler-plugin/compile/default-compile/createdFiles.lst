@@ -48,6 +48,7 @@ rest/resources/users/QueuesUserWebResource.class
 architecture/Environment.class
 tools/EntornoTools.class
 rest/gsonobjects/onosside/FlowSocketOnosRequest.class
+rest/database/objects/QueueDBInsert.class
 rest/gsonobjects/userside/FlowSocketWithSwitchClientRequest.class
 rest/gsonobjects/administratorside/FlowAdministratorRequest.class
 architecture/Queue.class

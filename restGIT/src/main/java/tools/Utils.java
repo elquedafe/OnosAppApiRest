@@ -20,9 +20,9 @@ public class Utils {
 	}
 	public static int getQosIdAvailable() {
 		int foundId = -1;
-		List<Integer> qosIds = DatabaseTools.getAllQosIds();
+		List<Integer> queuesIds = DatabaseTools.getAllQosIds();
 		for(int i = 0; i < MAX_QOS_ID; i++) {
-			if(!qosIds.contains(i)) {
+			if(!queuesIds.contains(i)) {
 				foundId = i;
 				return i;
 			}

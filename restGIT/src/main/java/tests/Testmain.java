@@ -36,21 +36,25 @@ import architecture.FlowCriteria;
 import architecture.FlowInstruction;
 import architecture.Host;
 import architecture.Meter;
+import architecture.Queue;
 import architecture.Switch;
 import architecture.Vpls;
 import rest.database.objects.FlowDBResponse;
 import rest.database.objects.MeterDBResponse;
+import rest.database.objects.QueueDBResponse;
 import rest.database.objects.VplsDBResponse;
 import rest.gsonobjects.onosside.FlowOnosRequest;
 import rest.gsonobjects.onosside.IntentOnosRequest;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.onosside.Point;
+import rest.gsonobjects.onosside.QueueOnosRequest;
 import rest.gsonobjects.userside.AuthorizationClientRequest;
 import rest.gsonobjects.userside.FlowClientRequest;
 import rest.gsonobjects.userside.FlowSocketClientRequest;
 import rest.gsonobjects.userside.FlowSocketWithSwitchClientRequest;
 import rest.gsonobjects.userside.MeterClientRequest;
 import rest.gsonobjects.userside.MeterClientRequestPort;
+import rest.gsonobjects.userside.QueueClientRequest;
 import rest.gsonobjects.userside.VplsClientRequest;
 import tools.DatabaseTools;
 import tools.EntornoTools;
@@ -67,6 +71,7 @@ public class Testmain {
 		EntornoTools.password = "rocks";
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
+		EntornoTools.endpointQueues = "http://" + EntornoTools.onosHost + ":8181/onos/upm/queues/ovsdb:10.0.2.2";
 		try {
 			EntornoTools.getEnvironment();
 		} catch (IOException e) {
@@ -81,110 +86,208 @@ public class Testmain {
 		String authString = "Basic YWRtaW46YWRtaW4="; //admin:admin
 		authString = "Basic YWx2YXJvOmE="; //alvaro:a
 
-		/*****ADD VPLS******/
-		String vplsName = "vpls1";
-		String jsonIn = "{\n" + 
-				"	\"vplsName\":\""+vplsName+"\",\n" + 
-				"	\"hosts\" : [\"10.0.3.5\",\"10.0.3.2\",\"10.0.3.4\"]\n" + 
-				",\n" + 
-				"\"rate\":100,\n" + 
-				"\"burst\":100}";
-		Response resRest;
+		/****GET QUEUES***/
+		List<Queue> queues = new ArrayList<Queue>();
 		String jsonOut = "";
-		String url = "";
 		if(DatabaseTools.isAuthenticated(authString)) {
-			url = EntornoTools.endpointNetConf;
 			try {
-				LogTools.info("setVpls", "Discovering environment");
 				EntornoTools.getEnvironment();
-
-				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-
-				List<Vpls> vplsBefore = EntornoTools.getVplsState();
-
-				if(vplsReq.getVplsName().equals(vplsName))
-					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
-
-				//GET OLD FLOW STATE
-				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
-					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
-						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-							oldFlowsState.put(flow.getKey(), flow.getValue());
-				}
-				
-				//HttpTools.doDelete(new URL(url));
-				HttpTools.doJSONPost(new URL(url), jsonOut);
-
-				List<Vpls> vplsAfter = EntornoTools.getVplsState();
-
-				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
-
-				//ADD new vpls to DDBB
-				for(Vpls v : vplsNews) {
-					try {
-						DatabaseTools.addVplsByUser(v.getName(), authString);
-					} catch (ClassNotFoundException | SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-
-				//GET NEW STATE
-				EntornoTools.getEnvironment();
-				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
-					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
-						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-							newFlowsState.put(flow.getKey(), flow.getValue());
-				
-				List<Flow> flowsNews;
-				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
-				
-				// ADD flows to DDBB
-				if(flowsNews.size()>0) {
-					for(Flow flow : flowsNews) {
-						try {
-							//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
-							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-							DatabaseTools.addFlow(flow, authString, null, null, null);
-						} catch (ClassNotFoundException | SQLException e) {
-							e.printStackTrace();
-							//TODO: Delete flow from onos and send error to client
-
-						}
-					}
-				}
-				
-				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
-					MeterClientRequestPort meterReq;
-					for(String srcHost : vplsReq.getHosts()) {
-						for(String dstHost : vplsReq.getHosts()) {
-							if(!srcHost.equals(dstHost)) {
-								meterReq = new MeterClientRequestPort();
-								meterReq.setSrcHost(srcHost);
-								meterReq.setDstHost(dstHost);
-								meterReq.setRate(vplsReq.getRate());
-								meterReq.setBurst(vplsReq.getBurst());
-								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
-							}
-						}
-					}
-				}
-
-
-			} catch (MalformedURLException e) {
-				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				return resRest;
-			} catch (IOException e) {
-				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-				resRest = Response.serverError().build();
-//				return resRest;
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
-			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//			return resRest;
+			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
+			queues = EntornoTools.getQueues(queuesDb);
+			jsonOut = gson.toJson(queues);
 		}
+		
+		/***set auth**/
+		String jsonIn = "{\n" + 
+				"	\"userOnos\":\"onos\",\n" + 
+				"	\"passwordOnos\":\"rocks\",\n" + 
+				"	\"onosHost\": \"10.0.2.1\",\n" + 
+				"	\"ovsdbDevice\": \"ovsdb:10.0.2.2\"\n" + 
+				"}";
+		LogTools.rest("POST", "setAuth", jsonIn);
+		String messageToClient = "";
+
+		Response resRest=null;
+		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
+
+		String ovsdbDevice = authReq.getOvsdbDevice();
+		EntornoTools.onosHost = authReq.getOnosHost();
+		EntornoTools.user = authReq.getUserOnos();
+		EntornoTools.password = authReq.getPasswordOnos();
+		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
+		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
+		EntornoTools.endpointQueues = "http://" + EntornoTools.onosHost + ":8181/onos/upm/queues/ovsdb:10.0.2.2";
+
+		LogTools.rest("POST", "setAuth", "usuarioOnos "+EntornoTools.user+" passOnos "+EntornoTools.password);
+		
+		// Check ONOS connectivity
+		try {
+			LogTools.info("setAuth", "Cheking connectivity to ONOS");
+			if(ping(EntornoTools.onosHost)){
+				LogTools.info("setAuth", "ONOS connectivity");
+				LogTools.info("setAuth", "Discovering environment");
+
+				//Discover environment
+				EntornoTools.getEnvironment();
+				messageToClient= "Success ONOS connectivity";
+			}
+			else{
+				LogTools.error("setAuth", "No ONOS conectivity");
+				messageToClient= "No ONOS connectivity";
+			}
+
+		} catch (IOException e1) {
+			messageToClient= "No ONOS connectivity\n" + e1.getMessage();
+			LogTools.error("setAuth", "No ONOS conectivity");
+			resRest = Response.ok("{\"response\":\""+messageToClient+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+			
+		}
+		resRest = Response.ok("[{\"response\":\""+messageToClient+"\"},"+"{\"onosCode\":"+String.valueOf(200)+"}]", MediaType.APPLICATION_JSON_TYPE).build();
+		
+		
+		/**********ADD QUEUE ********/
+//		String jsonOut = "";
+//		QueueOnosRequest queueOnosRequest = null;
+//		String jsonIn = "{\n" + 
+//				"	\"ipVersion\":\"4\",\n" + 
+//				"	\"srcHost\":\"10.0.3.2\",\n" + 
+//				"	\"srcPort\":\"80\",\n" + 
+//				"	\"dstHost\":\"10.0.3.5\",\n" + 
+//				"	\"dstPort\":\"5000\",\n" + 
+//				"	\"portType\":\"tcp\",\n" + 
+//				"	\"minRate\":10000,\n" + 
+//				"	\"maxRate\": 10000,\n" + 
+//				"	\"burst\":10000\n" + 
+//				"}";
+//		OnosResponse onosResponse = new OnosResponse();
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.getEnvironment();
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+//			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
+//			
+//			
+//			
+//			
+//			/// QUEUE ADD
+//			try {
+//				onosResponse = EntornoTools.addQueue(authString, queueReq);
+//			} catch (IOException | ClassNotFoundException | SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			
+//		}
+		
+		/*****ADD VPLS******/
+//		String vplsName = "vpls1";
+//		String jsonIn = "{\n" + 
+//				"	\"vplsName\":\""+vplsName+"\",\n" + 
+//				"	\"hosts\" : [\"10.0.3.5\",\"10.0.3.2\",\"10.0.3.4\"]\n" + 
+//				",\n" + 
+//				"\"rate\":100,\n" + 
+//				"\"burst\":100}";
+//		Response resRest;
+//		String jsonOut = "";
+//		String url = "";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			url = EntornoTools.endpointNetConf;
+//			try {
+//				LogTools.info("setVpls", "Discovering environment");
+//				EntornoTools.getEnvironment();
+//
+//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+//
+//				List<Vpls> vplsBefore = EntornoTools.getVplsState();
+//
+//				if(vplsReq.getVplsName().equals(vplsName))
+//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
+//
+//				//GET OLD FLOW STATE
+//				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+//				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+//					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+//						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+//							oldFlowsState.put(flow.getKey(), flow.getValue());
+//				}
+//				
+//				//HttpTools.doDelete(new URL(url));
+//				HttpTools.doJSONPost(new URL(url), jsonOut);
+//
+//				List<Vpls> vplsAfter = EntornoTools.getVplsState();
+//
+//				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
+//
+//				//ADD new vpls to DDBB
+//				for(Vpls v : vplsNews) {
+//					try {
+//						DatabaseTools.addVplsByUser(v.getName(), authString);
+//					} catch (ClassNotFoundException | SQLException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//				}
+//
+//				//GET NEW STATE
+//				EntornoTools.getEnvironment();
+//				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
+//				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
+//					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
+//						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+//							newFlowsState.put(flow.getKey(), flow.getValue());
+//				
+//				List<Flow> flowsNews;
+//				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+//				
+//				// ADD flows to DDBB
+//				if(flowsNews.size()>0) {
+//					for(Flow flow : flowsNews) {
+//						try {
+//							//												System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
+//							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
+//							DatabaseTools.addFlow(flow, authString, null, null, null);
+//						} catch (ClassNotFoundException | SQLException e) {
+//							e.printStackTrace();
+//							//TODO: Delete flow from onos and send error to client
+//
+//						}
+//					}
+//				}
+//				
+//				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
+//					MeterClientRequestPort meterReq;
+//					for(String srcHost : vplsReq.getHosts()) {
+//						for(String dstHost : vplsReq.getHosts()) {
+//							if(!srcHost.equals(dstHost)) {
+//								meterReq = new MeterClientRequestPort();
+//								meterReq.setSrcHost(srcHost);
+//								meterReq.setDstHost(dstHost);
+//								meterReq.setRate(vplsReq.getRate());
+//								meterReq.setBurst(vplsReq.getBurst());
+//								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+//							}
+//						}
+//					}
+//				}
+//
+//
+//			} catch (MalformedURLException e) {
+//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+////				return resRest;
+//			} catch (IOException e) {
+//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+//				resRest = Response.serverError().build();
+////				return resRest;
+//			}
+//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+////			return resRest;
+//		}
 		
 		/****GET ENVIRONMENT*****/
 //		OnosResponse response = new OnosResponse();

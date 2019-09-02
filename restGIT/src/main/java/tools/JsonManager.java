@@ -319,7 +319,7 @@ public class JsonManager {
 			queuesList.add(q);
 		}
 		
-		return queues;
+		return queuesList;
 	}
 
 }

@@ -127,4 +127,6 @@ public class QueueOnosRequest {
 	public void setQosId(int qosId) {
 		this.qosId = qosId;
 	}
+	
+	
 }

@@ -2,6 +2,7 @@ package architecture;
 
 public class Queue {
 	private long queueId;
+	private String switchId;
 	private String minRate;
 	private String maxRate;
 	private String burst;
@@ -17,10 +18,11 @@ public class Queue {
 	 * @param portNumber
 	 * @param portName
 	 */
-	public Queue(long queueId, String minRate, String maxRate, String burst, long qosId, String portNumber,
+	public Queue(long queueId, String switchId, String minRate, String maxRate, String burst, long qosId, String portNumber,
 			String portName) {
 		super();
 		this.queueId = queueId;
+		this.switchId = switchId;
 		this.minRate = minRate;
 		this.maxRate = maxRate;
 		this.burst = burst;

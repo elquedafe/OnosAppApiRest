@@ -5,44 +5,69 @@ public class QueueOnos {
 	private double minRate;
 	private double maxRate;
 	private long burst;
-	
-	public QueueOnos(String queueId, double minRate, double maxRate, long burst){
+	/**
+	 * @param queueId
+	 * @param minRate
+	 * @param maxRate
+	 * @param burst
+	 */
+	public QueueOnos(String queueId, double minRate, double maxRate, long burst) {
+		super();
 		this.queueId = queueId;
 		this.minRate = minRate;
 		this.maxRate = maxRate;
 		this.burst = burst;
 	}
-
-	public String getQueueId(){
+	/**
+	 * @return the queueId
+	 */
+	public String getQueueId() {
 		return queueId;
 	}
-
-	public void setQueueId(String queueId){
+	/**
+	 * @param queueId the queueId to set
+	 */
+	public void setQueueId(String queueId) {
 		this.queueId = queueId;
-		
 	}
-
-	public double getMinRate(){
+	/**
+	 * @return the minRate
+	 */
+	public double getMinRate() {
 		return minRate;
 	}
-
-	public void setMinRate(int minRate){
+	/**
+	 * @param minRate the minRate to set
+	 */
+	public void setMinRate(double minRate) {
 		this.minRate = minRate;
 	}
-
-	public double getMaxRate(){
+	/**
+	 * @return the maxRate
+	 */
+	public double getMaxRate() {
 		return maxRate;
 	}
-
-	public void setMaxRate(int maxRate){
+	/**
+	 * @param maxRate the maxRate to set
+	 */
+	public void setMaxRate(double maxRate) {
 		this.maxRate = maxRate;
 	}
-
-	public long getBurst(){
+	/**
+	 * @return the burst
+	 */
+	public long getBurst() {
 		return burst;
 	}
-
-	public void setBurst(int burst){
+	/**
+	 * @param burst the burst to set
+	 */
+	public void setBurst(long burst) {
 		this.burst = burst;
 	}
+	
+	
+	
+	
 }

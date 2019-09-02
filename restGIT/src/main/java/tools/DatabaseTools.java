@@ -498,12 +498,13 @@ public class DatabaseTools {
 		String minRate = "";
 		String maxRate = "";
 		String burst = "";
-
+		String vplsName = "";
+		
 		String user = getUserPassFromCoded(authString)[0];
-		String sql = "SELECT * FROM Queue";
+		String sql = "SELECT q.*, v.VplsName FROM Queue AS q LEFT JOIN Vpls AS v ON q.IdVpls=v.IdVpls";
 		
 		if(!DatabaseTools.isAdministrator(authString)) {
-			 sql += " WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
+			 sql += " WHERE q.IdUser=(SELECT u.IdUser FROM User AS u WHERE u.UserName='"+user+"')";
 		}
 		
 		try {
@@ -518,8 +519,9 @@ public class DatabaseTools {
 				minRate = rs.getString("MinRate");
 				maxRate = rs.getString("MaxRate");
 				burst = rs.getString("Burst");
+				vplsName = rs.getString("VplsName");
 
-				queues.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst));
+				queues.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst, vplsName));
 				// print the results
 				System.out.format("%s, %s, %s\n", idQueue, idSwitch, idUser);
 			}
@@ -616,12 +618,12 @@ public class DatabaseTools {
 		String minRate = "";
 		String maxRate = "";
 		String burst = "";
-
+		String vplsName = "";
 		String user = getUserPassFromCoded(authString)[0];
-		String sql = "SELECT * FROM Queue";
+		String sql = "SELECT q.*, v.VplsName FROM Queue AS q LEFT JOIN Vpls AS v ON q.IdVpls=v.IdVpls";
 		
 		if(!DatabaseTools.isAdministrator(authString)) {
-			 sql += " WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
+			 sql += " WHERE q.IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"')";
 		}
 		
 		try {
@@ -636,8 +638,10 @@ public class DatabaseTools {
 				minRate = rs.getString("MinRate");
 				maxRate = rs.getString("MaxRate");
 				burst = rs.getString("Burst");
+				vplsName = rs.getString("VplsName");
+				
 
-				queue = new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst);
+				queue = new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst, vplsName);
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -661,9 +665,10 @@ public class DatabaseTools {
 		String minRate = "";
 		String maxRate = "";
 		String burst = "";
+		String vplsName = "";
 
 		String user = getUserPassFromCoded(authString)[0];
-		String sql = "SELECT * FROM Queue WHERE IdSwitch='"+ switchId +"' PortNumber='"+port+"'";
+		String sql = "SELECT q.*, v.VplsName FROM Queue AS q LEFT JOIN Vpls AS v ON q.IdVpls=v.IdVpls WHERE q.IdSwitch='"+ switchId +"' q.PortNumber='"+port+"'";
 		
 		try {
 			ResultSet rs = executeStatement(sql);
@@ -677,8 +682,9 @@ public class DatabaseTools {
 				minRate = rs.getString("MinRate");
 				maxRate = rs.getString("MaxRate");
 				burst = rs.getString("Burst");
+				vplsName = rs.getString("VplsName");
 
-				queues.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst));
+				queues.add(new QueueDBResponse(idQueue, idSwitch, idQos, portName, portNumber, idUser, minRate, maxRate, burst, vplsName));
 				// print the results
 				System.out.format("%s, %s, %s\n", idQueue, idSwitch, idUser);
 			}
@@ -693,8 +699,20 @@ public class DatabaseTools {
 		return queues;
 	}
 
-	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber) {
-		// TODO Auto-generated method stub
+	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber, String vplsName) throws ClassNotFoundException, SQLException {
+		String[] decoded = getUserPassFromCoded(authString);
+		String user = decoded[0];
+		String sql = "INSERT INTO Queue "
+				+ "(IdQueue, IdSwitch, IdQos, PortName, PortNumber, IdUser";
+		if(vplsName != null && !vplsName.isEmpty())
+			sql += ", IdVpls";
+		sql += ") VALUES ('"+queueId+"', '"+switchId+"', '"+qosId+"', '"+portName+"', '"+portNumber+"' , (SELECT IdUser FROM User WHERE UserName='"+user+"')";
+		
+		if(vplsName != null && !vplsName.isEmpty())
+			sql += ", (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')";
+		
+		sql += ")";
+		executeStatement(sql);
 		
 	}
 

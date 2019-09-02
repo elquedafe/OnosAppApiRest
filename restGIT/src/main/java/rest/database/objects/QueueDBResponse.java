@@ -10,7 +10,7 @@ public class QueueDBResponse {
 	private String minRate;
 	private String maxRate;
 	private String burst;
-	
+	private String vplsName;
 	/**
 	 * @param idQueue
 	 * @param idSwitch
@@ -18,9 +18,13 @@ public class QueueDBResponse {
 	 * @param portName
 	 * @param portNumber
 	 * @param idUser
+	 * @param minRate
+	 * @param maxRate
+	 * @param burst
+	 * @param vplsName
 	 */
 	public QueueDBResponse(String idQueue, String idSwitch, String idQos, String portName, String portNumber,
-			String idUser, String minRate, String maxRate, String burst) {
+			String idUser, String minRate, String maxRate, String burst, String vplsName) {
 		super();
 		this.idQueue = idQueue;
 		this.idSwitch = idSwitch;
@@ -31,6 +35,7 @@ public class QueueDBResponse {
 		this.minRate = minRate;
 		this.maxRate = maxRate;
 		this.burst = burst;
+		this.vplsName = vplsName;
 	}
 	/**
 	 * @return the idQueue
@@ -140,6 +145,20 @@ public class QueueDBResponse {
 	public void setBurst(String burst) {
 		this.burst = burst;
 	}
+	/**
+	 * @return the vplsName
+	 */
+	public String getVplsName() {
+		return vplsName;
+	}
+	/**
+	 * @param vplsName the vplsName to set
+	 */
+	public void setVplsName(String vplsName) {
+		this.vplsName = vplsName;
+	}
+	
+	
 	
 	
 	

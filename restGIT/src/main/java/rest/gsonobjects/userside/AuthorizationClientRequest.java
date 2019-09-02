@@ -1,6 +1,8 @@
 package rest.gsonobjects.userside;
 
 public class AuthorizationClientRequest {
+	
+
 	private String userOnos;
 	private String passwordOnos;
 	private String onosHost;
@@ -65,6 +67,12 @@ public class AuthorizationClientRequest {
 		return ovsdbDevice;
 	}
 	
+	/**
+	 * @param ovsdbDevice the ovsdbDevice to set
+	 */
+	public void setOvsdbDevice(String ovsdbDevice) {
+		this.ovsdbDevice = ovsdbDevice;
+	}
 	
 
 	

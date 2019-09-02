@@ -144,7 +144,8 @@ public class QueueClientRequest {
 	}
 	
 	public FlowSocketClientRequest toFlowSocketClientRequest() {
-		return new FlowSocketClientRequest(4, this.srcHost, this.srcPort, this.dstHost, this.dstPort, this.portType);
+		FlowSocketClientRequest fQ = new FlowSocketClientRequest(4, this.srcHost, this.srcPort, this.dstHost, this.dstPort, this.portType);
+		return fQ;
 	}
 	
 

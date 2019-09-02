@@ -1,6 +1,7 @@
 package rest.resources.users;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,15 +87,10 @@ public class QueuesUserWebResource {
 			}
 			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
 			
-			
-			// INTENTS
-			FlowSocketClientRequest flowReq = queueReq.toFlowSocketClientRequest();
-			EntornoTools.addIntent(authString, flowReq);
-			
 			/// QUEUE ADD
 			try {
 				onosResponse = EntornoTools.addQueue(authString, queueReq);
-			} catch (IOException e) {
+			} catch (IOException | ClassNotFoundException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return Response.status(400).entity("Queue flow adding fail").build();

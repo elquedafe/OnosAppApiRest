@@ -1494,8 +1494,9 @@ public class EntornoTools {
 				queuesOnos = JsonManager.parseQueues(onosResponse.getMessage());
 				for(QueueOnos queueOnos : queuesOnos) {
 					queue = new Queue(Long.parseLong(queueOnos.getQueueId()),
-							String.valueOf(queueOnos.getMinRate()),
-							String.valueOf(queueOnos.getMaxRate()),
+							queueDb.getIdSwitch(),
+							String.format("%.0f", queueOnos.getMinRate()),
+							String.format("%.0f", queueOnos.getMaxRate()),
 							String.valueOf(queueOnos.getBurst()),
 							Long.parseLong(queueDb.getIdQos()),
 							queueDb.getPortNumber(),
@@ -1613,7 +1614,7 @@ public class EntornoTools {
 		return resRest;
 	}
 
-	public static OnosResponse addQueue(String authString, QueueClientRequest queueReq) throws IOException {
+	public static OnosResponse addQueue(String authString, QueueClientRequest queueReq) throws IOException, ClassNotFoundException, SQLException {
 		Gson gson = new Gson();
 		OnosResponse onosResponse = new OnosResponse();
 		Host srcHost = EntornoTools.getHostByIp(queueReq.getSrcHost());
@@ -1622,13 +1623,20 @@ public class EntornoTools {
 		String outputPort = EntornoTools.getOutputPort(queueReq.getSrcHost(), queueReq.getDstHost());
 		Port port = s.getPortByNumber(outputPort);
 		
-		//QUEUE ADD
+		//GET IDS
 		int queueId = Utils.getQueueIdAvailable();
 		int qosId = DatabaseTools.getQosIdBySwitchPort(s.getId(), outputPort);
 		//If -1 -> no qosId in DDBB -> create new one
 		if(qosId == -1) {
 			qosId = Utils.getQosIdAvailable();
 		}
+		
+		//INTENT ADD
+		// INTENTS
+		FlowSocketClientRequest flowReq = queueReq.toFlowSocketClientRequest();
+		EntornoTools.addIntent(authString, flowReq);
+			
+		//QUEUE ADD
 		QueueOnosRequest queueOnosRequest = new QueueOnosRequest(port.getPortName(), 
 				port.getPortNumber(), 
 				String.valueOf(port.getSpeed()),
@@ -1639,7 +1647,7 @@ public class EntornoTools {
 				qosId);
 		HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues), gson.toJson(queueOnosRequest));
 		//DDBB QUEUE ADD
-		DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), port.getPortName(), port.getPortNumber());
+		DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), port.getPortName(), port.getPortNumber(), null);
 		
 		//ADD FLOW QUEUE
 			//get old state
