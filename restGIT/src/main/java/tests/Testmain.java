@@ -102,6 +102,84 @@ public class Testmain {
 //				e.printStackTrace();
 //			}
 //		}
+		
+		/***GET ENV***/
+//		LogTools.rest("GET", "getEnvironment");
+//		Response resRest = null;
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.getEnvironmentByUser(authString);
+//				//this.entorno = EntornoTools.entorno;
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			String json = gson.toJson(EntornoTools.entorno);
+//
+//			if(json.length() < 900) LogTools.info("getEnvironment", "response to client: " + json);
+//			else LogTools.info("getEnvironment", "response to client: " +  json.substring(0,  900) + "...");
+//
+//			resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
+//		}
+
+		/**Delete queue**/
+//		String queueId = "14";
+//		try {
+//			EntornoTools.getEnvironment();
+//		} catch (IOException e1) {
+//			e1.printStackTrace();
+//		}
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.deleteQueue(authString, queueId);
+//			} catch (IOException | ClassNotFoundException | SQLException e) {
+//				// TODO Auto-generated catch block
+////				return Response.status(Response.Status.CONFLICT).build();
+//			}
+//		}
+		
+		
+		/****ADD QUEUES v2***/
+		QueueOnosRequest queueOnosRequest = null;
+		String jsonIn = "{\n" + 
+				"	\"ipVersion\":\"4\",\n" + 
+				"	\"srcHost\":\"10.0.3.2\",\n" + 
+				"	\"srcPort\":\"80\",\n" + 
+				"	\"dstHost\":\"10.0.3.5\",\n" + 
+				"	\"dstPort\":\"5000\",\n" + 
+				"	\"portType\":\"tcp\",\n" + 
+				"	\"minRate\":11000,\n" + 
+				"	\"maxRate\": 11000,\n" + 
+				"	\"burst\":11000\n" + 
+				"}";
+		jsonIn = "{\"ipVersion\": \"4\",\"srcHost\": \"10.0.3.2\",\"srcPort\": \"\",\"dstHost\": \"10.0.3.4\",\"dstPort\": \"\",\"portType\": \"\",\"minRate\": 2000,\"maxRate\": 2000,\"burst\": 2000}\n" + 
+				"";
+		String jsonOut = "";
+		OnosResponse onosResponse = new OnosResponse();
+		if(DatabaseTools.isAuthenticated(authString)) {
+			try {
+				EntornoTools.getEnvironment();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
+			
+			/// QUEUE ADD
+			int nQueues = DatabaseTools.getAllQueuesIds().size();
+			try {
+				if(nQueues > 0 && (queueReq != null))
+					onosResponse = EntornoTools.addQueue(authString, queueReq);
+				else {
+					EntornoTools.addQueuesDefault();
+					if(queueReq != null)
+						onosResponse = EntornoTools.addQueue(authString, queueReq);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
 		/*******add queues****/
 //		QueueOnosRequest queueOnosRequest = null;
 //		String jsonIn = "{\n" + 
@@ -141,18 +219,18 @@ public class Testmain {
 //		}
 		
 		/****GET QUEUES***/
-		List<Queue> queues = new ArrayList<Queue>();
-		String jsonOut = "";
-		if(DatabaseTools.isAuthenticated(authString)) {
-			try {
-				EntornoTools.getEnvironment();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
-			queues = EntornoTools.getQueues(queuesDb);
-			jsonOut = gson.toJson(queues);
-		}
+//		List<Queue> queues = new ArrayList<Queue>();
+//		String jsonOut = "";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.getEnvironment();
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+//			List<QueueDBResponse> queuesDb = DatabaseTools.getQueues(authString);
+//			queues = EntornoTools.getQueues(queuesDb);
+//			jsonOut = gson.toJson(queues);
+//		}
 //		
 //		/***set auth**/
 //		String jsonIn = "{\n" + 

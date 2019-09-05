@@ -28,6 +28,7 @@ architecture/FlowCriteria.class
 rest/resources/administration/FlowsAdministratorWebResource.class
 rest/gsonobjects/administratorside/UserCredentials.class
 rest/gsonobjects/userside/MeterSocketDelete.class
+rest/resources/administration/QueueAdministratorWebResource.class
 rest/resources/users/MetersUserWebResource.class
 architecture/FlowSelector.class
 tools/LogTools.class

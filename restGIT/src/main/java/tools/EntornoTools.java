@@ -52,6 +52,7 @@ import architecture.Port;
 import architecture.Queue;
 import architecture.Switch;
 import architecture.Vpls;
+import architecture.FlowInstruction;
 import rest.database.objects.FlowDBResponse;
 import rest.database.objects.QueueDBResponse;
 import rest.gsonobjects.onosside.IntentOnosRequest;
@@ -774,12 +775,12 @@ public class EntornoTools {
 				"	{	\r\n" + 
 				"		\"instructions\": [\r\n" + 
 				"			{\r\n" + 
-				"				\"type\": \"OUTPUT\",\r\n" + 
-				"				\"port\": \""+outPort+"\"\r\n" + 
+				"				\"type\": \"QUEUE\",\r\n" + 
+				"				\"queueId\":\""+queueId+"\"\r\n" + 
 				"			},\r\n" + 
 				"			{\r\n" + 
-				"				\"type\": \"QUEUE\",\r\n" + 
-				"				\"queueId\":"+queueId+"\r\n" + 
+				"				\"type\": \"OUTPUT\",\r\n" + 
+				"				\"port\": \""+outPort+"\"\r\n" + 
 				"			}\r\n" + 
 				"		]\r\n" + 
 				"	},\r\n" + 
@@ -1760,6 +1761,15 @@ public class EntornoTools {
 				else {
 					return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
 				}
+				//DELETE FLOW WITH QUEUE ID
+				Flow flow = EntornoTools.getFlowByQueueId(queueDb.getIdQueue());
+				
+				if(flow != null) {
+					//DELETE FLOW ONOS
+					EntornoTools.deleteFlow(flow.getId(), flow.getDeviceId());
+					//DELETE FLOW DDBB
+					DatabaseTools.deleteFlow(flow.getId(), authString);
+				}
 			}
 			else 
 				return Response.status(Response.Status.CONFLICT).entity("No queues in the port").build();
@@ -1767,6 +1777,28 @@ public class EntornoTools {
 		else
 			return Response.status(Response.Status.CONFLICT).entity("Queue Not Found").build();
 		return Response.status(Response.Status.NO_CONTENT).build();
+	}
+
+	private static void deleteFlow(String id, String switchId) throws MalformedURLException, IOException {
+		HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+switchId+"/"+id));
+		
+	}
+
+	private static Flow getFlowByQueueId(String idQueue) {
+		for(Switch s : EntornoTools.entorno.getMapSwitches().values()) {
+			for(Flow flow : s.getFlows().values()) {
+				for(FlowInstruction instr : flow.getFlowTreatment().getListInstructions()) {
+					if(instr.getType().equals("QUEUE")) {
+						for(Map.Entry<String, Object> o : instr.getInstructions().entrySet()) {
+							if(String.format("%.0f",o.getValue()).equals(idQueue)) {
+								return flow;
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	public static void addQueuesDefault() throws ClassNotFoundException, SQLException, IOException {

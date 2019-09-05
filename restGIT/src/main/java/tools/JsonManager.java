@@ -199,6 +199,7 @@ public class JsonManager {
 				}
 				FlowInstruction i = new FlowInstruction(type, hashMapInstructions);
 				flowTreatment.getListInstructions().add(i);
+				hashMapInstructions = new HashMap<String,Object>();
 			}
 			LinkedTreeMap selector = (LinkedTreeMap)mapFlows.get("selector");
 			ArrayList criteria = (ArrayList)selector.get("criteria");
