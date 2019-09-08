@@ -461,12 +461,13 @@ public class DatabaseTools {
 		String idFlow = "";
 		String idSwitch = "";
 		String idUser = "";
-
+		String sql = "";
 		String user = getUserPassFromCoded(authString)[0];
 		try {
-			ResultSet rs = executeStatement("SELECT * FROM Flow WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"') "
-					+ "AND IdVpls=(SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')"
-							+ "AND IdMeter IS NULL)");
+			sql = "SELECT * FROM Flow WHERE IdUser=(SELECT IdUser FROM User WHERE UserName='"+user+"') "
+					+ "AND IdVpls=(SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"') "
+					+ "AND IdMeter IS NULL";
+			ResultSet rs = executeStatement(sql);
 			while (rs.next()){
 				idFlow = rs.getString("IdFlow");
 				idSwitch = rs.getString("IdSwitch");
@@ -781,6 +782,37 @@ public class DatabaseTools {
 		return queueId;
 	}
 
+	public static boolean isMeterInstalled(String vplsName, String idSwitch) {
+		boolean is = false;
+		String meterId = "";
+		String sql = "SELECT IdMeter FROM Meter WHERE IdVpls=(SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"') AND IdSwitch='"+idSwitch+"'";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				meterId = rs.getString("IdMeter");
+				if(meterId == null || meterId.isEmpty())
+					return false;
+				else
+					return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return false;
+	}
+
+	public static int getVplsSize() throws ClassNotFoundException, SQLException {
+		// TODO Auto-generated method stub
+		String sql = "SELECT count(*) AS VplsNumber FROM Vpls";
+		ResultSet rs = executeStatement(sql);
+		while (rs.next()) {
+			int i = rs.getInt("VplsNumber");
+			return i;
+		}
+		return 0;
+	}
 	
 
 //	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {

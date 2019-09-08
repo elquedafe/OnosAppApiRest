@@ -150,7 +150,7 @@ public class VplsUserWebResource {
 		LogTools.rest("DELETE", "deteleVpls", "VPLS Name: " + vplsName);
 
 		Response resRest;
-		OnosResponse response;
+		OnosResponse response = null;
 		String url = "";
 
 		//1. DELETE QoS flows in ingress Switches of the vplsName hosts
@@ -169,12 +169,25 @@ public class VplsUserWebResource {
 			try {
 				List<MeterDBResponse> dbMeters = DatabaseTools.getMetersByVpls(vplsName, authString);
 				Map<String, FlowDBResponse> dbFlowsIntent = DatabaseTools.getFlowsByVplsNoMeter(vplsName, authString);
-				response = EntornoTools.deleteVpls(vplsName, authString);
+				//ONOS DELETE VPLS
+				int vplsSize = DatabaseTools.getVplsSize();
+				if(vplsSize == 1) {
+					HttpTools.doDelete(new URL(EntornoTools.endpointNetConf));
+					response = new OnosResponse("Deleted VPLS from ONOS", 204);
+				}
+				else
+					response = EntornoTools.deleteVpls(vplsName, authString);
+				
 				//onosResponse = HttpTools.doDelete(new URL(url));
 				
 				//DELETE INTENT FLOWS
 				for(FlowDBResponse dbFlowIntent : dbFlowsIntent.values()) {
 					DatabaseTools.deleteFlow(dbFlowIntent.getIdFlow(), authString);
+					try {
+						HttpTools.doDelete(new URL(EntornoTools.endpoint+"/flows/"+dbFlowIntent.getIdSwitch()+"/"+dbFlowIntent.getIdFlow()));
+					}catch(IOException e) {
+						e.printStackTrace();
+					}
 				}
 				
 				//DELETE METERS AND FLOWS ASSOCIATED TO METER
@@ -358,6 +371,13 @@ public class VplsUserWebResource {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+				}
+				
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 				
 				//GET NEW FLOWS STATE
