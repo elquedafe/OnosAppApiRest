@@ -91,11 +91,11 @@ public class QueuesUserWebResource {
 			int nQueues = DatabaseTools.getAllQueuesIds().size();
 			try {
 				if(nQueues > 0 && (queueReq != null))
-					onosResponse = EntornoTools.addQueue(authString, queueReq);
+					onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
 				else {
 					EntornoTools.addQueuesDefault();
 					if(queueReq != null)
-						onosResponse = EntornoTools.addQueue(authString, queueReq);
+						onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

@@ -699,17 +699,21 @@ public class DatabaseTools {
 		return queues;
 	}
 
-	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber, String minRate, String maxRate, String burst, String vplsName) throws ClassNotFoundException, SQLException {
+	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber, String minRate, String maxRate, String burst, String vplsName, String connectionId) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
 		String sql = "INSERT INTO Queue "
 				+ "(IdQueue, IdSwitch, IdQos, PortName, PortNumber, IdUser, MinRate, MaxRate, Burst";
 		if(vplsName != null && !vplsName.isEmpty())
 			sql += ", IdVpls";
+		if(connectionId != null && !connectionId.isEmpty())
+			sql += ", IdConnection";
 		sql += ") VALUES ('"+queueId+"', '"+switchId+"', '"+qosId+"', '"+portName+"', '"+portNumber+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+minRate+"', '"+maxRate+"', '"+burst+"'";
 		
 		if(vplsName != null && !vplsName.isEmpty())
 			sql += ", (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"')";
+		if(connectionId != null && !connectionId.isEmpty())
+			sql += ", '"+connectionId+"'";
 		
 		sql += ")";
 		executeStatement(sql);
@@ -727,6 +731,54 @@ public class DatabaseTools {
 				+ "WHERE IdQueue='"+idQueue+"'";
 		executeStatement(sql);
 		
+	}
+
+	public static List<Integer> getAllConnectionIds() {
+		List<Integer> connectionIds = new ArrayList<Integer>();
+		String connectionId = "";
+
+		String sql = "SELECT DISTINCT IdConnection FROM Queue";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				connectionId = rs.getString("IdConnection");
+				if(connectionId != null && !connectionId.isEmpty())
+					connectionIds.add(Integer.parseInt(connectionId));
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return connectionIds;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return connectionIds;
+		}
+		
+		return connectionIds;
+	}
+
+	public static int getDefaultQueueIdBySwitchPort(String switchId, String portNumber) {
+		int queueId = -1;
+		String strQueueId = null;
+
+		String sql = "SELECT IdQueue FROM Queue WHERE MinRate='0' AND IdSwitch='"+switchId+"' AND PortNumber='"+portNumber+"'";
+		
+		try {
+			ResultSet rs = executeStatement(sql);
+			while (rs.next()){
+				strQueueId = rs.getString("IdQueue");
+				if(strQueueId != null && !strQueueId.isEmpty())
+					queueId = Integer.parseInt(strQueueId);
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return queueId;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return queueId;
+		}
+		
+		return queueId;
 	}
 
 	

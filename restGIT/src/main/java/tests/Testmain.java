@@ -143,15 +143,15 @@ public class Testmain {
 		String jsonIn = "{\n" + 
 				"	\"ipVersion\":\"4\",\n" + 
 				"	\"srcHost\":\"10.0.3.2\",\n" + 
-				"	\"srcPort\":\"80\",\n" + 
+				"	\"srcPort\":\"\",\n" + 
 				"	\"dstHost\":\"10.0.3.5\",\n" + 
-				"	\"dstPort\":\"5000\",\n" + 
+				"	\"dstPort\":\"\",\n" + 
 				"	\"portType\":\"tcp\",\n" + 
 				"	\"minRate\":11000,\n" + 
 				"	\"maxRate\": 11000,\n" + 
 				"	\"burst\":11000\n" + 
 				"}";
-		jsonIn = "{\"ipVersion\": \"4\",\"srcHost\": \"10.0.3.2\",\"srcPort\": \"\",\"dstHost\": \"10.0.3.4\",\"dstPort\": \"\",\"portType\": \"\",\"minRate\": 2000,\"maxRate\": 2000,\"burst\": 2000}\n" + 
+		jsonIn = "{\"ipVersion\": \"4\",\"srcHost\": \"10.0.3.4\",\"srcPort\": \"\",\"dstHost\": \"10.0.3.5\",\"dstPort\": \"\",\"portType\": \"\",\"minRate\": 1000000,\"maxRate\": 1000000,\"burst\": 1000000}\n" + 
 				"";
 		String jsonOut = "";
 		OnosResponse onosResponse = new OnosResponse();
@@ -167,11 +167,11 @@ public class Testmain {
 			int nQueues = DatabaseTools.getAllQueuesIds().size();
 			try {
 				if(nQueues > 0 && (queueReq != null))
-					onosResponse = EntornoTools.addQueue(authString, queueReq);
+					onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
 				else {
 					EntornoTools.addQueuesDefault();
 					if(queueReq != null)
-						onosResponse = EntornoTools.addQueue(authString, queueReq);
+						onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

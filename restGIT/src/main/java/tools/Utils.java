@@ -7,6 +7,7 @@ import rest.database.objects.QueueDBResponse;
 public class Utils {
 	static int MAX_QUEUE_ID = 2147483647;
 	static int MAX_QOS_ID = 2147483647;
+	static int MAX_CONNECTION_ID = 2147483647;
 	public static int getQueueIdAvailable() {
 		int foundId = -1;
 		List<Integer> queuesIds = DatabaseTools.getAllQueuesIds();
@@ -27,6 +28,21 @@ public class Utils {
 				return i;
 			}
 		}
+		return -1;
+	}
+	public static int getConnectionIdAvailable() {
+		int foundId = -1;
+		List<Integer> connectionIds = DatabaseTools.getAllConnectionIds();
+		if(connectionIds.size() > 0) {
+			for(int i = 0; i < MAX_CONNECTION_ID; i++) {
+				if(!connectionIds.contains(i)) {
+					foundId = i;
+					return i;
+				}
+			}
+		}
+		else
+			return 0;
 		return -1;
 	}
 

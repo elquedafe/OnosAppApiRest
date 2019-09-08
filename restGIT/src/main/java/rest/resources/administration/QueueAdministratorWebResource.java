@@ -1,14 +1,17 @@
 package rest.resources.administration;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -84,11 +87,11 @@ public class QueueAdministratorWebResource {
 			int nQueues = DatabaseTools.getAllQueuesIds().size();
 			try {
 				if(nQueues > 0 && (queueReq != null))
-					onosResponse = EntornoTools.addQueue(authString, queueReq);
+					onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
 				else {
 					EntornoTools.addQueuesDefault();
 					if(queueReq != null)
-						onosResponse = EntornoTools.addQueue(authString, queueReq);
+						onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -100,6 +103,32 @@ public class QueueAdministratorWebResource {
 		else 
 			return Response.status(401).build();
 		return Response.ok(gson.toJson(onosResponse), MediaType.APPLICATION_JSON).build();
+	}
+	
+	/**
+	 * Get switches in the SDN network
+	 * @return Switches placed in SDN network
+	 */
+
+	@Path("{queueId}")
+	@DELETE
+	public Response deleteQueue(@HeaderParam("authorization") String authString,
+			@PathParam("queueId") String queueId) {
+		try {
+			EntornoTools.getEnvironment();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		if(DatabaseTools.isAuthenticated(authString)) {
+			try {
+				return EntornoTools.deleteQueue(authString, queueId);
+			} catch (IOException | ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				return Response.status(Response.Status.CONFLICT).build();
+			}
+		}
+		else 
+			return Response.status(401).build();
 	}
 
 }
