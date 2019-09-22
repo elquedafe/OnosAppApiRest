@@ -72,12 +72,12 @@ import rest.gsonobjects.userside.QueueClientRequest;
  */
 @SuppressWarnings("rawtypes")
 public class EntornoTools {
-	public static String endpoint;
-	public static String user;
-	public static String password;
-	public static String onosHost;
-	public static String endpointNetConf;
-	public static String endpointQueues;
+	public static String user = "onos";
+	public static String password = "rocks";
+	public static String onosHost = "10.0.2.1";
+	public static String endpoint = "http://" + onosHost + ":8181/onos/v1";;
+	public static String endpointNetConf = endpoint+"/network/configuration/";
+	public static String endpointQueues = "http://" + onosHost + ":8181/onos/upm/queues/ovsdb:10.0.2.2";
 	//private static ProxyPipe pipe;
 	public static Environment entorno = new Environment();
 
@@ -1813,9 +1813,118 @@ public class EntornoTools {
 		return onosResponse;
 	}
 
+	public static OnosResponse addQueueConnection(String authString, QueueClientRequest queueReq, List<Flow> flowsNews) throws IOException, ClassNotFoundException, SQLException {
+		Gson gson = new Gson();
+		OnosResponse onosResponse = new OnosResponse();
+		List<Queue> queues = new ArrayList<Queue>();
+		//Host srcHost = EntornoTools.getHostByIp(queueReq.getSrcHost());
+		//Host dstHost = EntornoTools.getHostByIp(queueReq.getDstHost());
+		//Switch s = EntornoTools.getIngressSwitchByHost(queueReq.getSrcHost());
+		//String outputPort = EntornoTools.getOutputPort(queueReq.getSrcHost(), queueReq.getDstHost());
+		//Port port = s.getPortByNumber(outputPort);
+
+		int connectionId = Utils.getConnectionIdAvailable();;
+		int queueId = -1;
+		int qosId = -1;
+
+		//READ NEW FLOWS TO GET PATH TO INSTALL QUEUES
+		Switch s = null;
+		Port p = null;
+		Queue queue = null;
+		
+		for(Flow f : flowsNews) {
+			s = EntornoTools.entorno.getMapSwitches().get(f.getDeviceId());
+			p = EntornoTools.getOutPortFromFlow(f);
+			if(s != null && p != null) {
+				//get next queue id
+				queueId = Utils.getQueueIdAvailable();
+				qosId = DatabaseTools.getQosIdBySwitchPort(s.getId(), p.getPortNumber());
+				//If -1 -> no qosId in DDBB -> create new one
+				if(qosId == -1) {
+					qosId = Utils.getQosIdAvailable();
+				}
+
+				QueueOnosRequest queueOnosRequest = new QueueOnosRequest(p.getPortName(), 
+						p.getPortNumber(), 
+						String.format("%.0f", p.getSpeed()),
+						queueId,
+						String.valueOf(queueReq.getMinRate()),
+						String.valueOf(queueReq.getMaxRate()),
+						String.valueOf(queueReq.getBurst()),
+						qosId);
+				queue = new Queue(queueId,
+						s.getId(),
+						String.valueOf(queueReq.getMinRate()),
+						String.valueOf(queueReq.getMaxRate()),
+						String.valueOf(queueReq.getBurst()),
+						Long.parseLong(String.valueOf(qosId)),
+						p.getPortNumber(),
+						p.getPortName());
+				queues.add(queue);
+				HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues), gson.toJson(queueOnosRequest));
+				//DDBB QUEUE ADD
+				DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), p.getPortName(), p.getPortNumber(), queueOnosRequest.getMinRate(), queueOnosRequest.getMaxRate(), queueOnosRequest.getBurst(), null, String.valueOf(connectionId));
+
+
+
+				//overwrite flow with queueID
+				onosResponse = EntornoTools.addQueueIdToFlowFlowWithPort(f);
+				
+				//TODO:UPDATE FLOW QUEUE ID in DDBB
+				DatabaseTools.updateFlowQueueId(f.getId(), queueId);
+			}
+			
+			
+		}
+		onosResponse.setMessage(gson.toJson(queues));
+		return onosResponse;
+		
+	}
+	
+	private static OnosResponse addQueueIdToFlowFlowWithPort(Flow f, String queueId) throws IOException {
+		OnosResponse response = null;
+		String url = EntornoTools.endpoint+"/flows/"+f.getDeviceId();
+		String body = "{\n" + 
+				"  \"priority\": "+f.getPriority()+",\n" + 
+				"  \"timeout\": "+f.getTimeout()+",\n" + 
+				"  \"isPermanent\": "+f.isIsPermanent()+",\n" + 
+				"  \"deviceId\": \""+f.getDeviceId()+",\n" +
+				"  \"treatment\": {" +
+					"\"instructions\": [";
+		body += "{"
+				+ "\"type\": \"QUEUE\",\n" + 
+				"    \"queueId\": "+queueId+","
+				+ "},";
+		for(FlowInstruction instruction : f.getFlowTreatment().getListInstructions()) {
+			body += "{"
+					+ "\"type\": \""+instruction.getType()+"\","
+					+ "\""+instruction.getInstructions().entrySet(). +"\": \""+criteria.getCriteria().getValue()+"\""
+					+ "}";
+		}
+		
+		body +=	"]" +
+			"},";
+		
+		body +=	"\"selector\": {\n" + 
+				"    \"criteria\": [";
+		for()
+		body += "]}";
+		
+				
+		body += "}";
+		try {
+			System.out.println("JSON FLUJO para queue hacia ONOS: \n"+body);
+			response = HttpTools.doJSONPost(new URL(url), body);
+		} catch (MalformedURLException e) {
+			response = new OnosResponse("URL error", 404);
+		}
+		return response;
+	}
+
 	public static OnosResponse addQueueConnection(String authString, QueueClientRequest queueReq) throws IOException, ClassNotFoundException, SQLException {
 		Gson gson = new Gson();
 		OnosResponse onosResponse = new OnosResponse();
+		List<Queue> queues = new ArrayList<Queue>();
 		//Host srcHost = EntornoTools.getHostByIp(queueReq.getSrcHost());
 		//Host dstHost = EntornoTools.getHostByIp(queueReq.getDstHost());
 		//Switch s = EntornoTools.getIngressSwitchByHost(queueReq.getSrcHost());
@@ -1850,6 +1959,8 @@ public class EntornoTools {
 		//READ NEW FLOWS TO GET PATH TO INSTALL QUEUES
 		Switch s = null;
 		Port p = null;
+		Queue queue = null;
+		
 		for(Flow f : flowsNews) {
 			s = EntornoTools.entorno.getMapSwitches().get(f.getDeviceId());
 			p = EntornoTools.getOutPortFromFlow(f, queueReq.getSrcHost(), queueReq.getDstHost(), queueReq.getSrcPort(), queueReq.getDstPort(), queueReq.getPortType());
@@ -1870,6 +1981,15 @@ public class EntornoTools {
 						String.valueOf(queueReq.getMaxRate()),
 						String.valueOf(queueReq.getBurst()),
 						qosId);
+				queue = new Queue(queueId,
+						s.getId(),
+						String.format("%.0f", queueReq.getMinRate()),
+						String.format("%.0f", queueReq.getMaxRate()),
+						String.valueOf(queueReq.getBurst()),
+						Long.parseLong(String.valueOf(qosId)),
+						p.getPortNumber(),
+						p.getPortName());
+				queues.add(queue);
 				HttpTools.doJSONPost(new URL(EntornoTools.endpointQueues), gson.toJson(queueOnosRequest));
 				//DDBB QUEUE ADD
 				DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), p.getPortName(), p.getPortNumber(), queueOnosRequest.getMinRate(), queueOnosRequest.getMaxRate(), queueOnosRequest.getBurst(), null, String.valueOf(connectionId));
@@ -1886,6 +2006,7 @@ public class EntornoTools {
 			}
 
 		}
+		
 		//GET NEW STATE
 		EntornoTools.getEnvironment();
 		Map<String, Flow> newFlowsState2 = new HashMap<String, Flow>();
@@ -1915,7 +2036,7 @@ public class EntornoTools {
 			}
 		}
 
-
+		onosResponse.setMessage(gson.toJson(queues));
 		return onosResponse;
 	}
 
@@ -1948,6 +2069,21 @@ public class EntornoTools {
 			EntornoTools.addQueueFlowWithPort("4", f.getDeviceId(), portNumber, String.valueOf(DatabaseTools.getDefaultQueueIdBySwitchPort(f.getDeviceId(), portNumber)), dstHost, dstPort, srcHost, srcPort, portType);
 		}
 		return null;
+	}
+	
+	private static Port getOutPortFromFlow(Flow f) throws IOException {
+		Port p = null;
+		String portNumber = "";
+		
+		for(FlowInstruction instruction : f.getFlowTreatment().getListInstructions()) {
+			if(instruction.getType().equals("OUTPUT")){
+				portNumber = instruction.getInstructions().get("port").toString();
+				break;
+
+			}
+		}
+		p = EntornoTools.entorno.getMapSwitches().get(f.getDeviceId()).getPortByNumber(portNumber);
+		return p;
 	}
 
 

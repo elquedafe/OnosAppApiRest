@@ -34,6 +34,18 @@ public class QueueClientRequest {
 		this.maxRate = maxRate;
 		this.burst = burst;
 	}
+	
+	public QueueClientRequest() {
+		this.ipVersion = "4";
+		this.srcHost = "";
+		this.srcPort = "";
+		this.dstHost = "";
+		this.dstPort = "";
+		this.portType = ""; 
+		this.minRate = 0;
+		this.maxRate = 0;
+		this.burst = 0;
+	}
 	/**
 	 * @return the ipVersion
 	 */

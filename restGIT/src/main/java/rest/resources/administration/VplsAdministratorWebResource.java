@@ -25,6 +25,8 @@ import architecture.Host;
 import architecture.Vpls;
 import rest.database.objects.VplsDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
+import rest.gsonobjects.userside.MeterClientRequestPort;
+import rest.gsonobjects.userside.QueueClientRequest;
 import rest.gsonobjects.userside.VplsClientRequest;
 import tools.DatabaseTools;
 import tools.EntornoTools;
@@ -43,34 +45,34 @@ public class VplsAdministratorWebResource {
 
 
 
-//	/**
-//	 * Get all flows from all the switches of the network
-//	 * @return All flows in the network
-//	 */
-//	@GET
-//	@Produces (MediaType.APPLICATION_JSON)	
-//	public Response getVpls(@HeaderParam("authorization") String authString) {
-//		LogTools.rest("GET", "getVpls");
-//		Response resRest;
-//		if(DatabaseTools.isAdministrator(authString)) {
-//			try {
-//				LogTools.info("getVpls", "Discovering environment");
-//				EntornoTools.getEnvironment();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//
-//			String json = EntornoTools.getVpls();
-//
-//			//String json = gson.toJson(map);
-//			LogTools.info("getVpls", "response to client: " + json);
-//			resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
-//			return resRest;
-//		}
-//		else
-//			return Response.status(401).build();
-//	}
-	
+	//	/**
+	//	 * Get all flows from all the switches of the network
+	//	 * @return All flows in the network
+	//	 */
+	//	@GET
+	//	@Produces (MediaType.APPLICATION_JSON)	
+	//	public Response getVpls(@HeaderParam("authorization") String authString) {
+	//		LogTools.rest("GET", "getVpls");
+	//		Response resRest;
+	//		if(DatabaseTools.isAdministrator(authString)) {
+	//			try {
+	//				LogTools.info("getVpls", "Discovering environment");
+	//				EntornoTools.getEnvironment();
+	//			} catch (IOException e) {
+	//				e.printStackTrace();
+	//			}
+	//
+	//			String json = EntornoTools.getVpls();
+	//
+	//			//String json = gson.toJson(map);
+	//			LogTools.info("getVpls", "response to client: " + json);
+	//			resRest = Response.ok(json, MediaType.APPLICATION_JSON_TYPE).build();
+	//			return resRest;
+	//		}
+	//		else
+	//			return Response.status(401).build();
+	//	}
+
 	/**
 	 * Get all flows from all the switches of the network
 	 * @return All flows in the network
@@ -90,20 +92,20 @@ public class VplsAdministratorWebResource {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 			//vplssDB = DatabaseTools.getVplsByUser(authString);
 			vplss = EntornoTools.getVplsList();
-			
-//			for(Vpls vpls : vplss) {
-//				for(VplsDBResponse vplsDB : vplssDB) {
-//					if(vpls.getName().equals(vplsDB.getVplsName())) {
-//						userVplss.add(vpls);
-//					}
-//				}
-//			}
-			
+
+			//			for(Vpls vpls : vplss) {
+			//				for(VplsDBResponse vplsDB : vplssDB) {
+			//					if(vpls.getName().equals(vplsDB.getVplsName())) {
+			//						userVplss.add(vpls);
+			//					}
+			//				}
+			//			}
+
 			String json = gson.toJson(vplss);
-//			String json = EntornoTools.getVpls();
+			//			String json = EntornoTools.getVpls();
 
 			//String json = gson.toJson(map);
 			LogTools.info("getVpls", "response to client: " + json);
@@ -309,50 +311,50 @@ public class VplsAdministratorWebResource {
 			return Response.status(401).build();
 	}
 
-//	/**
-//	 * Create a meter for the given switch
-//	 * @param switchId Switch ID where meter is installed
-//	 * @param jsonIn JSON retrieved from client
-//	 * @return
-//	 */
-//	@Path("{vplsName}")
-//	@POST
-//	@Consumes(MediaType.APPLICATION_JSON)
-//	@Produces (MediaType.APPLICATION_JSON)	
-//	public Response setVpls(@PathParam("vplsName") String vplsName, String jsonIn, @HeaderParam("authorization") String authString) {
-//		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
-//		Response resRest;
-//		String jsonOut = "";
-//		String url = "";
-//		if(DatabaseTools.isAdministrator(authString)) {
-//			url = EntornoTools.endpointNetConf;
-//			try {
-//				LogTools.info("setVpls", "Discovering environment");
-//				EntornoTools.getEnvironment();
-//
-//
-//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-//
-//				if(vplsReq.getVplsName().equals(vplsName))
-//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
-//
-//				//HttpTools.doDelete(new URL(url));
-//				HttpTools.doJSONPost(new URL(url), jsonOut);
-//			} catch (MalformedURLException e) {
-//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				return resRest;
-//			} catch (IOException e) {
-//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-//				resRest = Response.serverError().build();
-//				return resRest;
-//			}
-//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//			return resRest;
-//		}
-//		else
-//			return Response.status(401).build();
-//	}
+	//	/**
+	//	 * Create a meter for the given switch
+	//	 * @param switchId Switch ID where meter is installed
+	//	 * @param jsonIn JSON retrieved from client
+	//	 * @return
+	//	 */
+	//	@Path("{vplsName}")
+	//	@POST
+	//	@Consumes(MediaType.APPLICATION_JSON)
+	//	@Produces (MediaType.APPLICATION_JSON)	
+	//	public Response setVpls(@PathParam("vplsName") String vplsName, String jsonIn, @HeaderParam("authorization") String authString) {
+	//		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
+	//		Response resRest;
+	//		String jsonOut = "";
+	//		String url = "";
+	//		if(DatabaseTools.isAdministrator(authString)) {
+	//			url = EntornoTools.endpointNetConf;
+	//			try {
+	//				LogTools.info("setVpls", "Discovering environment");
+	//				EntornoTools.getEnvironment();
+	//
+	//
+	//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+	//
+	//				if(vplsReq.getVplsName().equals(vplsName))
+	//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
+	//
+	//				//HttpTools.doDelete(new URL(url));
+	//				HttpTools.doJSONPost(new URL(url), jsonOut);
+	//			} catch (MalformedURLException e) {
+	//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+	//				return resRest;
+	//			} catch (IOException e) {
+	//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+	//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+	//				resRest = Response.serverError().build();
+	//				return resRest;
+	//			}
+	//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+	//			return resRest;
+	//		}
+	//		else
+	//			return Response.status(401).build();
+	//	}
 
 	/**
 	 * Create a meter for the given switch
@@ -400,10 +402,39 @@ public class VplsAdministratorWebResource {
 						e.printStackTrace();
 					}
 
-				if(vplsReq.getRate() != -1 && vplsReq.getBurst() != -1) {
-					
+				// ADD METERS OR QUEUES FOR VPLS AND ITS FLOWS
+				if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()==-1)) {
+					MeterClientRequestPort meterReq;
+					for(String srcHost : vplsReq.getHosts()) {
+						for(String dstHost : vplsReq.getHosts()) {
+							if(!srcHost.equals(dstHost)) {
+								meterReq = new MeterClientRequestPort();
+								meterReq.setSrcHost(srcHost);
+								meterReq.setDstHost(dstHost);
+								meterReq.setRate(vplsReq.getMaxRate());
+								meterReq.setBurst(vplsReq.getBurst());
+								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+							}
+						}
+					}
 				}
-				//ADD METER IF
+				else if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()!=-1)){
+					QueueClientRequest queueReq;
+					for(String srcHost : vplsReq.getHosts()) {
+						for(String dstHost : vplsReq.getHosts()) {
+							if(!srcHost.equals(dstHost)) {
+								queueReq = new QueueClientRequest();
+								queueReq.setSrcHost(srcHost);
+								queueReq.setDstHost(dstHost);
+								queueReq.setMinRate(vplsReq.getMinRate());
+								queueReq.setMaxRate(vplsReq.getMaxRate());
+								queueReq.setBurst(vplsReq.getBurst());
+								//EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+								EntornoTools.addQueueConnection(authString, queueReq);
+							}
+						}
+					}
+				}
 			} catch (MalformedURLException e) {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;
@@ -412,6 +443,14 @@ public class VplsAdministratorWebResource {
 				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
 				resRest = Response.serverError().build();
 				return resRest;
+
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return Response.status(400).entity("Queue flow adding fail").build();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
 			return resRest;

@@ -17,6 +17,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -32,6 +33,7 @@ import rest.database.objects.MeterDBResponse;
 import rest.database.objects.VplsDBResponse;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.userside.MeterClientRequestPort;
+import rest.gsonobjects.userside.QueueClientRequest;
 import rest.gsonobjects.userside.VplsClientRequest;
 import tools.DatabaseTools;
 import tools.EntornoTools;
@@ -177,9 +179,9 @@ public class VplsUserWebResource {
 				}
 				else
 					response = EntornoTools.deleteVpls(vplsName, authString);
-				
+
 				//onosResponse = HttpTools.doDelete(new URL(url));
-				
+
 				//DELETE INTENT FLOWS
 				for(FlowDBResponse dbFlowIntent : dbFlowsIntent.values()) {
 					DatabaseTools.deleteFlow(dbFlowIntent.getIdFlow(), authString);
@@ -189,7 +191,7 @@ public class VplsUserWebResource {
 						e.printStackTrace();
 					}
 				}
-				
+
 				//DELETE METERS AND FLOWS ASSOCIATED TO METER
 				for(MeterDBResponse dbMeter : dbMeters) {
 					EntornoTools.deleteMeterWithFlows(dbMeter.getIdSwitch(), dbMeter.getIdMeter(), authString);
@@ -202,7 +204,7 @@ public class VplsUserWebResource {
 				return resRest;
 			} catch (IOException e) {
 				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
+				//				resRest = Response.ok("IO: "+e.getMessage(), MediaType.TEXT_PLAIN).build();
 				//resRest = Response.serverError().build();
 				return Response.status(400).entity("IO: "+e.getMessage()).build();
 			} catch (ClassNotFoundException e) {
@@ -340,7 +342,7 @@ public class VplsUserWebResource {
 			try {
 				LogTools.info("setVpls", "Discovering environment");
 				EntornoTools.getEnvironment();
-				
+
 				//GET OLD FLOW STATE
 				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
 				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
@@ -372,14 +374,14 @@ public class VplsUserWebResource {
 						e.printStackTrace();
 					}
 				}
-				
+
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				
+
 				//GET NEW FLOWS STATE
 				EntornoTools.getEnvironment();
 				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
@@ -387,15 +389,15 @@ public class VplsUserWebResource {
 					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
 						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
 							newFlowsState.put(flow.getKey(), flow.getValue());
-				
+
 				List<Flow> flowsNews;
 				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
-				
+
 				// ADD flows of intents to DDBB
 				if(flowsNews.size()>0) {
 					for(Flow flow : flowsNews) {
 						try {
-//							System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
+							//							System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
 							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
 							DatabaseTools.addFlow(flow, authString, null, vplsName, null);
 						} catch (ClassNotFoundException | SQLException e) {
@@ -405,9 +407,10 @@ public class VplsUserWebResource {
 						}
 					}
 				}
-				
-				// ADD METERS FOR VPLS AND ITS FLOWS
-				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
+
+
+				// ADD METERS OR QUEUES FOR VPLS AND ITS FLOWS
+				if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()==-1)) {
 					MeterClientRequestPort meterReq;
 					for(String srcHost : vplsReq.getHosts()) {
 						for(String dstHost : vplsReq.getHosts()) {
@@ -415,13 +418,31 @@ public class VplsUserWebResource {
 								meterReq = new MeterClientRequestPort();
 								meterReq.setSrcHost(srcHost);
 								meterReq.setDstHost(dstHost);
-								meterReq.setRate(vplsReq.getRate());
+								meterReq.setRate(vplsReq.getMaxRate());
 								meterReq.setBurst(vplsReq.getBurst());
 								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
 							}
 						}
 					}
 				}
+				else if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()!=-1)){
+					QueueClientRequest queueReq;
+					for(String srcHost : vplsReq.getHosts()) {
+						for(String dstHost : vplsReq.getHosts()) {
+							if(!srcHost.equals(dstHost)) {
+								queueReq = new QueueClientRequest();
+								queueReq.setSrcHost(srcHost);
+								queueReq.setDstHost(dstHost);
+								queueReq.setMinRate(vplsReq.getMinRate());
+								queueReq.setMaxRate(vplsReq.getMaxRate());
+								queueReq.setBurst(vplsReq.getBurst());
+								//EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+								EntornoTools.addQueueConnection(authString, queueReq, flowsNews);
+							}
+						}
+					}
+				}
+
 
 
 			} catch (MalformedURLException e) {
@@ -432,6 +453,13 @@ public class VplsUserWebResource {
 				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
 				resRest = Response.serverError().build();
 				return resRest;
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return Response.status(400).entity("Queue flow adding fail").build();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
 			return resRest;

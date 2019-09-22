@@ -90,10 +90,11 @@ public class Testmain {
 		String vplsName="vpls1";
 		String jsonIn = "{\n" + 
 				"	\"vplsName\":\"vpls1\",\n" + 
-				"	\"hosts\" : [\"10.0.3.5\",\"10.0.3.2\",\"10.0.3.3\",\"10.0.3.4\"]\n" + 
+				"	\"hosts\" : [\"10.0.3.3\",\"10.0.3.4\"]\n" + 
 				",\n" + 
-				"\"rate\":1000,\n" + 
-				"\"burst\":1000}";
+				"\"maxRate\":100,\n" + 
+				"\"minRate\":100,\n" + 
+				"\"burst\":100}";
 		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
 		Response resRest;
 		String jsonOut = "";
@@ -169,8 +170,8 @@ public class Testmain {
 					}
 				}
 				
-				// ADD METERS FOR VPLS AND ITS FLOWS
-				if((vplsReq.getRate() != -1) && (vplsReq.getBurst() != -1)) {
+				// ADD METERS OR QUEUES FOR VPLS AND ITS FLOWS
+				if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()==-1)) {
 					MeterClientRequestPort meterReq;
 					for(String srcHost : vplsReq.getHosts()) {
 						for(String dstHost : vplsReq.getHosts()) {
@@ -178,9 +179,26 @@ public class Testmain {
 								meterReq = new MeterClientRequestPort();
 								meterReq.setSrcHost(srcHost);
 								meterReq.setDstHost(dstHost);
-								meterReq.setRate(vplsReq.getRate());
+								meterReq.setRate(vplsReq.getMaxRate());
 								meterReq.setBurst(vplsReq.getBurst());
 								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+							}
+						}
+					}
+				}
+				else if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()!=-1)){
+					QueueClientRequest queueReq;
+					for(String srcHost : vplsReq.getHosts()) {
+						for(String dstHost : vplsReq.getHosts()) {
+							if(!srcHost.equals(dstHost)) {
+								queueReq = new QueueClientRequest();
+								queueReq.setSrcHost(srcHost);
+								queueReq.setDstHost(dstHost);
+								queueReq.setMinRate(vplsReq.getMinRate());
+								queueReq.setMaxRate(vplsReq.getMaxRate());
+								queueReq.setBurst(vplsReq.getBurst());
+								//EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+								EntornoTools.addQueueConnection(authString, queueReq, flowsNews);
 							}
 						}
 					}
@@ -195,6 +213,14 @@ public class Testmain {
 				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
 				resRest = Response.serverError().build();
 //				return resRest;
+			}
+			catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+//				return Response.status(400).entity("Queue flow adding fail").build();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 //			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
 //			return resRest;

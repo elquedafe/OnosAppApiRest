@@ -5,18 +5,20 @@ import java.util.List;
 public class VplsClientRequest {
 	private String vplsName;
 	private List<String> hosts;
-	private int rate = -1;
+	private int maxRate = -1;
+	private int minRate = -1;
 	private int burst = -1;
 	
 	/**
 	 * @param vplsName
 	 * @param hosts
 	 */
-	public VplsClientRequest(String vplsName, List<String> hosts, int rate, int burst) {
+	public VplsClientRequest(String vplsName, List<String> hosts, int maxRate, int minRate, int burst) {
 		super();
 		this.vplsName = vplsName;
 		this.hosts = hosts;
-		this.rate = rate;
+		this.maxRate = maxRate;
+		this.minRate = minRate;
 		this.burst = burst;
 	}
 	
@@ -24,8 +26,6 @@ public class VplsClientRequest {
 		super();
 		this.vplsName = vplsName;
 		this.hosts = hosts;
-		this.rate = -1;
-		this.burst = -1;
 	}
 	
 	public VplsClientRequest() {
@@ -64,15 +64,29 @@ public class VplsClientRequest {
 	/**
 	 * @return the rate
 	 */
-	public int getRate() {
-		return rate;
+	public int getMinRate() {
+		return minRate;
 	}
 
 	/**
 	 * @param rate the rate to set
 	 */
-	public void setRate(int rate) {
-		this.rate = rate;
+	public void setMinRate(int minRate) {
+		this.maxRate = minRate;
+	}
+
+	/**
+	 * @return the maxRate
+	 */
+	public int getMaxRate() {
+		return maxRate;
+	}
+
+	/**
+	 * @param maxRate the maxRate to set
+	 */
+	public void setMaxRate(int maxRate) {
+		this.maxRate = maxRate;
 	}
 
 	/**
@@ -88,6 +102,8 @@ public class VplsClientRequest {
 	public void setBurst(int burst) {
 		this.burst = burst;
 	}
+	
+	
 	
 	
 

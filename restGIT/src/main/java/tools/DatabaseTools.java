@@ -813,6 +813,12 @@ public class DatabaseTools {
 		}
 		return 0;
 	}
+
+	public static void updateFlowQueueId(String idFlow, int queueId) throws ClassNotFoundException, SQLException {
+		String sql = "UPDATE Flow SET IdQueue='"+queueId+"' WHERE IdFlow='"+idFlow+"'";
+		executeStatement(sql);
+		
+	}
 	
 
 //	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {
