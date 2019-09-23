@@ -86,145 +86,195 @@ public class Testmain {
 		String authString = "Basic YWRtaW46YWRtaW4="; //admin:admin
 		authString = "Basic YWx2YXJvOmE="; //alvaro:a
 
-		/***ADD VPLS***/
-		String vplsName="vpls1";
+		/**delete queue**/
+//		try {
+//			EntornoTools.deleteQueue(authString, "16");
+//		} catch (ClassNotFoundException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		} catch (SQLException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+		/**ADD QUEUE v3**/
+		QueueOnosRequest queueOnosRequest = null;
 		String jsonIn = "{\n" + 
-				"	\"vplsName\":\"vpls1\",\n" + 
-				"	\"hosts\" : [\"10.0.3.3\",\"10.0.3.4\"]\n" + 
-				",\n" + 
-				"\"maxRate\":100,\n" + 
-				"\"minRate\":100,\n" + 
-				"\"burst\":100}";
-		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
-		Response resRest;
-		String jsonOut = "";
-		String url = "";
+				"	\"ipVersion\":\"4\",\n" + 
+				"	\"srcHost\":\"10.0.3.2\",\n" + 
+				"	\"srcPort\":\"5000\",\n" + 
+				"	\"dstHost\":\"10.0.3.5\",\n" + 
+				"	\"dstPort\":\"80\",\n" + 
+				"	\"portType\":\"TCP\",\n" + 
+				"	\"minRate\":10000,\n" + 
+				"	\"maxRate\": 10000,\n" + 
+				"	\"burst\":10000\n" + 
+				"}";
+		OnosResponse onosResponse = new OnosResponse();
 		if(DatabaseTools.isAuthenticated(authString)) {
-			url = EntornoTools.endpointNetConf;
 			try {
-				LogTools.info("setVpls", "Discovering environment");
 				EntornoTools.getEnvironment();
-				
-				//GET OLD FLOW STATE
-				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
-					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
-						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-							oldFlowsState.put(flow.getKey(), flow.getValue());
-				}
-
-				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
-
-				List<Vpls> vplsBefore = EntornoTools.getVplsState();
-
-				if(vplsReq.getVplsName().equals(vplsName))
-					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
-
-				//ADD ONOS VPLS----HttpTools.doDelete(new URL(url));
-				HttpTools.doJSONPost(new URL(url), jsonOut);
-
-				List<Vpls> vplsAfter = EntornoTools.getVplsState();
-
-				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
-
-				//ADD new vpls to DDBB
-				for(Vpls v : vplsNews) {
-					try {
-						DatabaseTools.addVplsByUser(v.getName(), authString);
-					} catch (ClassNotFoundException | SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				
-				//GET NEW FLOWS STATE
-				EntornoTools.getEnvironment();
-				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
-				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
-					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
-						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-							newFlowsState.put(flow.getKey(), flow.getValue());
-				
-				List<Flow> flowsNews;
-				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
-				
-				// ADD flows of intents to DDBB
-				if(flowsNews.size()>0) {
-					for(Flow flow : flowsNews) {
-						try {
-//							System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
-							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
-							DatabaseTools.addFlow(flow, authString, null, vplsName, null);
-						} catch (ClassNotFoundException | SQLException e) {
-							e.printStackTrace();
-							//TODO: Delete flow from onos and send error to client
-
-						}
-					}
-				}
-				
-				// ADD METERS OR QUEUES FOR VPLS AND ITS FLOWS
-				if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()==-1)) {
-					MeterClientRequestPort meterReq;
-					for(String srcHost : vplsReq.getHosts()) {
-						for(String dstHost : vplsReq.getHosts()) {
-							if(!srcHost.equals(dstHost)) {
-								meterReq = new MeterClientRequestPort();
-								meterReq.setSrcHost(srcHost);
-								meterReq.setDstHost(dstHost);
-								meterReq.setRate(vplsReq.getMaxRate());
-								meterReq.setBurst(vplsReq.getBurst());
-								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
-							}
-						}
-					}
-				}
-				else if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()!=-1)){
-					QueueClientRequest queueReq;
-					for(String srcHost : vplsReq.getHosts()) {
-						for(String dstHost : vplsReq.getHosts()) {
-							if(!srcHost.equals(dstHost)) {
-								queueReq = new QueueClientRequest();
-								queueReq.setSrcHost(srcHost);
-								queueReq.setDstHost(dstHost);
-								queueReq.setMinRate(vplsReq.getMinRate());
-								queueReq.setMaxRate(vplsReq.getMaxRate());
-								queueReq.setBurst(vplsReq.getBurst());
-								//EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
-								EntornoTools.addQueueConnection(authString, queueReq, flowsNews);
-							}
-						}
-					}
-				}
-
-
-			} catch (MalformedURLException e) {
-				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				return resRest;
-			} catch (IOException e) {
-				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-				resRest = Response.serverError().build();
-//				return resRest;
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
-			catch (ClassNotFoundException e) {
+			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
+			
+			/// QUEUE ADD
+			int nQueues = DatabaseTools.getAllQueuesIds().size();
+			try {
+				if(nQueues > 0 && (queueReq != null))
+					onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
+				else {
+					EntornoTools.addQueuesDefault();
+					if(queueReq != null)
+						onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
+				}
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 //				return Response.status(400).entity("Queue flow adding fail").build();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//			return resRest;
+			
 		}
+		
+		/***ADD VPLS QUEUES***/
+//		String vplsName="vpls1";
+//		String jsonIn = "{\n" + 
+//				"	\"vplsName\":\"vpls1\",\n" + 
+//				"	\"hosts\" : [\"10.0.3.3\",\"10.0.3.4\"]\n" + 
+//				",\n" + 
+//				"\"maxRate\":100,\n" + 
+//				"\"minRate\":100,\n" + 
+//				"\"burst\":100}";
+//		LogTools.rest("POST", "setVpls", "VPLS Name: " + vplsName + "Body:\n" + jsonIn);
+//		Response resRest;
+//		String jsonOut = "";
+//		String url = "";
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			url = EntornoTools.endpointNetConf;
+//			try {
+//				LogTools.info("setVpls", "Discovering environment");
+//				EntornoTools.getEnvironment();
+//				
+//				//GET OLD FLOW STATE
+//				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
+//				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
+//					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
+//						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+//							oldFlowsState.put(flow.getKey(), flow.getValue());
+//				}
+//
+//				VplsClientRequest vplsReq = gson.fromJson(jsonIn, VplsClientRequest.class);
+//
+//				List<Vpls> vplsBefore = EntornoTools.getVplsState();
+//
+//				if(vplsReq.getVplsName().equals(vplsName))
+//					jsonOut = EntornoTools.addVplsJson(vplsReq.getVplsName(), vplsReq.getHosts());
+//
+//				//ADD ONOS VPLS----HttpTools.doDelete(new URL(url));
+//				HttpTools.doJSONPost(new URL(url), jsonOut);
+//
+//				List<Vpls> vplsAfter = EntornoTools.getVplsState();
+//
+//				List<Vpls> vplsNews = EntornoTools.compareVpls(vplsBefore, vplsAfter);
+//
+//				//ADD new vpls to DDBB
+//				for(Vpls v : vplsNews) {
+//					try {
+//						DatabaseTools.addVplsByUser(v.getName(), authString);
+//					} catch (ClassNotFoundException | SQLException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//				}
+//				
+//				try {
+//					Thread.sleep(500);
+//				} catch (InterruptedException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
+//				
+//				//GET NEW FLOWS STATE
+//				EntornoTools.getEnvironment();
+//				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
+//				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
+//					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
+//						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
+//							newFlowsState.put(flow.getKey(), flow.getValue());
+//				
+//				List<Flow> flowsNews;
+//				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
+//				
+//				// ADD flows of intents to DDBB
+//				if(flowsNews.size()>0) {
+//					for(Flow flow : flowsNews) {
+//						try {
+////							System.out.format("Añadiend flujo a la bbdd: %s %s %s", flow.getId(), flow.getDeviceId(), flow.getFlowSelector().getListFlowCriteria().get(3));
+//							System.out.format("Añadiendo flujo a la bbdd: %s %s", flow.getId(), flow.getDeviceId());
+//							DatabaseTools.addFlow(flow, authString, null, vplsName, null);
+//						} catch (ClassNotFoundException | SQLException e) {
+//							e.printStackTrace();
+//							//TODO: Delete flow from onos and send error to client
+//
+//						}
+//					}
+//				}
+//				
+//				// ADD METERS OR QUEUES FOR VPLS AND ITS FLOWS
+//				if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()==-1)) {
+//					MeterClientRequestPort meterReq;
+//					for(String srcHost : vplsReq.getHosts()) {
+//						for(String dstHost : vplsReq.getHosts()) {
+//							if(!srcHost.equals(dstHost)) {
+//								meterReq = new MeterClientRequestPort();
+//								meterReq.setSrcHost(srcHost);
+//								meterReq.setDstHost(dstHost);
+//								meterReq.setRate(vplsReq.getMaxRate());
+//								meterReq.setBurst(vplsReq.getBurst());
+//								EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+//							}
+//						}
+//					}
+//				}
+//				else if((vplsReq.getMaxRate() != -1) && (vplsReq.getBurst() != -1) && (vplsReq.getMinRate()!=-1)){
+//					QueueClientRequest queueReq;
+//					for(String srcHost : vplsReq.getHosts()) {
+//						for(String dstHost : vplsReq.getHosts()) {
+//							if(!srcHost.equals(dstHost)) {
+//								queueReq = new QueueClientRequest();
+//								queueReq.setSrcHost(srcHost);
+//								queueReq.setDstHost(dstHost);
+//								queueReq.setMinRate(vplsReq.getMinRate());
+//								queueReq.setMaxRate(vplsReq.getMaxRate());
+//								queueReq.setBurst(vplsReq.getBurst());
+//								//EntornoTools.addMeterAndFlowWithVpls(vplsName, srcHost, dstHost, authString, meterReq);
+//								EntornoTools.addQueueConnection(authString, queueReq, flowsNews);
+//							}
+//						}
+//					}
+//				}
+//
+//
+//			} catch (MalformedURLException e) {
+//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+////				return resRest;
+//			} catch (IOException e) {
+//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
+//				resRest = Response.serverError().build();
+////				return resRest;
+//			}
+//			catch (ClassNotFoundException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+////				return Response.status(400).entity("Queue flow adding fail").build();
+//			} catch (SQLException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+////			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
+////			return resRest;
+//		}
 		
 		/***delete vpls****/
 //		String vplsName = "vpls1";

@@ -1865,10 +1865,8 @@ public class EntornoTools {
 				//DDBB QUEUE ADD
 				DatabaseTools.addQueue(authString, String.valueOf(queueId), s.getId(), String.valueOf(qosId), p.getPortName(), p.getPortNumber(), queueOnosRequest.getMinRate(), queueOnosRequest.getMaxRate(), queueOnosRequest.getBurst(), null, String.valueOf(connectionId));
 
-
-
 				//overwrite flow with queueID
-				onosResponse = EntornoTools.addQueueIdToFlowFlowWithPort(f);
+				onosResponse = EntornoTools.addQueueIdToFlowFlowWithPort(f, String.valueOf(queueId));
 				
 				//TODO:UPDATE FLOW QUEUE ID in DDBB
 				DatabaseTools.updateFlowQueueId(f.getId(), queueId);
@@ -1898,7 +1896,7 @@ public class EntornoTools {
 		for(FlowInstruction instruction : f.getFlowTreatment().getListInstructions()) {
 			body += "{"
 					+ "\"type\": \""+instruction.getType()+"\","
-					+ "\""+instruction.getInstructions().entrySet(). +"\": \""+criteria.getCriteria().getValue()+"\""
+					+ "\"OUTPUT\": \""+instruction.getInstructions().get("OUTPUT")+"\""
 					+ "}";
 		}
 		
@@ -1907,11 +1905,17 @@ public class EntornoTools {
 		
 		body +=	"\"selector\": {\n" + 
 				"    \"criteria\": [";
-		for()
-		body += "]}";
+		for(FlowCriteria criteria : f.getFlowSelector().getListFlowCriteria()) {
+			body += "{"
+					+ "\"type\": \""+criteria.getType()+"\","
+					+ "\""+criteria.getCriteria().getKey()+"\": \""+criteria.getCriteria().getValue()+"\""
+					+ "},";
+		}
 		
-				
-		body += "}";
+		//Delete last comma
+		body = body.substring(0, body.length() - 2);
+		body += "]}}";
+		
 		try {
 			System.out.println("JSON FLUJO para queue hacia ONOS: \n"+body);
 			response = HttpTools.doJSONPost(new URL(url), body);
@@ -1983,8 +1987,8 @@ public class EntornoTools {
 						qosId);
 				queue = new Queue(queueId,
 						s.getId(),
-						String.format("%.0f", queueReq.getMinRate()),
-						String.format("%.0f", queueReq.getMaxRate()),
+						String.valueOf(queueReq.getMinRate()),
+						String.valueOf(queueReq.getMaxRate()),
 						String.valueOf(queueReq.getBurst()),
 						Long.parseLong(String.valueOf(qosId)),
 						p.getPortNumber(),
