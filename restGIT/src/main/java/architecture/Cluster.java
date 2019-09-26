@@ -1,5 +1,10 @@
 package architecture;
 
+/**
+ * Represents a cluster in ONOS
+ * @author alvaroluismartinez
+ *
+ */
 public class Cluster {
 	private String id;
 	private String ip;

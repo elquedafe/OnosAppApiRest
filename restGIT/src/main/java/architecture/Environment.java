@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents the network environment
+ * @author alvaroluismartinez
+ *
+ */
 public class Environment {
     private Map<String, Switch> switches;
     private List<Cluster> clusters;
@@ -16,6 +21,10 @@ public class Environment {
             this.hosts = new HashMap<String, Host>();
     }
 
+    /**
+     * 
+     * @return
+     */
     public Map<String, Switch> getMapSwitches() {
             return switches;
     }

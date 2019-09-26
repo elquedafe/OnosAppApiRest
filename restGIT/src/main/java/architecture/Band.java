@@ -1,5 +1,10 @@
 package architecture;
 
+/**
+ * Represents a band from meter
+ * @author alvaroluismartinez
+ *
+ */
 public class Band {
 	private String type;
 	private int rate;

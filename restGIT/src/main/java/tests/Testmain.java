@@ -86,6 +86,8 @@ public class Testmain {
 		String authString = "Basic YWRtaW46YWRtaW4="; //admin:admin
 		authString = "Basic YWx2YXJvOmE="; //alvaro:a
 
+		
+		
 		/**delete queue**/
 //		try {
 //			EntornoTools.deleteQueue(authString, "16");
@@ -97,44 +99,44 @@ public class Testmain {
 //			e2.printStackTrace();
 //		}
 		/**ADD QUEUE v3**/
-		QueueOnosRequest queueOnosRequest = null;
-		String jsonIn = "{\n" + 
-				"	\"ipVersion\":\"4\",\n" + 
-				"	\"srcHost\":\"10.0.3.2\",\n" + 
-				"	\"srcPort\":\"5000\",\n" + 
-				"	\"dstHost\":\"10.0.3.5\",\n" + 
-				"	\"dstPort\":\"80\",\n" + 
-				"	\"portType\":\"TCP\",\n" + 
-				"	\"minRate\":10000,\n" + 
-				"	\"maxRate\": 10000,\n" + 
-				"	\"burst\":10000\n" + 
-				"}";
-		OnosResponse onosResponse = new OnosResponse();
-		if(DatabaseTools.isAuthenticated(authString)) {
-			try {
-				EntornoTools.getEnvironment();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
-			
-			/// QUEUE ADD
-			int nQueues = DatabaseTools.getAllQueuesIds().size();
-			try {
-				if(nQueues > 0 && (queueReq != null))
-					onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
-				else {
-					EntornoTools.addQueuesDefault();
-					if(queueReq != null)
-						onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
-				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-//				return Response.status(400).entity("Queue flow adding fail").build();
-			}
-			
-		}
+//		QueueOnosRequest queueOnosRequest = null;
+//		String jsonIn = "{\n" + 
+//				"	\"ipVersion\":\"4\",\n" + 
+//				"	\"srcHost\":\"10.0.3.2\",\n" + 
+//				"	\"srcPort\":\"5000\",\n" + 
+//				"	\"dstHost\":\"10.0.3.5\",\n" + 
+//				"	\"dstPort\":\"80\",\n" + 
+//				"	\"portType\":\"TCP\",\n" + 
+//				"	\"minRate\":10000,\n" + 
+//				"	\"maxRate\": 10000,\n" + 
+//				"	\"burst\":10000\n" + 
+//				"}";
+//		OnosResponse onosResponse = new OnosResponse();
+//		if(DatabaseTools.isAuthenticated(authString)) {
+//			try {
+//				EntornoTools.getEnvironment();
+//			} catch (IOException e1) {
+//				e1.printStackTrace();
+//			}
+//			QueueClientRequest queueReq = gson.fromJson(jsonIn, QueueClientRequest.class);
+//			
+//			/// QUEUE ADD
+//			int nQueues = DatabaseTools.getAllQueuesIds().size();
+//			try {
+//				if(nQueues > 0 && (queueReq != null))
+//					onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
+//				else {
+//					EntornoTools.addQueuesDefault();
+//					if(queueReq != null)
+//						onosResponse = EntornoTools.addQueueConnection(authString, queueReq);
+//				}
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+////				return Response.status(400).entity("Queue flow adding fail").build();
+//			}
+//			
+//		}
 		
 		/***ADD VPLS QUEUES***/
 //		String vplsName="vpls1";
