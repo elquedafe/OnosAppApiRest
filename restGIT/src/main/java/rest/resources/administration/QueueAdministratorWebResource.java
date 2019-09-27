@@ -27,7 +27,11 @@ import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.LogTools;
 
-
+/**
+ * Queues web resource
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/administration/queues")
 public class QueueAdministratorWebResource {
 	private Gson gson;
@@ -36,7 +40,6 @@ public class QueueAdministratorWebResource {
 		LogTools.info("QueuesUserWebResource", "***ONOS SIMPLE REST API (OSRA) Service***");
 		gson = new Gson();
 	}
-	
 	
 	/**
 	 * Get queues in the SDN network
@@ -47,7 +50,7 @@ public class QueueAdministratorWebResource {
 	public Response getQueues(@HeaderParam("authorization") String authString) {
 		List<Queue> queues = new ArrayList<Queue>();
 		String jsonOut = "";
-		if(DatabaseTools.isAuthenticated(authString)) {
+		if(DatabaseTools.isAdministrator(authString)) {
 			try {
 				EntornoTools.getEnvironment();
 			} catch (IOException e1) {
@@ -64,8 +67,10 @@ public class QueueAdministratorWebResource {
 	}
 	
 	/**
-	 * Add queues
-	 * @return Switches placed in SDN network
+	 * Add queue
+	 * @param authString authorization http user
+	 * @param jsonIn json request
+	 * @return Response
 	 */
 	@POST
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -75,7 +80,7 @@ public class QueueAdministratorWebResource {
 		QueueOnosRequest queueOnosRequest = null;
 		String jsonOut = "";
 		OnosResponse onosResponse = new OnosResponse();
-		if(DatabaseTools.isAuthenticated(authString)) {
+		if(DatabaseTools.isAdministrator(authString)) {
 			try {
 				EntornoTools.getEnvironment();
 			} catch (IOException e1) {
@@ -106,10 +111,11 @@ public class QueueAdministratorWebResource {
 	}
 	
 	/**
-	 * Get switches in the SDN network
-	 * @return Switches placed in SDN network
+	 * Delete queue
+	 * @param authString authorization http user
+	 * @param queueId queue id
+	 * @return Response
 	 */
-
 	@Path("{queueId}")
 	@DELETE
 	public Response deleteQueue(@HeaderParam("authorization") String authString,
@@ -119,7 +125,7 @@ public class QueueAdministratorWebResource {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		if(DatabaseTools.isAuthenticated(authString)) {
+		if(DatabaseTools.isAdministrator(authString)) {
 			try {
 				return EntornoTools.deleteQueue(authString, queueId);
 			} catch (IOException | ClassNotFoundException | SQLException e) {

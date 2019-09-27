@@ -40,6 +40,11 @@ import tools.EntornoTools;
 import tools.HttpTools;
 import tools.LogTools;
 
+/**
+ * Flow web resource.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/administration/flows")
 public class FlowsAdministratorWebResource {
 	private Gson gson;
@@ -50,14 +55,17 @@ public class FlowsAdministratorWebResource {
 	}
 
 	/**
-	 * Get all flows from all the switches of the network
-	 * @return All flows in the network
+	 * Get all flows from all switches of the network
+	 * @param authString authorization http string
+	 * @return Response
 	 */
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
 	public Response getFlows(@HeaderParam("authorization") String authString) {
 		LogTools.rest("GET", "getFlows");
 		Response resRest;
+		
+		//Check if user is admin
 		if(DatabaseTools.isAdministrator(authString)) {
 			try {
 				LogTools.info("getFlows", "Discovering environment");
@@ -70,7 +78,6 @@ public class FlowsAdministratorWebResource {
 				List<Flow> listFlows = new ArrayList<Flow>();
 				for(Flow flow : s.getMapFlows().values()) {
 					listFlows.add(flow);
-					//System.out.println(flow.getId());
 				}
 				map.put(s.getId(), listFlows);
 			}
@@ -85,8 +92,9 @@ public class FlowsAdministratorWebResource {
 
 	/**
 	 * Create a flow for the given switch
-	 * @param switchId Switch ID where flow is created
-	 * @param jsonIn JSON retrieved from client
+	 * @param switchId switch id
+	 * @param jsonIn json request
+	 * @param authString authorization http string
 	 * @return
 	 */
 	@Path("{switchId}")
@@ -137,40 +145,6 @@ public class FlowsAdministratorWebResource {
 
 			//Generate JSON to ONOS
 			String jsonOut = gson.toJson(flowOnos);
-			//System.out.println("JSON TO ONOS: \n"+jsonOut);
-			/*String jsonOut = "{" +
-		        "\"priority\": "+ flowReq.getPriority() +"," +
-		        "\"timeout\": " + flowReq.getTimeout() + "," +
-		        "\"isPermanent\": "+ flowReq.isPermanent() + "," +
-		        "\"deviceId\": \""+ switchId +"\"," +
-		        "\"tableId\": 0," +
-		        "\"groupId\": 0," +
-		        "\"appId\": \"org.onosproject.fwd\"," +
-		        "\"treatment\": {" +
-		        "\"instructions\": [" +
-		        "{" +
-		        "\"type\": \"OUTPUT\"," +
-		        "\"port\": \""+ flowReq.getDstPort() +"\"" +
-		        "}" +
-		        "]" +
-		        "}," +
-		        "\"selector\": {" +
-		        "\"criteria\": [" +
-		        "{" +
-		        "\"type\": \"IN_PORT\"," +
-		        "\"port\": \""+ flowReq.getSrcPort() +"\"" +
-		        "}," +
-		        "{" +
-		        "\"type\": \"ETH_DST\"," +
-		        "\"mac\": \""+ flowReq.getDstHost() +"\"" +
-		        "}," +
-		        "{" +
-		        "\"type\": \"ETH_SRC\"," +
-		        "\"mac\": \""+ flowReq.getSrcHost() +"\"" +
-		        "}" +
-		        "]" +
-		        "}" +
-		        "}";*/
 			String url = EntornoTools.endpoint+"/flows/"+flowReq.getSwitchId();
 			try {
 				HttpTools.doJSONPost(new URL(url), jsonOut);
@@ -178,7 +152,7 @@ public class FlowsAdministratorWebResource {
 				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
 				return resRest;
 			} catch (IOException e) {
-				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
+				
 				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
 				resRest = Response.serverError().build();
 				return resRest;
@@ -193,7 +167,10 @@ public class FlowsAdministratorWebResource {
 
 	/**
 	 * Delete flow from switches of the network
-	 * @return All flows in the network
+	 * @param switchId switch id
+	 * @param flowId flow id
+	 * @param authString authorization http string
+	 * @return
 	 */
 	@Path("{switchId}/{flowId}")
 	@DELETE
@@ -230,9 +207,12 @@ public class FlowsAdministratorWebResource {
 	}
 	
 	/**
-	 * Create a flow for the given switch
-	 * @param switchId Switch ID where flow is created
-	 * @param jsonIn JSON retrieved from client
+	 * Create flow socket
+	 * @param srcElement source element
+	 * @param dstElement destination element
+	 * @param jsonIn json request
+	 * @param authString authorization http string
+	 * @param element element (host or switch)
 	 * @return
 	 */
 	@Path("{srcElement}/{dstElement}")
@@ -300,14 +280,6 @@ public class FlowsAdministratorWebResource {
 					// CREATE FLOWS
 					HttpTools.doJSONPost(new URL(url), jsonOut);
 					HttpTools.doJSONPost(new URL(url), jsonOutInversed);
-
-					//Wait for new state
-					//				try {
-					//					Thread.sleep(200);
-					//				} catch (InterruptedException e1) {
-					//					// TODO Auto-generated catch block
-					//					e1.printStackTrace();
-					//				}
 
 					//GET NEW STATE
 					EntornoTools.getEnvironment();
@@ -398,14 +370,6 @@ public class FlowsAdministratorWebResource {
 					// CREATE FLOWS
 					HttpTools.doJSONPost(new URL(urlSw), jsonOutSw);
 					HttpTools.doJSONPost(new URL(urlSw), jsonOutInversedSw);
-
-					//Wait for new state
-					//				try {
-					//					Thread.sleep(200);
-					//				} catch (InterruptedException e1) {
-					//					// TODO Auto-generated catch block
-					//					e1.printStackTrace();
-					//				}
 
 					//GET NEW STATE
 					EntornoTools.getEnvironment();

@@ -15,6 +15,11 @@ import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.LogTools;
 
+/**
+ * Switch web resource.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/administration/switches")
 public class SwitchAdministratorWebResource {
 	private Gson gson;

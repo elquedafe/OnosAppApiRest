@@ -80,8 +80,6 @@ public class MetersUserWebResource {
 						}
 					}
 				}
-
-				//LogTools.info("getAllMeters", userMeters.toArray().toString());
 				json = gson.toJson(userMeters);
 				LogTools.info("getAllMeters", "response to client: " + json);
 			} catch (IOException e) {
