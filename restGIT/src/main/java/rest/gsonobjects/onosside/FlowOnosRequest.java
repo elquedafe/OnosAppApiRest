@@ -6,6 +6,11 @@ import java.util.Map;
 import java.util.Map;
 import java.util.LinkedHashMap;
 
+/**
+ * Represents a flow request to ONOS
+ * @author alvaroluismartinez
+ *
+ */
 public class FlowOnosRequest {
 	private int priority;
 	private int timeout;
@@ -29,6 +34,12 @@ public class FlowOnosRequest {
 		this.selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 	}
 	
+	/**
+	 * @param priority
+	 * @param timeout
+	 * @param isPermanent
+	 * @param deviceId
+	 */
 	public FlowOnosRequest(int priority, int timeout, boolean isPermanent, String deviceId) {
 		super();
 		this.priority = priority;
@@ -42,6 +53,17 @@ public class FlowOnosRequest {
 		this.selector = new LinkedHashMap<String, LinkedList<LinkedHashMap<String,Object>>>();
 	}
 	
+	/**
+	 * @param priority
+	 * @param timeout
+	 * @param isPermanent
+	 * @param deviceId
+	 * @param tableId
+	 * @param groupId
+	 * @param appId
+	 * @param treatment
+	 * @param selector
+	 */
 	public FlowOnosRequest(int priority, int timeout, boolean isPermanent, String deviceId, int tableId, int groupId,
 			String appId, Map<String, LinkedList<LinkedHashMap<String, Object>>> treatment,
 			Map<String, LinkedList<LinkedHashMap<String, Object>>> selector) {

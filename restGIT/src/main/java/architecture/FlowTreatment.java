@@ -10,29 +10,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author alvaroluismartinez
+ * Represents the flow treatment
+ * @author Alvaro Luis Martinez
+ * @version 1.0
  */
 public class FlowTreatment {
-    private List<FlowInstruction> flowInstructions;
+	private List<FlowInstruction> flowInstructions;
 
-    /**
-     *
-     * @param listInstructions
-     */
-    public FlowTreatment(List<FlowInstruction> listInstructions) {
-        this.flowInstructions = listInstructions;
-    }
+	/**
+	 * Flow treatment constructor
+	 * @param listInstructions instructions list
+	 */
+	public FlowTreatment(List<FlowInstruction> listInstructions) {
+		this.flowInstructions = listInstructions;
+	}
 
-    public FlowTreatment() {
-        this.flowInstructions = new ArrayList<FlowInstruction>();
-    }
+	/**
+	 * Default flow treatment constructor
+	 */
+	public FlowTreatment() {
+		this.flowInstructions = new ArrayList<FlowInstruction>();
+	}
 
-    public List<FlowInstruction> getListInstructions() {
-        return flowInstructions;
-    }
+	/**
+	 * Get instructions list
+	 * @return instructions list
+	 */
+	public List<FlowInstruction> getListInstructions() {
+		return flowInstructions;
+	}
 
-    public void setListInstructions(List<FlowInstruction> listInstructions) {
-        this.flowInstructions = listInstructions;
-    }  
+	/**
+	 * Set instructions list
+	 * @param listInstructions instructions list
+	 */
+	public void setListInstructions(List<FlowInstruction> listInstructions) {
+		this.flowInstructions = listInstructions;
+	}  
 }

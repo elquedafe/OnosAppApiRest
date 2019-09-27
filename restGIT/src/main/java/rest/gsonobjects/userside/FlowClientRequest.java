@@ -1,5 +1,10 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a flow client request
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class FlowClientRequest {
 	private String switchId;
 	private int priority;
@@ -10,6 +15,16 @@ public class FlowClientRequest {
 	private String srcHost;
 	private String dstHost;
 	
+	/**
+	 * @param switchId
+	 * @param priority
+	 * @param timeout
+	 * @param isPermanent
+	 * @param srcPort
+	 * @param dstPort
+	 * @param srcHost
+	 * @param dstHost
+	 */
 	public FlowClientRequest(String switchId, int priority, int timeout, boolean isPermanent, String srcPort, String dstPort,
 			String srcHost, String dstHost) {
 		super();

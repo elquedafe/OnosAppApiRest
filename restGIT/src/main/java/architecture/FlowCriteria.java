@@ -10,33 +10,55 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 
 /**
- *
- * @author alvaroluismartinez
+ * Represents a flow criteria
+ * @author Alvaro Luis Martinez
+ * @version 1.0
  */
 public class FlowCriteria {
-    private String type;
-    private SimpleEntry<String,String> criteria;
+	private String type;
+	private SimpleEntry<String,String> criteria;
 
-    public FlowCriteria(String type, SimpleEntry<String,String> criteria) {
-        this.type = type;
-        this.criteria = criteria;
-    }
-    
-    public String getType() {
-        return type;
-    }
+	/**
+	 * Flow criteria constructor
+	 * @param type criteria type
+	 * @param criteria criteria
+	 */
+	public FlowCriteria(String type, SimpleEntry<String,String> criteria) {
+		this.type = type;
+		this.criteria = criteria;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	/**
+	 * Get criteria type
+	 * @return criteria type
+	 */
+	public String getType() {
+		return type;
+	}
 
-    public Map.Entry<String,String> getCriteria() {
-        return criteria;
-    }
+	/**
+	 * Set criteria type
+	 * @param type criteria type
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public void setCriteria(SimpleEntry<String,String> criteria) {
-        this.criteria = criteria;
-    }
+	/**
+	 * Get criteria
+	 * @return criteria
+	 */
+	public Map.Entry<String,String> getCriteria() {
+		return criteria;
+	}
 
-     
+	/**
+	 * Set criteria
+	 * @param criteria criteria
+	 */
+	public void setCriteria(SimpleEntry<String,String> criteria) {
+		this.criteria = criteria;
+	}
+
+
 }

@@ -1,5 +1,10 @@
 package rest.gsonobjects.onosside;
 
+/**
+ * Represents a OnosResponse
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class OnosResponse {
 	private String message;
 	private int code;

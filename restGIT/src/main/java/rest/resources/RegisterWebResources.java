@@ -29,6 +29,11 @@ import rest.gsonobjects.userside.UserCredentials;
 import tools.DatabaseTools;
 import tools.LogTools;
 
+/**
+ * Register web resource.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/rest/register")
 public class RegisterWebResources {
 	private Gson gson;

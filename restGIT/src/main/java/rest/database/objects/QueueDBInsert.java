@@ -1,5 +1,10 @@
 package rest.database.objects;
 
+/**
+ * Represents a queue insert
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class QueueDBInsert {
 	private int queueId;
 	private String idSwitch;

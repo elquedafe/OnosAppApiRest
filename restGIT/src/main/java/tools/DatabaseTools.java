@@ -20,6 +20,12 @@ import rest.database.objects.QueueDBResponse;
 import rest.database.objects.VplsDBResponse;
 import sun.misc.BASE64Decoder;
 
+/**
+ * Represents the database manager.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ *
+ */
 public class DatabaseTools {
 	private static final String IP_MARIADB = "10.0.1.3";
 	private static final String PORT = "3306";
@@ -28,6 +34,11 @@ public class DatabaseTools {
 	private static final String PASS = "a";
 
 
+	/**
+	 * Check if user is in database
+	 * @param authString authorization HTTP string
+	 * @return if user is in database
+	 */
 	public static boolean isAuthenticated(String authString) {
 		String usernameDB = "";
 		String passwordDB = "";
@@ -73,6 +84,11 @@ public class DatabaseTools {
 		else return false;
 	}
 
+	/**
+	 * Check if user is administrator
+	 * @param authString authorization HTTP string
+	 * @return
+	 */
 	public static boolean isAdministrator(String authString) {
 		String usernameDB = "";
 		String passwordDB = "";
@@ -115,6 +131,11 @@ public class DatabaseTools {
 		else return false;
 	}
 
+	/**
+	 * Get flows given user authorization string
+	 * @param authString authorization HTTP string
+	 * @return users flows
+	 */
 	public static Map<String, FlowDBResponse> getFlowsByUser(String authString) {
 		Map<String, FlowDBResponse> flows = new HashMap<String, FlowDBResponse>();
 		String idFlow = "";
@@ -146,6 +167,11 @@ public class DatabaseTools {
 	}
 
 
+	/**
+	 * Get meters given user authorization HTTP string
+	 * @param authString authorization HTTP string
+	 * @return users meters
+	 */
 	public static List<MeterDBResponse> getMetersByUser(String authString) {
 		List<MeterDBResponse> meters = new ArrayList<MeterDBResponse>();
 		String idMeter = "";
@@ -176,6 +202,11 @@ public class DatabaseTools {
 
 	}
 
+	/**
+	 * Get clear password from codded password
+	 * @param authString authorization HTTP string
+	 * @return [user,password]
+	 */
 	private static String[] getUserPassFromCoded(String authString) {
 		String[] decoded = null;
 		LogTools.info("isAdministrator", "Lets authenticate coded string: "+authString);
@@ -202,6 +233,11 @@ public class DatabaseTools {
 		return decoded;
 	}
 
+	/**
+	 * Get VPLS given user authorization HTTP string
+	 * @param authString authorization HTTP string
+	 * @return vpls list
+	 */
 	public static List<VplsDBResponse> getVplsByUser(String authString) {
 		List<VplsDBResponse> vpls = new ArrayList<VplsDBResponse>();
 		String idVpls = "";
@@ -232,15 +268,13 @@ public class DatabaseTools {
 
 	}
 
-//	public static void addFlowByUserId(Flow flow, String authString) throws ClassNotFoundException, SQLException {
-//		String[] decoded = getUserPassFromCoded(authString);
-//		String user = decoded[0];
-//		String sql = "INSERT INTO Flow "
-//				+ "(IdFlow, IdSwitch, IdUser) "
-//				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
-//		executeStatement(sql);
-//	}
-
+	/**
+	 * Delete flow given idflow
+	 * @param idFlow id flow
+	 * @param authString authorization HTTP string
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void deleteFlow(String idFlow, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -250,6 +284,13 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
+	/**
+	 * Execute sql statement
+	 * @param query sql query
+	 * @return result set
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
 	private static ResultSet executeStatement(String query) throws SQLException, ClassNotFoundException {
 
 		ResultSet rs = null;
@@ -263,11 +304,11 @@ public class DatabaseTools {
 			statement = connection.createStatement();
 			rs = statement.executeQuery(query);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 			throw e;
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 			throw e;
 		}
@@ -283,6 +324,14 @@ public class DatabaseTools {
 		return rs;
 	}
 
+	/**
+	 * Register new user
+	 * @param user username
+	 * @param password password
+	 * @param isAdmin if user is administrator
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void register(String user, String password, boolean isAdmin) throws ClassNotFoundException, SQLException {
 		String sql = "INSERT INTO User "
 				+ "(UserName, Password, IsAdmin) "
@@ -290,6 +339,12 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
+	/**
+	 * Delete user
+	 * @param authString authorization HTTP string
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void deleteUser(String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -299,16 +354,13 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
-//	public static void addMeterByUser(Meter meter, String authString) throws ClassNotFoundException, SQLException {
-//		String[] decoded = getUserPassFromCoded(authString);
-//		String user = decoded[0];
-//		String sql = "INSERT INTO Meter "
-//				+ "(IdMeter, IdSwitch, IdUser) "
-//				+ "VALUES ('"+meter.getId()+"', '"+meter.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'))";
-//		executeStatement(sql);
-//
-//	}
-
+	/**
+	 * Delete meter given switch id and meter id
+	 * @param meterId meter id 
+	 * @param switchId switch id
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void deleteMeter(String meterId, String switchId) throws ClassNotFoundException, SQLException {
 		String sql = "DELETE "
 				+ "FROM Meter "
@@ -316,6 +368,13 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
+	/**
+	 * Add vpls by user authorization HTTP string
+	 * @param vplsName vpls name
+	 * @param authString authorization HTTP string
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void addVplsByUser(String vplsName, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -326,6 +385,13 @@ public class DatabaseTools {
 
 	}
 
+	/**
+	 * Delete Vpls given vpls name
+	 * @param vplsName vpls name
+	 * @param authString authorization HTTP string
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void deleteVpls(String vplsName, String authString) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -335,6 +401,13 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
+	/**
+	 * Get flow by meter id and switch id
+	 * @param switchId switch id 
+	 * @param meterId meter id
+	 * @param authString
+	 * @return flows
+	 */
 	public static Map<String, FlowDBResponse> getFlowsByMeterId(String switchId, String meterId, String authString) {
 		String idFlow = "";
 		String idSwitch = "";
@@ -356,11 +429,11 @@ public class DatabaseTools {
 				idUser = rs.getString("IdUser");
 
 				flows.put(idFlow, new FlowDBResponse(idFlow, idSwitch, idUser));
-				// print the results
+
 				System.out.format("%s, %s, %s\n", idFlow, idSwitch, idUser);
 			}
 		} catch (ClassNotFoundException | SQLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 			return flows;
 		}
@@ -368,6 +441,12 @@ public class DatabaseTools {
 		return flows;
 	}
 
+	/**
+	 * Get meters given its vpls name
+	 * @param vplsName vpls name
+	 * @param authString
+	 * @return meters
+	 */
 	public static List<MeterDBResponse> getMetersByVpls(String vplsName, String authString) {
 		List<MeterDBResponse> meters = new ArrayList<MeterDBResponse>();
 		String idMeter = "";
@@ -387,18 +466,28 @@ public class DatabaseTools {
 				idUser = rs.getString("IdUser");
 
 				meters.add(new MeterDBResponse(idMeter, idSwitch, idUser));
-				// print the results
+				
 				System.out.format("%s, %s, %s\n", idMeter, idSwitch, idUser);
 			}
 		}
 		catch (ClassNotFoundException | SQLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 			return meters;
 		}
 		return meters;
 	}
 	
+	/**
+	 * Add flow
+	 * @param flow flow
+	 * @param authString authorization HTTP string
+	 * @param idMeter meter id 
+	 * @param vplsName vpls name
+	 * @param idQueue queue id
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void addFlow(Flow flow, String authString, String idMeter, String vplsName, String idQueue) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -429,16 +518,14 @@ public class DatabaseTools {
 		executeStatement(sql);
 	}
 
-//	public static void addFlowByUserIdQoS(String meterId, Flow flow, String authString)  throws ClassNotFoundException, SQLException {
-//		String[] decoded = getUserPassFromCoded(authString);
-//		String user = decoded[0];
-//		String sql = "INSERT INTO Flow "
-//				+ "(IdFlow, IdSwitch, IdUser, IdMeter, IdVpls) "
-//				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), '"+meterId+"', (SELECT IdVpls FROM Meter WHERE IdMeter='"+meterId+"' AND IdSwitch='"+flow.getDeviceId()+"'))";
-//		executeStatement(sql);
-//		
-//	}
-
+	/**
+	 * Add meter
+	 * @param meter meter
+	 * @param authString authorization HTTP string
+	 * @param vplsName vpls name
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void addMeter(Meter meter, String authString, String vplsName) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -456,6 +543,12 @@ public class DatabaseTools {
 		
 	}
 
+	/**
+	 * Get flows by Vpls with no meter associated
+	 * @param vplsName vpls name
+	 * @param authString authorization HTTP string
+	 * @return flows
+	 */
 	public static Map<String, FlowDBResponse> getFlowsByVplsNoMeter(String vplsName, String authString) {
 		Map<String, FlowDBResponse> flows = new HashMap<String, FlowDBResponse>();
 		String idFlow = "";
@@ -474,7 +567,7 @@ public class DatabaseTools {
 				idUser = rs.getString("IdUser");
 
 				flows.put(idFlow, new FlowDBResponse(idFlow, idSwitch, idUser));
-				// print the results
+				
 				System.out.format("%s, %s, %s\n", idFlow, idSwitch, idUser);
 			}
 		} catch (ClassNotFoundException e) {
@@ -488,6 +581,11 @@ public class DatabaseTools {
 		return flows;
 	}
 
+	/**
+	 * Get queues
+	 * @param authString authorization HTTP string
+	 * @return queues
+	 */
 	public static List<QueueDBResponse> getQueues(String authString) {
 		List<QueueDBResponse> queues = new ArrayList<QueueDBResponse>();
 		String idQueue = "";
@@ -537,6 +635,10 @@ public class DatabaseTools {
 		return queues;
 	}
 
+	/**
+	 * Get queues ids list
+	 * @return list with queues ids
+	 */
 	public static List<Integer> getAllQueuesIds() {
 		List<Integer> queueIds = new ArrayList<Integer>();
 		String idQueue = "";
@@ -560,6 +662,12 @@ public class DatabaseTools {
 		return queueIds;
 	}
 
+	/**
+	 * Get qos id given port
+	 * @param switchId switch d
+	 * @param port switch port number
+	 * @return qos id
+	 */
 	public static int getQosIdBySwitchPort(String switchId, String port) {
 		int qosId = -1;
 		String strIdQos = "";
@@ -585,6 +693,10 @@ public class DatabaseTools {
 		return qosId;
 	}
 
+	/**
+	 * Get all queues id
+	 * @return queues id
+	 */
 	public static List<Integer> getAllQosIds() {
 		List<Integer> qosIds = new ArrayList<Integer>();
 		String idQos = "";
@@ -608,6 +720,12 @@ public class DatabaseTools {
 		return qosIds;
 	}
 
+	/**
+	 * Get queue given queue id
+	 * @param authString authorization HTTP string
+	 * @param queueId queue id
+	 * @return DBqueue
+	 */
 	public static QueueDBResponse getQueue(String authString, String queueId) {
 		QueueDBResponse queue = null;
 		String idQueue = "";
@@ -655,6 +773,13 @@ public class DatabaseTools {
 		return queue;
 	}
 
+	/**
+	 * Get queues by switch port
+	 * @param authString authorization HTTP string
+	 * @param switchId switch id
+	 * @param port port
+	 * @return
+	 */
 	public static List<QueueDBResponse> getQueuesBySwitchPort(String authString, String switchId, String port) {
 		List<QueueDBResponse> queues = new ArrayList<QueueDBResponse>();
 		String idQueue = "";
@@ -700,6 +825,22 @@ public class DatabaseTools {
 		return queues;
 	}
 
+	/**
+	 * Add queue
+	 * @param authString authorization HTTP string
+	 * @param queueId queue d
+	 * @param switchId switch d
+	 * @param qosId qos id
+	 * @param portName port name
+	 * @param portNumber port number
+	 * @param minRate minimum rate
+	 * @param maxRate maxmum rate
+	 * @param burst burst
+	 * @param vplsName vpls name 
+	 * @param connectionId connection id
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void addQueue(String authString, String queueId, String switchId, String qosId, String portName, String portNumber, String minRate, String maxRate, String burst, String vplsName, String connectionId) throws ClassNotFoundException, SQLException {
 		String[] decoded = getUserPassFromCoded(authString);
 		String user = decoded[0];
@@ -721,11 +862,13 @@ public class DatabaseTools {
 		
 	}
 
-	public static int getQosNumber() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
+	/**
+	 * Delete queue given its queue id
+	 * @param authString authorization HTTP string
+	 * @param idQueue queue id
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void deleteQueue(String authString, String idQueue) throws ClassNotFoundException, SQLException {
 		String sql = "DELETE "
 				+ "FROM Queue "
@@ -734,6 +877,10 @@ public class DatabaseTools {
 		
 	}
 
+	/**
+	 * Get all connections id
+	 * @return list with connection ids
+	 */
 	public static List<Integer> getAllConnectionIds() {
 		List<Integer> connectionIds = new ArrayList<Integer>();
 		String connectionId = "";
@@ -758,6 +905,12 @@ public class DatabaseTools {
 		return connectionIds;
 	}
 
+	/**
+	 * Get default queue id given switch id and port number
+	 * @param switchId switch id
+	 * @param portNumber port number
+	 * @return default queue id
+	 */
 	public static int getDefaultQueueIdBySwitchPort(String switchId, String portNumber) {
 		int queueId = -1;
 		String strQueueId = null;
@@ -782,6 +935,12 @@ public class DatabaseTools {
 		return queueId;
 	}
 
+	/**
+	 * Get meter of a switch given its VPLS
+	 * @param vplsName vpls name
+	 * @param idSwitch switch id
+	 * @return if meter is installed
+	 */
 	public static boolean isMeterInstalled(String vplsName, String idSwitch) {
 		boolean is = false;
 		String meterId = "";
@@ -803,6 +962,12 @@ public class DatabaseTools {
 		return false;
 	}
 
+	/**
+	 * Get vpls hosts number
+	 * @return number of hosts
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static int getVplsSize() throws ClassNotFoundException, SQLException {
 		// TODO Auto-generated method stub
 		String sql = "SELECT count(*) AS VplsNumber FROM Vpls";
@@ -813,21 +978,17 @@ public class DatabaseTools {
 		}
 		return 0;
 	}
-
+	
+	/**
+	 * Update queue id of a flow
+	 * @param idFlow flow id
+	 * @param queueId queue id
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	public static void updateFlowQueueId(String idFlow, int queueId) throws ClassNotFoundException, SQLException {
 		String sql = "UPDATE Flow SET IdQueue='"+queueId+"' WHERE IdFlow='"+idFlow+"'";
 		executeStatement(sql);
 		
 	}
-	
-
-//	public static void addFlowByUserIdVpls(String vplsName, Flow flow, String authString) throws ClassNotFoundException, SQLException {
-//		String[] decoded = getUserPassFromCoded(authString);
-//		String user = decoded[0];
-//		String sql = "INSERT INTO Flow "
-//				+ "(IdFlow, IdSwitch, IdUser, IdVpls) "
-//				+ "VALUES ('"+flow.getId()+"', '"+flow.getDeviceId()+"', (SELECT IdUser FROM User WHERE UserName='"+user+"'), (SELECT IdVpls FROM Vpls WHERE VplsName='"+vplsName+"'))";
-//		executeStatement(sql);
-//		
-//	}
 }

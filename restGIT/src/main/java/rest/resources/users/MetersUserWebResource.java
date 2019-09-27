@@ -39,6 +39,11 @@ import tools.EntornoTools;
 import tools.HttpTools;
 import tools.LogTools;
 
+/**
+ * Meter web resource.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/users/meters")
 public class MetersUserWebResource {
 	private Gson gson;
@@ -94,8 +99,10 @@ public class MetersUserWebResource {
 	}
 
 	/**
-	 * 
-	 * @param jsonIn
+	 * Delete meter
+	 * @param switchId switch id
+	 * @param meterId meter id
+	 * @param authString authorization http string
 	 * @return
 	 */
 	@Path("{switchId}/{meterId}")
@@ -112,99 +119,12 @@ public class MetersUserWebResource {
 		else
 			return Response.status(401).build();
 	}
-
-	//	/**
-	//	 * Create a meter for the given host
-	//	 * @param jsonIn JSON retrieved from client
-	//	 * @return
-	//	 */
-	//	@Path("{hostIp}")
-	//	@POST
-	//	@Consumes(MediaType.APPLICATION_JSON)
-	//	@Produces (MediaType.APPLICATION_JSON)	
-	//	public Response setMeter(@PathParam("hostIp") String hostIp, String jsonIn, @HeaderParam("authorization") String authString) {
-	//		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
-	//		Response resRest = null;
-	//		OnosResponse response = null;
-	//		String url = "";
-	//		String portAux = "";
-	//		int meterIdAux = -1;
-	//		String hostMeterAux = "";
-	//		if(DatabaseTools.isAuthenticated(authString)) {
-	//			//DESCUBRIR ENTORNO
-	//			MeterClientRequest meterReq = gson.fromJson(jsonIn, MeterClientRequest.class);
-	//			//System.out.println("HOST: "+meterReq.getHost());
-	//
-	//			if(hostIp.equals(meterReq.getHost())) {
-	//				//GET HOST
-	//				Host h = EntornoTools.getHostByIp(meterReq.getHost());
-	//
-	//				//System.out.println("HOST: "+meterReq.getHost());
-	//				//System.out.println("GET HOST: "+h.getId()+" "+h.getIpList().get(0).toString());
-	//
-	//
-	//				//GET switches connected to host
-	//				List<Switch> ingressSwitches = EntornoTools.getIngressSwitchesByHost(meterReq.getHost());
-	//
-	//				//ADD METERS TO SWITCHES
-	//				if(h != null){
-	//					for(Switch ingress : ingressSwitches) {
-	//						try {
-	//							//System.out.println("Ingress sw "+ingress.getId()+" para "+ meterReq.getHost());
-	//							response = EntornoTools.addMeter(ingress.getId(), meterReq.getRate(), meterReq.getBurst());
-	//							//System.out.println("Meter añadido? respuesta de onos: "+onosResponse);
-	//
-	//							// GET METER ID ALREADY INSTALLED
-	//							List<Meter> meter = EntornoTools.getMeters(ingress.getId());
-	//							int meterId = meter.size();
-	//							//System.out.println("Meter ID: "+ meterId);
-	//
-	//							//GET EGRESS PORTS FROM SWITCH
-	//							List<String> outputSwitchPorts = EntornoTools.getOutputPorts(ingress.getId());
-	//
-	//							//Install flows
-	//							for(String port : outputSwitchPorts) {
-	//								portAux = port;
-	//								meterIdAux = meterId;
-	//								hostMeterAux = meterReq.getHost();
-	//								
-	//								
-	//
-	//								EntornoTools.addQosFlow(ingress.getId(), port, meterId, meterReq.getHost());
-	//
-	//							}
-	//
-	//						} catch (MalformedURLException e) {
-	//							resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+response.getMessage()+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-	//							return resRest;
-	//						} catch (IOException e) {
-	//							resRest = Response.ok("IO: "+e.getMessage()+"\n"+response.getMessage()+
-	//									"\n"+"\nHOST:"+h.getId()+
-	//									"\ningress: "+ingress.getId()+
-	//									"\nport: "+portAux+
-	//									"\nmeter id: "+meterIdAux+
-	//									"\nmeter Host from request: "+meterReq.getHost(), MediaType.TEXT_PLAIN).build();
-	//							//resRest = Response.serverError().build();
-	//							return resRest;
-	//						}
-	//						return resRest = Response.ok("{\"response\":\"succesful"+ response.getMessage() +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-	//
-	//					}
-	//				}
-	//				else {
-	//					return resRest = Response.ok("{\"response\":\"host not found"+ response.getMessage() +"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-	//				}
-	//			}
-	//
-	//			return resRest;
-	//		}
-	//		else
-	//			return Response.status(401).build();
-	//	}
-
+	
 	/**
 	 * Create a meter for the given switch ID
-	 * @param jsonIn JSON retrieved from client
+	 * @param switchId
+	 * @param jsonIn
+	 * @param authString authorization http string
 	 * @return
 	 */
 	@Path("{switchId}")
@@ -227,19 +147,12 @@ public class MetersUserWebResource {
 			}
 
 			System.out.println("JSON REQUEST FROM CLIENT: "+jsonIn);
+			
 			//Get user meter request
 			MeterClientRequestPortWithSwitch meterReq = gson.fromJson(jsonIn, MeterClientRequestPortWithSwitch.class);
 
 			System.out.println("METER REQUEST FROM CLIENT: "+meterReq.toString());
-			//GET HOST
-			//			Host h = EntornoTools.getHostByIp(meterReq.getSrcHost());
-
-			//System.out.println("HOST: "+meterReq.getHost());
-			//System.out.println("GET HOST: "+h.getId()+" "+h.getIpList().get(0).toString());
-
-
-			//GET switches connected to host
-			//			List<Switch> ingressSwitches = EntornoTools.getIngressSwitchesByHost(meterReq.getSrcHost());
+						
 			Switch ingress = EntornoTools.entorno.getMapSwitches().get(switchId);
 
 			//ADD METERS TO SWITCH
@@ -363,16 +276,18 @@ public class MetersUserWebResource {
 
 
 	/**
-	 * 
-	 * @param jsonIn
-	 * @return
+	 * Delete meter socket
+	 * @param hostIp host ip
+	 * @param hostPort host port
+	 * @param authString authorization http string
+	 * @param jsonIn json request
+	 * @return Response
 	 */
 	@Path("{hostIp}/port/{hostPort}")
 	@DELETE
 	@Produces (MediaType.APPLICATION_JSON)	
 	@Consumes (MediaType.APPLICATION_JSON)
 	public Response deleteMeterBySocket(@PathParam("hostIp") String hostIp, @PathParam("hostPort") String hostPort, @HeaderParam("authorization") String authString, String jsonIn) {
-		// TODO change path parameters
 		Response resRest = null;
 		OnosResponse onosResponse = null;
 		boolean matchType = false;
@@ -422,10 +337,14 @@ public class MetersUserWebResource {
 			return Response.status(401).build();
 	}
 
+	
 	/**
-	 * Create a meter for the given host
-	 * @param jsonIn JSON retrieved from client
-	 * @return
+	 * Create a meter in ingress switch of srcHost
+	 * @param srcHost source ip
+	 * @param dstHost destination ip
+	 * @param jsonIn json request
+	 * @param authString authorization http string
+	 * @return Response
 	 */
 	@Path("{srcHost}/{dstHost}")
 	@POST
@@ -434,9 +353,6 @@ public class MetersUserWebResource {
 	public Response setMeter(@PathParam("srcHost") String srcHost, @PathParam("dstHost") String dstHost,  String jsonIn, @HeaderParam("authorization") String authString) {
 		LogTools.rest("POST", "setMeter", "Body:\n" + jsonIn);
 		Response resRest = null;
-//		OnosResponse response = null;
-//		String url = "";
-//		String portAux = "";
 
 		if(DatabaseTools.isAuthenticated(authString)) {
 			//DESCUBRIR ENTORNO

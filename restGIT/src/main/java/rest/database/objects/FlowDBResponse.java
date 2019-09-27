@@ -1,16 +1,20 @@
 package rest.database.objects;
 
+/**
+ * Represents flow object from database
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class FlowDBResponse {
 	private String idFlow;
 	private String idSwitch;
 	private String idUser;
 	
-	
-	
 	/**
-	 * @param idFlow
-	 * @param idSwitch
-	 * @param idUser
+	 * FlowDBResponse constructor
+	 * @param idFlow flow id
+	 * @param idSwitch switch d
+	 * @param idUser user id
 	 */
 	public FlowDBResponse(String idFlow, String idSwitch, String idUser) {
 		super();
@@ -19,37 +23,43 @@ public class FlowDBResponse {
 		this.idUser = idUser;
 	}
 	/**
-	 * @return the idFlow
+	 * Get flow id
+	 * @return flow id
 	 */
 	public String getIdFlow() {
 		return idFlow;
 	}
 	/**
-	 * @param idFlow the idFlow to set
+	 * Set flow id
+	 * @param idFlow flow id
 	 */
 	public void setIdFlow(String idFlow) {
 		this.idFlow = idFlow;
 	}
 	/**
-	 * @return the idSwitch
+	 * Get switch id
+	 * @return switch id
 	 */
 	public String getIdSwitch() {
 		return idSwitch;
 	}
 	/**
-	 * @param idSwitch the idSwitch to set
+	 * Set switch id
+	 * @param idSwitch switch id
 	 */
 	public void setIdSwitch(String idSwitch) {
 		this.idSwitch = idSwitch;
 	}
 	/**
-	 * @return the idUser
+	 * Get user id
+	 * @return user id
 	 */
 	public String getIdUser() {
 		return idUser;
 	}
 	/**
-	 * @param idUser the idUser to set
+	 * Set user id
+	 * @param idUser user id
 	 */
 	public void setIdUser(String idUser) {
 		this.idUser = idUser;

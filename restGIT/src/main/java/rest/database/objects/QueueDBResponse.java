@@ -1,5 +1,10 @@
 package rest.database.objects;
 
+/**
+ * Represents queue database object
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class QueueDBResponse {
 	private String idQueue;
 	private String idSwitch;

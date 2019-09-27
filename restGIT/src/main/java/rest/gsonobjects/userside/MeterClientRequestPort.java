@@ -1,5 +1,10 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a meter client request socket
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class MeterClientRequestPort {
 	private String ipVersion;
 	private String srcHost;
@@ -10,6 +15,16 @@ public class MeterClientRequestPort {
 	private int rate;
 	private int burst;
 	
+	/**
+	 * @param ipVersion
+	 * @param srcHost
+	 * @param srcPort
+	 * @param dstHost
+	 * @param dstPort
+	 * @param portType
+	 * @param rate
+	 * @param burst
+	 */
 	public MeterClientRequestPort(String ipVersion, String srcHost, String srcPort, String dstHost, String dstPort, String portType, int rate, int burst) {
 		super();
 		this.ipVersion = ipVersion;
@@ -76,6 +91,9 @@ public class MeterClientRequestPort {
 		this.burst = burst;
 	}
 	
+	/**
+	 * Override equals
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof MeterClientRequest) {
@@ -169,6 +187,9 @@ public class MeterClientRequestPort {
 	}
 	
 
+	/**
+	 * Override toString
+	 */
 	@Override
 	public String toString() {
 		String ret = "ipVersion: "+this.ipVersion+"\n"+

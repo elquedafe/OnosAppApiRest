@@ -1,5 +1,10 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a queue client request
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class QueueClientRequest {
 	private String ipVersion;
 	private String srcHost;
@@ -155,6 +160,10 @@ public class QueueClientRequest {
 		this.burst = burst;
 	}
 	
+	/**
+	 * Map FlowSocketClientRequest to FlowSocketClientRequest
+	 * @return FlowSocketClientRequest
+	 */
 	public FlowSocketClientRequest toFlowSocketClientRequest() {
 		FlowSocketClientRequest fQ = new FlowSocketClientRequest(4, this.srcHost, this.srcPort, this.dstHost, this.dstPort, this.portType);
 		return fQ;

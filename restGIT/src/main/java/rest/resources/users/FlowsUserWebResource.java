@@ -43,6 +43,11 @@ import tools.EntornoTools;
 import tools.HttpTools;
 import tools.LogTools;
 
+/**
+ * Flow web resource.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/users/flows")
 public class FlowsUserWebResource {
 	private Gson gson;
@@ -53,8 +58,9 @@ public class FlowsUserWebResource {
 	}
 
 	/**
-	 * Get all flows from all the switches of the network
-	 * @return All flows in the network
+	 * Get all flows from all switches of the network
+	 * @param authString authorization http string
+	 * @return Response
 	 */
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
@@ -97,8 +103,9 @@ public class FlowsUserWebResource {
 
 	/**
 	 * Create a flow for the given switch
-	 * @param switchId Switch ID where flow is created
-	 * @param jsonIn JSON retrieved from client
+	 * @param switchId switch id
+	 * @param jsonIn json request
+	 * @param authString authorization http string
 	 * @return
 	 */
 	@Path("{switchId}")
@@ -148,40 +155,6 @@ public class FlowsUserWebResource {
 
 			//Generate JSON to ONOS
 			String jsonOut = gson.toJson(flowOnos);
-			//System.out.println("JSON TO ONOS: \n"+jsonOut);
-			/*String jsonOut = "{" +
-		        "\"priority\": "+ flowReq.getPriority() +"," +
-		        "\"timeout\": " + flowReq.getTimeout() + "," +
-		        "\"isPermanent\": "+ flowReq.isPermanent() + "," +
-		        "\"deviceId\": \""+ switchId +"\"," +
-		        "\"tableId\": 0," +
-		        "\"groupId\": 0," +
-		        "\"appId\": \"org.onosproject.fwd\"," +
-		        "\"treatment\": {" +
-		        "\"instructions\": [" +
-		        "{" +
-		        "\"type\": \"OUTPUT\"," +
-		        "\"port\": \""+ flowReq.getDstPort() +"\"" +
-		        "}" +
-		        "]" +
-		        "}," +
-		        "\"selector\": {" +
-		        "\"criteria\": [" +
-		        "{" +
-		        "\"type\": \"IN_PORT\"," +
-		        "\"port\": \""+ flowReq.getSrcPort() +"\"" +
-		        "}," +
-		        "{" +
-		        "\"type\": \"ETH_DST\"," +
-		        "\"mac\": \""+ flowReq.getDstHost() +"\"" +
-		        "}," +
-		        "{" +
-		        "\"type\": \"ETH_SRC\"," +
-		        "\"mac\": \""+ flowReq.getSrcHost() +"\"" +
-		        "}" +
-		        "]" +
-		        "}" +
-		        "}";*/
 			String url = EntornoTools.endpoint+"/flows/"+flowReq.getSwitchId();
 			try {
 				EntornoTools.getEnvironment();
@@ -191,14 +164,6 @@ public class FlowsUserWebResource {
 					oldFlowsState.put(flow.getKey(), flow.getValue());
 				}
 				HttpTools.doJSONPost(new URL(url), jsonOut);
-
-				//Wait for new state
-				//				try {
-				//					Thread.sleep(200);
-				//				} catch (InterruptedException e1) {
-				//					// TODO Auto-generated catch block
-				//					e1.printStackTrace();
-				//				}
 
 				EntornoTools.getEnvironment();
 				Map<String, Flow>  newFlowsState = new HashMap<String, Flow>();
@@ -235,128 +200,14 @@ public class FlowsUserWebResource {
 			return Response.status(401).build();
 	}
 
-//	/**
-//	 * Create a flow for the given switch
-//	 * @param switchId Switch ID where flow is created
-//	 * @param jsonIn JSON retrieved from client
-//	 * @return
-//	 */
-//	@Path("{srcHost}/{dstHost}")
-//	@POST
-//	@Consumes(MediaType.APPLICATION_JSON)
-//	@Produces (MediaType.APPLICATION_JSON)	
-//	public Response setFlowSocket(@PathParam("srcHost") String srcHost, @PathParam("dstHost") String dstHost, String jsonIn, @HeaderParam("authorization") String authString) {
-//		// TODO change all flow creation for Intents
-//		LogTools.rest("POST", "setFlow", "From host " + srcHost + " to host "+dstHost+". JSON:\n" + jsonIn);
-//		Response resRest;
-//		String messageToClient = "";
-//		if(DatabaseTools.isAuthenticated(authString)) {
-//			FlowSocketClientRequest flowReq = gson.fromJson(jsonIn, FlowSocketClientRequest.class);
-//			IntentOnosRequest intentOnos = new IntentOnosRequest();
-//			IntentOnosRequest intentOnosInversed = new IntentOnosRequest();
-//
-//			LogTools.info("POST FLOW", "*INTENT*" + flowReq.toString());
-//
-//			//CREATE INTENT SELECTOR
-//			Map<String, LinkedList<LinkedHashMap<String,Object>>> selector = EntornoTools.createSelector(flowReq);
-//			//INGRESS POINT
-//			Point ingressPoint = EntornoTools.getIngressPoint(flowReq.getSrcHost());
-//			//EGRESS POINT
-//			Point egressPoint = EntornoTools.getIngressPoint(flowReq.getDstHost());
-//			//COMPLETE INTENT
-//			intentOnos.setIngressPoint(ingressPoint);
-//			intentOnos.setEgressPoint(egressPoint);
-//			intentOnos.setSelector(selector);
-//
-//			//CREATE INTENT SELECTOR INVERSE
-//			String auxSrcHost = flowReq.getSrcHost();
-//			String auxSrcPort = flowReq.getSrcPort();
-//			String auxDstHost = flowReq.getDstHost();
-//			String auxDstPort = flowReq.getDstPort();
-//			flowReq.setDstHost(auxSrcHost);
-//			flowReq.setSrcHost(auxDstHost);
-//			flowReq.setSrcPort(auxDstPort);
-//			flowReq.setDstPort(auxSrcPort);
-//			Map<String, LinkedList<LinkedHashMap<String,Object>>> selectorInversed = EntornoTools.createSelector(flowReq);
-//			//COMPLETE INTENT
-//			intentOnosInversed.setIngressPoint(egressPoint);
-//			intentOnosInversed.setEgressPoint(ingressPoint);
-//			intentOnosInversed.setSelector(selectorInversed);
-//
-//			//Generate JSON to ONOS
-//			String jsonOut = gson.toJson(intentOnos);
-//			String jsonOutInversed = gson.toJson(intentOnosInversed);
-//			LogTools.info("setFlowSocket", "json to create intent: "+jsonOut);
-//			LogTools.info("setFlowSocket", "json to create intent INVERSED: "+jsonOutInversed);
-//			String url = EntornoTools.endpoint+"/intents";
-//			try {
-//
-//				//GET OLD STATE
-//				EntornoTools.getEnvironment();
-//				Map<String, Flow> oldFlowsState = new HashMap<String, Flow>();
-//				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet()){
-//					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet())
-//						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-//							oldFlowsState.put(flow.getKey(), flow.getValue());
-//				}
-//
-//				// CREATE FLOWS
-//				HttpTools.doJSONPost(new URL(url), jsonOut);
-//				HttpTools.doJSONPost(new URL(url), jsonOutInversed);
-//
-//				//Wait for new state
-//				//				try {
-//				//					Thread.sleep(200);
-//				//				} catch (InterruptedException e1) {
-//				//					// TODO Auto-generated catch block
-//				//					e1.printStackTrace();
-//				//				}
-//
-//				//GET NEW STATE
-//				EntornoTools.getEnvironment();
-//				Map<String, Flow> newFlowsState = new HashMap<String, Flow>();
-//				for(Map.Entry<String, Switch> auxSwitch : EntornoTools.entorno.getMapSwitches().entrySet())
-//					for(Map.Entry<String, Flow> flow : auxSwitch.getValue().getFlows().entrySet()) 
-//						if(flow.getValue().getAppId().contains("fwd") || flow.getValue().getAppId().contains("intent"))
-//							newFlowsState.put(flow.getKey(), flow.getValue());
-//
-//
-//				System.out.println(".");
-//
-//				// GET FLOWS CHANGED
-//				List<Flow> flowsNews;
-//				flowsNews = EntornoTools.compareFlows(oldFlowsState, newFlowsState);
-//				if(flowsNews.size()>0) {
-//					for(Flow flow : flowsNews) {
-//						try {
-//							DatabaseTools.addFlowByUserId(flow, authString);
-//						} catch (ClassNotFoundException | SQLException e) {
-//							e.printStackTrace();
-//							//TODO: Delete flow from onos and send error to client
-//
-//						}
-//					}
-//				}
-//			} catch (MalformedURLException e) {
-//				resRest = Response.ok("{\"response\":\"URL error\", \"trace\":\""+jsonOut+"\", \"endpoint\":\""+EntornoTools.endpoint+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				return resRest;
-//			} catch (IOException e) {
-//				//resRest = Response.ok("{\"response\":\"IO error\", \"trace\":\""+jsonOut+"\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//				resRest = Response.ok("IO: "+e.getMessage()+"\n"+jsonOut+"\n", MediaType.TEXT_PLAIN).build();
-//				resRest = Response.serverError().build();
-//				return resRest;
-//			}
-//			resRest = Response.ok("{\"response\":\"succesful\"}", MediaType.APPLICATION_JSON_TYPE).build();
-//			return resRest;
-//		}
-//		else
-//			return Response.status(401).build();
-//	}
-
+	
 	/**
-	 * Create a flow for the given switch
-	 * @param switchId Switch ID where flow is created
-	 * @param jsonIn JSON retrieved from client
+	 * Create flow socket
+	 * @param srcElement source element
+	 * @param dstElement destination element
+	 * @param jsonIn json request
+	 * @param authString authorization http string
+	 * @param element element (host or switch)
 	 * @return
 	 */
 	@Path("{srcElement}/{dstElement}")
@@ -490,10 +341,13 @@ public class FlowsUserWebResource {
 		else
 			return Response.status(401).build();
 	}
-
+	
 	/**
 	 * Delete flow from switches of the network
-	 * @return All flows in the network
+	 * @param switchId switch id
+	 * @param flowId flow id
+	 * @param authString authorization http string
+	 * @return
 	 */
 	@Path("{switchId}/{flowId}")
 	@DELETE

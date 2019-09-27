@@ -2,7 +2,11 @@ package architecture;
 
 import com.google.gson.internal.LinkedTreeMap;
 
-
+/**
+ * Represents a switch port
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class Port {
 	private String ovs;
 	private boolean isEnabled;
@@ -13,6 +17,9 @@ public class Port {
 	private String portMac;
 	private String portName;
 
+	/**
+	 * Default Port constructor
+	 */
 	public Port() { 
 		this.ovs = "";
 		this.portName = "";
@@ -23,6 +30,17 @@ public class Port {
 		this.portMac = "";
 	}
 
+	/**
+	 * Port constructor
+	 * @param ovs switch id
+	 * @param port port number
+	 * @param isEnabled port enabled
+	 * @param type port type
+	 * @param portSpeed port speed
+	 * @param portMac port mac
+	 * @param portName port name
+	 * @param annotations annotations
+	 */
 	public Port(String ovs, 
 			String port, 
 			boolean isEnabled, 
@@ -42,120 +60,137 @@ public class Port {
 		this.annotations = annotations;
 	}
 
-	
-
 	/**
-	 * @return the ovs
+	 * Get switch id
+	 * @return switch id
 	 */
 	public String getOvs() {
 		return ovs;
 	}
 
 	/**
-	 * @param ovs the ovs to set
+	 * Set switch id
+	 * @param ovs switch id
 	 */
 	public void setOvs(String ovs) {
 		this.ovs = ovs;
 	}
 
 	/**
-	 * @return the isEnabled
+	 * Get if port is enabled
+	 * @return if port is enabled
 	 */
 	public boolean isEnabled() {
 		return isEnabled;
 	}
 
 	/**
-	 * @param isEnabled the isEnabled to set
+	 * Set if port is enabled
+	 * @param isEnabled if port is enabled
 	 */
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}
 
 	/**
-	 * @return the type
+	 * Get port type
+	 * @return port type
 	 */
 	public String getType() {
 		return type;
 	}
 
 	/**
-	 * @param type the type to set
+	 * Set port type
+	 * @param type port type
 	 */
 	public void setType(String type) {
 		this.type = type;
 	}
 
 	/**
-	 * @return the speed
+	 * Get port speed
+	 * @return port speed
 	 */
 	public double getSpeed() {
 		return speed;
 	}
 
 	/**
-	 * @param speed the speed to set
+	 * Set port speed
+	 * @param speed port speed
 	 */
 	public void setSpeed(double speed) {
 		this.speed = speed;
 	}
 
 	/**
-	 * @return the portNumber
+	 * Get port number
+	 * @return port number
 	 */
 	public String getPortNumber() {
 		return portNumber;
 	}
 
 	/**
-	 * @param portNumber the portNumber to set
+	 * Set port number
+	 * @param portNumber port number
 	 */
 	public void setPortNumber(String portNumber) {
 		this.portNumber = portNumber;
 	}
 
 	/**
-	 * @return the annotations
+	 * Get annotations
+	 * @return annotations
 	 */
 	public LinkedTreeMap getAnnotations() {
 		return annotations;
 	}
 
 	/**
-	 * @param annotations the annotations to set
+	 * Set annotations
+	 * @param annotations annotations
 	 */
 	public void setAnnotations(LinkedTreeMap annotations) {
 		this.annotations = annotations;
 	}
 
 	/**
-	 * @return the portMac
+	 * Get port mac
+	 * @return port mac
 	 */
 	public String getPortMac() {
 		return portMac;
 	}
 
 	/**
-	 * @param portMac the portMac to set
+	 * Set port mac
+	 * @param portMac port mac
 	 */
 	public void setPortMac(String portMac) {
 		this.portMac = portMac;
 	}
 
 	/**
-	 * @return the portName
+	 * Get port name
+	 * @return port name
 	 */
 	public String getPortName() {
 		return portName;
 	}
 
 	/**
-	 * @param portName the portName to set
+	 * Set port name
+	 * @param portName port name
 	 */
 	public void setPortName(String portName) {
 		this.portName = portName;
 	}
 
+	/**
+	 * Override toString
+	 */
 	@Override
 	public String toString(){
 		return this.portNumber+"/"+this.portName+"("+this.speed+")";

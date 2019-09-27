@@ -1,20 +1,21 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a authorization client request
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class AuthorizationClientRequest {
-	
-
 	private String userOnos;
 	private String passwordOnos;
 	private String onosHost;
 	private String ovsdbDevice;
 	
-	
 	/**
-	 * @param userRest
-	 * @param passwordRest
 	 * @param userOnos
 	 * @param passwordOnos
 	 * @param onosHost
+	 * @param ovsdbDevice
 	 */
 	public AuthorizationClientRequest(String userOnos, String passwordOnos,
 			String onosHost, String ovsdbDevice) {

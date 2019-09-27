@@ -1,9 +1,9 @@
 package architecture;
 
 /**
- * Represents a band from meter
- * @author alvaroluismartinez
- *
+ * Represents a band from a meter
+ * @author Alvaro Luis Martinez
+ * @version 1.0
  */
 public class Band {
 	private String type;
@@ -11,12 +11,14 @@ public class Band {
 	private int packets;
 	private int bytes;
 	private int burstSize;
+
 	/**
-	 * @param type
-	 * @param rate
-	 * @param packets
-	 * @param bytes
-	 * @param burstSize
+	 * Band constructor
+	 * @param type type of band 
+	 * @param rate maximum rate
+	 * @param packets packets number
+	 * @param bytes bytes number
+	 * @param burstSize burst size 
 	 */
 	public Band(String type, int rate, int packets, int bytes, int burstSize) {
 		super();
@@ -26,8 +28,9 @@ public class Band {
 		this.bytes = bytes;
 		this.burstSize = burstSize;
 	}
+
 	/**
-	 * 
+	 * Default band constructor
 	 */
 	public Band() {
 		super();
@@ -37,9 +40,10 @@ public class Band {
 		this.bytes = 0;
 		this.burstSize = 0;
 	}
+	
 	/**
-	 * @param rate
-	 * @param burstSize
+	 * @param rate maximum rate
+	 * @param burstSize burst size
 	 */
 	public Band(int rate, int burstSize) {
 		super();
@@ -50,7 +54,7 @@ public class Band {
 		this.burstSize = burstSize;
 	}
 	/**
-	 * @param rate
+	 * @param rate maximum rate
 	 */
 	public Band(int rate) {
 		super();
@@ -60,66 +64,86 @@ public class Band {
 		this.bytes = 0;
 		this.burstSize = 0;
 	}
+
 	/**
+	 * Get the band type
 	 * @return the type
 	 */
 	public String getType() {
 		return type;
 	}
+
 	/**
-	 * @param type the type to set
+	 * Set band type
+	 * @param type band type
 	 */
 	public void setType(String type) {
 		this.type = type;
 	}
+
 	/**
+	 * Get band rate
 	 * @return the rate
 	 */
 	public int getRate() {
 		return rate;
 	}
+
 	/**
-	 * @param rate the rate to set
+	 * Set band rate
+	 * @param rate band rate
 	 */
 	public void setRate(int rate) {
 		this.rate = rate;
 	}
+
 	/**
-	 * @return the packets
+	 * Get packets number
+	 * @return packets number
 	 */
 	public int getPackets() {
 		return packets;
 	}
+	
 	/**
-	 * @param packets the packets to set
+	 * Set packets number
+	 * @param packets packets number to set
 	 */
 	public void setPackets(int packets) {
 		this.packets = packets;
 	}
+	
 	/**
-	 * @return the bytes
+	 * Set bytes number
+	 * @return bytes number
 	 */
 	public int getBytes() {
 		return bytes;
 	}
+	
 	/**
-	 * @param bytes the bytes to set
+	 * Set bytes number
+	 * @param bytes bytes number to set
 	 */
 	public void setBytes(int bytes) {
 		this.bytes = bytes;
 	}
+	
 	/**
-	 * @return the burstSize
+	 * Get the burst size
+	 * @return the burst size
 	 */
 	public int getBurstSize() {
 		return burstSize;
 	}
+	
 	/**
-	 * @param burstSize the burstSize to set
+	 * Set the burst size
+	 * @param burstSize burst size to set
 	 */
 	public void setBurstSize(int burstSize) {
 		this.burstSize = burstSize;
 	}
-	
-	
+
+
 }

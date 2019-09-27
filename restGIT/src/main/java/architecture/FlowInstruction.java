@@ -10,38 +10,61 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
- * @author alvaroluismartinez
+ * Represents a flow instruction
+ * @author Alvaro Luis Martinez
+ * @version 1.0
  */
 public class FlowInstruction {
-    private String type;
-    private Map<String,Object> instructions;
+	private String type;
+	private Map<String,Object> instructions;
 
-    public FlowInstruction(String type, Map<String, Object> instructions) {
-        this.type = type;
-        this.instructions = instructions;
-    }
+	/**
+	 * Flow instruction constructor
+	 * @param typeinstruction instruciton type
+	 * @param instructions flow instructions
+	 */
+	public FlowInstruction(String type, Map<String, Object> instructions) {
+		this.type = type;
+		this.instructions = instructions;
+	}
 
-    public FlowInstruction() {
-        this.type = "";
-        this.instructions = new HashMap<String,Object>();
-    }
-    
-    
+	/**
+	 * Default flow criteria constructor
+	 */
+	public FlowInstruction() {
+		this.type = "";
+		this.instructions = new HashMap<String,Object>();
+	}
 
-    public String getType() {
-        return type;
-    }
+	/**
+	 * Get instruction type
+	 * @return instruction type
+	 */
+	public String getType() {
+		return type;
+	}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+	/**
+	 * Set instruction type
+	 * @param type instruction type
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
 
-    public Map<String, Object> getInstructions() {
-        return instructions;
-    }
+	/**
+	 * Get instructions
+	 * @return instructions map
+	 */
+	public Map<String, Object> getInstructions() {
+		return instructions;
+	}
 
-    public void setInstructions(Map<String, Object> instructions) {
-        this.instructions = instructions;
-    }
+	/**
+	 * Set instructions
+	 * @param instructions instructions map
+	 */
+	public void setInstructions(Map<String, Object> instructions) {
+		this.instructions = instructions;
+	}
 }

@@ -1,5 +1,10 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a simple meter client request
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class MeterClientRequest {
 	private String host;
 	private int rate;
@@ -54,6 +59,9 @@ public class MeterClientRequest {
 		this.burst = burst;
 	}
 	
+	/**
+	 * Override equals
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof MeterClientRequest) {

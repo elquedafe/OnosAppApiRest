@@ -2,13 +2,11 @@ rest/gsonobjects/userside/MeterClientRequest.class
 rest/resources/administration/SwitchAdministratorWebResource.class
 rest/resources/administration/MetersAdministratorWebResource.class
 rest/gsonobjects/onosside/FlowOnosRequest.class
-rest/gsonobjects/administratorside/MeterAdministratorRequest.class
 tests/Testmain.class
 architecture/Flow.class
 rest/resources/users/VplsUserWebResource.class
 rest/gsonobjects/onosside/OnosResponse.class
 rest/resources/administration/VplsAdministratorWebResource.class
-rest/gsonobjects/administratorside/MeterAdministratorRequestPort.class
 rest/gsonobjects/userside/MeterClientRequestPort.class
 tools/Utils.class
 rest/resources/users/FlowsUserWebResource.class
@@ -26,8 +24,6 @@ rest/gsonobjects/userside/FlowSocketClientRequest.class
 rest/gsonobjects/userside/AuthorizationClientRequest.class
 architecture/FlowCriteria.class
 rest/resources/administration/FlowsAdministratorWebResource.class
-rest/gsonobjects/administratorside/UserCredentials.class
-rest/gsonobjects/userside/MeterSocketDelete.class
 rest/resources/administration/QueueAdministratorWebResource.class
 rest/resources/users/MetersUserWebResource.class
 architecture/FlowSelector.class
@@ -40,7 +36,6 @@ architecture/Host.class
 tools/HttpTools.class
 rest/gsonobjects/onosside/QueueOnos.class
 rest/database/objects/FlowDBResponse.class
-rest/gsonobjects/administratorside/AuthorizationAdministratorRequest.class
 architecture/Band.class
 rest/gsonobjects/onosside/QueueOnosRequest.class
 tools/JsonManager.class
@@ -48,10 +43,8 @@ rest/gsonobjects/onosside/VplsOnosRequestAux.class
 rest/resources/users/QueuesUserWebResource.class
 architecture/Environment.class
 tools/EntornoTools.class
-rest/gsonobjects/onosside/FlowSocketOnosRequest.class
 rest/database/objects/QueueDBInsert.class
 rest/gsonobjects/userside/FlowSocketWithSwitchClientRequest.class
-rest/gsonobjects/administratorside/FlowAdministratorRequest.class
 architecture/Queue.class
 rest/resources/AuthorizationWebResource.class
 architecture/Meter.class
@@ -62,6 +55,5 @@ architecture/Cluster.class
 rest/gsonobjects/onosside/Constraint.class
 architecture/Vpls.class
 rest/database/objects/VplsDBResponse.class
-rest/gsonobjects/administratorside/VplsAdministratorRequest.class
 architecture/Switch.class
 rest/resources/users/EnvironmentUserWebResource.class

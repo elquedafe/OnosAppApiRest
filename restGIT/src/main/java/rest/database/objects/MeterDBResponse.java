@@ -1,10 +1,16 @@
 package rest.database.objects;
 
+/**
+ * Represents meter object from database
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class MeterDBResponse {
 	private String idMeter;
 	private String idSwitch;
 	private String idUser;
 	/**
+	 * MeterDBResponse
 	 * @param idMeter
 	 * @param idSwitch
 	 * @param idUser
@@ -16,37 +22,43 @@ public class MeterDBResponse {
 		this.idUser = idUser;
 	}
 	/**
-	 * @return the idMeter
+	 * Get meter id
+	 * @return meter id
 	 */
 	public String getIdMeter() {
 		return idMeter;
 	}
 	/**
-	 * @param idMeter the idMeter to set
+	 * Set meter id
+	 * @param idMeter meter id
 	 */
 	public void setIdMeter(String idMeter) {
 		this.idMeter = idMeter;
 	}
 	/**
-	 * @return the idSwitch
+	 * Get switch id
+	 * @return switch id
 	 */
 	public String getIdSwitch() {
 		return idSwitch;
 	}
 	/**
-	 * @param idSwitch the idSwitch to set
+	 * Set switch id
+	 * @param idSwitch switch id
 	 */
 	public void setIdSwitch(String idSwitch) {
 		this.idSwitch = idSwitch;
 	}
 	/**
-	 * @return the idUser
+	 * Get user id
+	 * @return user id
 	 */
 	public String getIdUser() {
 		return idUser;
 	}
 	/**
-	 * @param idUser the idUser to set
+	 * Set user id
+	 * @param idUser user id
 	 */
 	public void setIdUser(String idUser) {
 		this.idUser = idUser;

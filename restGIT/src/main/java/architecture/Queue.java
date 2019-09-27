@@ -1,5 +1,10 @@
 package architecture;
 
+/**
+ * Represents a queue in a port
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class Queue {
 	private long queueId;
 	private String switchId;
@@ -9,13 +14,16 @@ public class Queue {
 	private long qosId;
 	private String portNumber;
 	private String portName;
+
 	/**
-	 * @param queueId
-	 * @param minRate
-	 * @param maxRate
-	 * @param burst
-	 * @param qosId
-	 * @param portNumber
+	 * Queue constructor
+	 * @param queueId queue id
+	 * @param switchId switch id
+	 * @param minRate minimum rate
+	 * @param maxRate maximum rate
+	 * @param burst burst
+	 * @param qosId qos id
+	 * @param portNumber port number port name
 	 * @param portName
 	 */
 	public Queue(long queueId, String switchId, String minRate, String maxRate, String burst, long qosId, String portNumber,
@@ -31,89 +39,115 @@ public class Queue {
 		this.portName = portName;
 	}
 	/**
-	 * @return the queueId
+	 * Get queue id
+	 * @return queue id
 	 */
 	public long getQueueId() {
 		return queueId;
 	}
 	/**
-	 * @param queueId the queueId to set
+	 * Set queue id
+	 * @param queueId queue id
 	 */
 	public void setQueueId(long queueId) {
 		this.queueId = queueId;
 	}
 	/**
-	 * @return the minRate
+	 * Get switch id
+	 * @return switch id
+	 */
+	public String getSwitchId() {
+		return switchId;
+	}
+	/**
+	 * Set switch id
+	 * @param switchId switch id
+	 */
+	public void setSwitchId(String switchId) {
+		this.switchId = switchId;
+	}
+	/**
+	 * Get minimum rate
+	 * @return minimum rate
 	 */
 	public String getMinRate() {
 		return minRate;
 	}
 	/**
-	 * @param minRate the minRate to set
+	 * Set minimum rate
+	 * @param minRate minimum rate
 	 */
 	public void setMinRate(String minRate) {
 		this.minRate = minRate;
 	}
 	/**
-	 * @return the maxRate
+	 * Get maximum rate
+	 * @return maximum rate
 	 */
 	public String getMaxRate() {
 		return maxRate;
 	}
 	/**
-	 * @param maxRate the maxRate to set
+	 * Set maximum rate
+	 * @param maxRate maximum rate
 	 */
 	public void setMaxRate(String maxRate) {
 		this.maxRate = maxRate;
 	}
 	/**
-	 * @return the burst
+	 * Get queue burst
+	 * @return queue burst
 	 */
 	public String getBurst() {
 		return burst;
 	}
 	/**
-	 * @param burst the burst to set
+	 * Set queue burst
+	 * @param burst queue burst
 	 */
 	public void setBurst(String burst) {
 		this.burst = burst;
 	}
 	/**
+	 * Get qos ovsdb-port id
 	 * @return the qosId
 	 */
 	public long getQosId() {
 		return qosId;
 	}
 	/**
-	 * @param qosId the qosId to set
+	 * Set qos ovsdb-port id
+	 * @param qosId qos ovsdb-port id
 	 */
 	public void setQosId(long qosId) {
 		this.qosId = qosId;
 	}
 	/**
-	 * @return the portNumber
+	 * Get port number
+	 * @return port number
 	 */
 	public String getPortNumber() {
 		return portNumber;
 	}
 	/**
-	 * @param portNumber the portNumber to set
+	 * Set port number
+	 * @param portNumber port number
 	 */
 	public void setPortNumber(String portNumber) {
 		this.portNumber = portNumber;
 	}
 	/**
-	 * @return the portName
+	 * Get port name
+	 * @return port name
 	 */
 	public String getPortName() {
 		return portName;
 	}
 	/**
-	 * @param portName the portName to set
+	 * Set port name
+	 * @param portName port name
 	 */
 	public void setPortName(String portName) {
 		this.portName = portName;
 	}
-	
-
 }

@@ -1,5 +1,10 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents user credentials.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class UserCredentials {
 	private String user;
 	private String password;

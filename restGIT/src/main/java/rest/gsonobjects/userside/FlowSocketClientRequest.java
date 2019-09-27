@@ -1,5 +1,10 @@
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a flow socket request
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class FlowSocketClientRequest {
 	private int ipVersion;
 	private String srcHost;

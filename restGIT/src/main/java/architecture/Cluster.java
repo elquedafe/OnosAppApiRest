@@ -2,8 +2,8 @@ package architecture;
 
 /**
  * Represents a cluster in ONOS
- * @author alvaroluismartinez
- *
+ * @author Alvaro Luis Martinez
+ * @version 1.0
  */
 public class Cluster {
 	private String id;
@@ -13,12 +13,27 @@ public class Cluster {
 	private String lastUpdate;
 	private String humanReadableLastUpdate;
 
-	public Cluster(String id, int puerto, String estado) {
+	/**
+	 * Cluster constructor
+	 * @param id cluster id
+	 * @param port tcp port
+	 * @param state cluster state
+	 */
+	public Cluster(String id, int port, String state) {
 		this.id = id;
-		this.tcpPort = puerto;
-		this.status = estado;
+		this.tcpPort = port;
+		this.status = state;
 	}
 
+	/**
+	 * Cluster constructor
+	 * @param id cluster id
+	 * @param ip ip address
+	 * @param tcpPort tcp port
+	 * @param status status
+	 * @param lastUpdate last update
+	 * @param humanReadableLastUpdate last update
+	 */
 	public Cluster(String id, 
 			String ip, 
 			int tcpPort,
@@ -35,94 +50,113 @@ public class Cluster {
 
 	}
 
+	/**
+	 * Default cluster constructor
+	 */
 	public Cluster(){
 
 	}
 
 	/**
-	 * @return the id
+	 * Get cluster id
+	 * @return cluster id
 	 */
 	public String getId() {
 		return id;
 	}
 
 	/**
-	 * @param id the id to set
+	 * Set cluster id
+	 * @param cluster id
 	 */
 	public void setId(String id) {
 		this.id = id;
 	}
 
 	/**
-	 * @return the ip
+	 * Get cluster IP address
+	 * @return cluster ip address
 	 */
 	public String getIp() {
 		return ip;
 	}
 
 	/**
-	 * @param ip the ip to set
+	 * Set cluster IP address
+	 * @param ip address
 	 */
 	public void setIp(String ip) {
 		this.ip = ip;
 	}
 
 	/**
-	 * @return the tcpPort
+	 * Get cluster TCP port
+	 * @return cluster TCP port
 	 */
 	public int getTcpPort() {
 		return tcpPort;
 	}
 
 	/**
-	 * @param tcpPort the tcpPort to set
+	 * Set cluster TCP port
+	 * @param tcpPort cluster TCP port
 	 */
 	public void setTcpPort(int tcpPort) {
 		this.tcpPort = tcpPort;
 	}
 
 	/**
-	 * @return the status
+	 * Get cluster state
+	 * @return cluster status
 	 */
 	public String getStatus() {
 		return status;
 	}
 
 	/**
-	 * @param status the status to set
+	 * Set status
+	 * @param status cluster status
 	 */
 	public void setStatus(String status) {
 		this.status = status;
 	}
 
 	/**
-	 * @return the lastUpdate
+	 * Get last update
+	 * @return last update
 	 */
 	public String getLastUpdate() {
 		return lastUpdate;
 	}
 
 	/**
-	 * @param lastUpdate the lastUpdate to set
+	 * Set last update
+	 * @param lastUpdate last update
 	 */
 	public void setLastUpdate(String lastUpdate) {
 		this.lastUpdate = lastUpdate;
 	}
 
 	/**
-	 * @return the humanReadableLastUpdate
+	 * Get last update
+	 * @return last update
 	 */
 	public String getHumanReadableLastUpdate() {
 		return humanReadableLastUpdate;
 	}
 
 	/**
-	 * @param humanReadableLastUpdate the humanReadableLastUpdate to set
+	 * Set last update
+	 * @param humanReadableLastUpdate last update
 	 */
 	public void setHumanReadableLastUpdate(String humanReadableLastUpdate) {
 		this.humanReadableLastUpdate = humanReadableLastUpdate;
 	}
 
+	/**
+	 * Override toString()
+	 */
+	@Override
 	public String toString() {
 		return this.status + "\t" + this.id + ":"+ this.tcpPort;
 	}

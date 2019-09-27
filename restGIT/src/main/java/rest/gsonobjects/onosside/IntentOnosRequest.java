@@ -7,6 +7,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a intent request to ONOS
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class IntentOnosRequest {
 	private String type;
 	private String appId;

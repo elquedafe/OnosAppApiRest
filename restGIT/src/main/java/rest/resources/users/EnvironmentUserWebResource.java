@@ -18,6 +18,11 @@ import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.LogTools;
 
+/**
+ * Environment web resource
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/users/environment")
 public class EnvironmentUserWebResource {
 	private Gson gson;
@@ -28,8 +33,9 @@ public class EnvironmentUserWebResource {
 	}
 
 	/**
-	 * Get the environment state from the controller
-	 * @return Environment
+	 * Get the network environment
+	 * @param authString authorization http string
+	 * @return
 	 */
 	@GET
 	@Produces (MediaType.APPLICATION_JSON)	
@@ -39,7 +45,6 @@ public class EnvironmentUserWebResource {
 		if(DatabaseTools.isAuthenticated(authString)) {
 			try {
 				EntornoTools.getEnvironmentByUser(authString);
-				//this.entorno = EntornoTools.entorno;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

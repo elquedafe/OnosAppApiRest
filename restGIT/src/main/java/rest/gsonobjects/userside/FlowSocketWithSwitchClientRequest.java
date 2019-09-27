@@ -1,6 +1,11 @@
 
 package rest.gsonobjects.userside;
 
+/**
+ * Represents a flow socket client request with ingress/egress switches
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class FlowSocketWithSwitchClientRequest extends FlowSocketClientRequest{
 	private String ingress;
 	private String ingressPort;
@@ -28,39 +33,24 @@ public class FlowSocketWithSwitchClientRequest extends FlowSocketClientRequest{
 		this.egressPort = egressPort;
 	}
 	
-	
-
-	
 	/**
 	 * @return the ingress
 	 */
 	public String getIngress() {
 		return ingress;
 	}
-
-
-
-
 	/**
 	 * @param ingress the ingress to set
 	 */
 	public void setIngress(String ingress) {
 		this.ingress = ingress;
 	}
-
-
-
-
 	/**
 	 * @return the ingressPort
 	 */
 	public String getIngressPort() {
 		return ingressPort;
 	}
-
-
-
-
 	/**
 	 * @param ingressPort the ingressPort to set
 	 */
@@ -68,19 +58,12 @@ public class FlowSocketWithSwitchClientRequest extends FlowSocketClientRequest{
 		this.ingressPort = ingressPort;
 	}
 
-
-
-
 	/**
 	 * @return the egress
 	 */
 	public String getEgress() {
 		return egress;
 	}
-
-
-
-
 	/**
 	 * @param egress the egress to set
 	 */
@@ -88,29 +71,18 @@ public class FlowSocketWithSwitchClientRequest extends FlowSocketClientRequest{
 		this.egress = egress;
 	}
 
-
-
-
 	/**
 	 * @return the egressPort
 	 */
 	public String getEgressPort() {
 		return egressPort;
 	}
-
-
-
-
 	/**
 	 * @param egressPort the egressPort to set
 	 */
 	public void setEgressPort(String egressPort) {
 		this.egressPort = egressPort;
 	}
-
-
-
-
 	@Override
 	public String toString() {
 		String str = "ipVersion:"+super.getIpVersion()+"\n"+

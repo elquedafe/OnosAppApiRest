@@ -1,5 +1,10 @@
 package rest.database.objects;
 
+/**
+ * Reperesents VPLS database object
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class VplsDBResponse {
 	private String idVpls;
 	private String vplsName;

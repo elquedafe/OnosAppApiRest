@@ -30,6 +30,11 @@ import tools.DatabaseTools;
 import tools.EntornoTools;
 import tools.LogTools;
 
+/**
+ * Authorization web resource.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/rest/authorization")
 public class AuthorizationWebResource {
 	private Gson gson;
@@ -40,10 +45,9 @@ public class AuthorizationWebResource {
 	}
 
 	/**
-	 * Create a meter for the given switch
-	 * @param switchId Switch ID where meter is installed
-	 * @param jsonIn JSON retrieved from client
-	 * @return
+	 * Create authorization access
+	 * @param jsonIn json request
+	 * @return Response
 	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -56,9 +60,9 @@ public class AuthorizationWebResource {
 		AuthorizationClientRequest authReq = gson.fromJson(jsonIn, AuthorizationClientRequest.class);
 
 		String ovsdbDevice = authReq.getOvsdbDevice();
-//		EntornoTools.onosHost = authReq.getOnosHost();
-//		EntornoTools.user = authReq.getUserOnos();
-//		EntornoTools.password = authReq.getPasswordOnos();
+		EntornoTools.onosHost = authReq.getOnosHost();
+		EntornoTools.user = authReq.getUserOnos();
+		EntornoTools.password = authReq.getPasswordOnos();
 		EntornoTools.endpoint = "http://" + EntornoTools.onosHost + ":8181/onos/v1";
 		EntornoTools.endpointNetConf = EntornoTools.endpoint+"/network/configuration/";
 		EntornoTools.endpointQueues = "http://" + EntornoTools.onosHost + ":8181/onos/upm/queues/ovsdb:10.0.2.2";

@@ -1,7 +1,11 @@
 package rest.gsonobjects.userside;
 
 import java.util.List;
-
+/**
+ * Represents a VPLS client request.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class VplsClientRequest {
 	private String vplsName;
 	private List<String> hosts;

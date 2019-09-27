@@ -10,30 +10,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author alvaroluismartinez
+ * Represents the flow selector
+ * @author Alvaro Luis Martinez
+ * @version 1.0
  */
 public class FlowSelector {
-    private List<FlowCriteria> flowCriterias;
+	private List<FlowCriteria> flowCriterias;
 
-    public FlowSelector(List<FlowCriteria> listFlowCriteria) {
-        this.flowCriterias = listFlowCriteria;
-    }
+	/**
+	 * Flow selector constructor
+	 * @param listFlowCriteria flow criterias
+	 */
+	public FlowSelector(List<FlowCriteria> listFlowCriteria) {
+		this.flowCriterias = listFlowCriteria;
+	}
 
-    public FlowSelector() {
-        this.flowCriterias = new ArrayList<FlowCriteria>();
-    }
-    
-    
+	/**
+	 * Default flow selector
+	 */
+	public FlowSelector() {
+		this.flowCriterias = new ArrayList<FlowCriteria>();
+	}
 
-    public List<FlowCriteria> getListFlowCriteria() {
-        return flowCriterias;
-    }
+	/**
+	 * Get criteria list
+	 * @return criteria list
+	 */
+	public List<FlowCriteria> getListFlowCriteria() {
+		return flowCriterias;
+	}
 
-    public void setListFlowCriteria(List<FlowCriteria> listFlowCriteria) {
-        this.flowCriterias = listFlowCriteria;
-    }
-    
-    
-    
+	/**
+	 * Set criteria list
+	 * @param listFlowCriteria criteria list
+	 */
+	public void setListFlowCriteria(List<FlowCriteria> listFlowCriteria) {
+		this.flowCriterias = listFlowCriteria;
+	}
+
+
+
 }

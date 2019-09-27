@@ -2,6 +2,11 @@ package rest.gsonobjects.onosside;
 
 import java.util.List;
 
+/**
+ * Represent ONOS constraint
+ * @author alvaroluismartinez
+ *
+ */
 public class Constraint {
 
 	private boolean inclusive;

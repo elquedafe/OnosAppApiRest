@@ -1,5 +1,10 @@
 package rest.gsonobjects.onosside;
 
+/**
+ * Represents a queue request to ONOS
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class QueueOnosRequest {
 	private String portName;
 	private String portNumber;

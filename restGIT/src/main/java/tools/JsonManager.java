@@ -38,10 +38,18 @@ import architecture.Vpls;
 import rest.gsonobjects.onosside.OnosResponse;
 import rest.gsonobjects.onosside.QueueOnos;
 
+/**
+ * Represents a JsonParser.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
+@SuppressWarnings("rawtypes")
 public class JsonManager {
 
-
-
+	/**
+	 * Parse switches
+	 * @param json json to parse
+	 */
 	public static void parseJsonDevicesGson(String json) {
 		Gson gson = new Gson();
 		EntornoTools.entorno.getMapSwitches().clear();
@@ -69,6 +77,10 @@ public class JsonManager {
 		}
 	}
 
+	/**
+	 * Parse ports
+	 * @param json json to parse
+	 */
 	public static void parseJsonPortsGson(String json) {
 		String id = "";
 		Gson gson = new Gson();
@@ -92,6 +104,10 @@ public class JsonManager {
 		}
 	}
 
+	/**
+	 * Parse cluster
+	 * @param json json to parse
+	 */
 	public static void parseJsonClustersGson(String json) {
 		Gson gson = new Gson();
 
@@ -112,6 +128,10 @@ public class JsonManager {
 		}
 	}
 
+	/**
+	 * Parse links
+	 * @param json json to parse
+	 */
 	public static void parseJsonLinksGson(String json) {
 		Gson gson = new Gson();
 
@@ -147,6 +167,12 @@ public class JsonManager {
 		}
 	}
 
+	/**
+	 * Parse path
+	 * @param gson gson
+	 * @param jsonPath json path
+	 * @return cost
+	 */
 	private static double parseJsonPathGson(Gson gson, String jsonPath) {
 		double cost = 0;
 		LinkedTreeMap jsonPathsObject = gson.fromJson(jsonPath, LinkedTreeMap.class);
@@ -158,6 +184,10 @@ public class JsonManager {
 		return cost;
 	}
 
+	/**
+	 * Parse flow
+	 * @param json json to parse
+	 */
 	public static void parseJsonFlowGson(String json) {
 		Gson gson = new Gson();
 		LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -228,6 +258,10 @@ public class JsonManager {
 
 	}
 
+	/**
+	 * Parse hosts
+	 * @param json json to parse
+	 */
 	public static void parseJsonHostsGson(String json) {
 		Gson gson = new Gson();
 		
@@ -260,6 +294,11 @@ public class JsonManager {
 		}
 	}
 
+	/**
+	 * Parse vpls
+	 * @param json json to parse
+	 * @return VPLS list
+	 */
 	public static List<Vpls> parseVpls(String json) {
 		Gson gson = new Gson();
 		List<Vpls> vplsList = new ArrayList<Vpls>();
@@ -282,6 +321,12 @@ public class JsonManager {
 		return vplsList;
 	}
 
+	/**
+	 * Parse to get output port from path
+	 * @param id switch id
+	 * @param json json to parse
+	 * @return
+	 */
 	public static String getPortFromPathJson(String id, String json) {
 		Gson gson = new Gson();
 		LinkedTreeMap jsonObject = gson.fromJson(json, LinkedTreeMap.class);
@@ -306,6 +351,11 @@ public class JsonManager {
 		return null;
 	}
 
+	/**
+	 * Parse queues
+	 * @param json json to parse
+	 * @return queueOnos list
+	 */
 	public static List<QueueOnos> parseQueues(String json) {
 		List<QueueOnos> queuesList = new ArrayList<QueueOnos>();
 		QueueOnos q = null;

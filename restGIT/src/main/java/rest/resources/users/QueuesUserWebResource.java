@@ -33,6 +33,11 @@ import tools.EntornoTools;
 import tools.LogTools;
 import tools.Utils;
 
+/**
+ * Queues web resource
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 @Path("/users/queues")
 public class QueuesUserWebResource {
 	private Gson gson;
@@ -68,8 +73,10 @@ public class QueuesUserWebResource {
 	}
 	
 	/**
-	 * Add queues
-	 * @return Switches placed in SDN network
+	 * Add queue
+	 * @param authString authorization http user
+	 * @param jsonIn json request
+	 * @return Response
 	 */
 	@POST
 	@Consumes (MediaType.APPLICATION_JSON)
@@ -110,10 +117,11 @@ public class QueuesUserWebResource {
 	}
 	
 	/**
-	 * Get switches in the SDN network
-	 * @return Switches placed in SDN network
+	 * Delete queue
+	 * @param authString authorization http user
+	 * @param queueId queue id
+	 * @return Response
 	 */
-
 	@Path("{queueId}")
 	@DELETE
 	public Response deleteQueue(@HeaderParam("authorization") String authString,

@@ -2,6 +2,11 @@ package rest.gsonobjects.onosside;
 
 import java.util.List;
 
+/**
+ * Represents a VPLS request to ONOS
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class VplsOnosRequestAux {
 	private String name;
 	private List<String> interfaces;

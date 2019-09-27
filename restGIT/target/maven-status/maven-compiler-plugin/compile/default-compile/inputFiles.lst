@@ -17,7 +17,6 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Host.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/database/objects/QueueDBInsert.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Port.java
-/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/LinkPort.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/administration/EnvironmentAdministratorWebResource.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/Switch.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/database/objects/QueueDBResponse.java
@@ -34,7 +33,6 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowInstruction.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterClientRequestPortWithSwitch.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterClientRequestPort.java
-/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/MeterSocketDelete.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/IntentOnosRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/QueuesUserWebResource.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/QueueClientRequest.java
@@ -44,7 +42,6 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/FlowOnosRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/RegisterWebResources.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/VplsUserWebResource.java
-/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/FlowSocketOnosRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/onosside/QueueOnos.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/administration/MetersAdministratorWebResource.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/userside/FlowSocketClientRequest.java
@@ -53,7 +50,6 @@
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/FlowCriteria.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/tools/EntornoTools.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/EnvironmentUserWebResource.java
-/Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/architecture/SimplePort.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/database/objects/VplsDBResponse.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/gsonobjects/administratorside/VplsAdministratorRequest.java
 /Users/alvaroluismartinez/Desktop/PFG/OnosApiREST/rest/src/main/java/rest/resources/users/SwitchUserWebResource.java

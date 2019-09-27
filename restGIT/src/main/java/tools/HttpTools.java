@@ -12,8 +12,20 @@ import java.util.Base64;
 
 import rest.gsonobjects.onosside.OnosResponse;
 
+/**
+ * Represents a HTTP manager.
+ * @author Alvaro Luis Martinez
+ * @version 1.0
+ */
 public class HttpTools {
 
+	/**
+	 * Do post
+	 * @param url url to post
+	 * @param body json
+	 * @return onos response
+	 * @throws IOException
+	 */
 	public static OnosResponse doJSONPost(URL url, String body) throws IOException{
 		String encoding;
 		String line;
@@ -67,6 +79,12 @@ public class HttpTools {
 		return response;
 	}
 
+	/**
+	 * Do delete
+	 * @param url url to delete
+	 * @return onos response
+	 * @throws IOException
+	 */
 	public static OnosResponse doDelete(URL url) throws IOException{
 		String encoding;
 		String line;
@@ -116,6 +134,12 @@ public class HttpTools {
 		return response;
 	}
 
+	/**
+	 * Do get
+	 * @param url url to get
+	 * @return onos response
+	 * @throws IOException
+	 */
 	public static OnosResponse doJSONGet(URL url) throws IOException{
 		OnosResponse response = new OnosResponse();
 		String encoding;

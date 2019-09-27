@@ -65,7 +65,6 @@ import tools.LogTools;
 public class Testmain {
 
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
 		EntornoTools.onosHost = "10.0.2.1";
 		EntornoTools.user = "onos";
 		EntornoTools.password = "rocks";
